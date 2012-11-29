@@ -36,7 +36,7 @@
 
 #include "Leap.h"
 #include "boost/signals2.hpp"
-#include "boost/thread.hpp"
+#include "cinder/Thread.h"
 #include "cinder/Vector.h"
 
 namespace LeapSdk {
@@ -54,6 +54,10 @@ class Listener;
 class Finger
 {
 public:
+	Finger( const ci::Vec3f& position = ci::Vec3f::zero(), const ci::Vec3f& direction = ci::Vec3f::zero(),
+		   const ci::Vec3f& velocity = ci::Vec3f::zero(), float length = 0.0f, float width = 0.0f,
+		   bool isTool = false );
+	
 	const ci::Vec3f&		getDirection();
 	const ci::Vec3f&		getDirection() const;
 	float					getLength();
@@ -62,15 +66,12 @@ public:
 	const ci::Vec3f&		getPosition() const;
 	const ci::Vec3f&		getVelocity();
 	const ci::Vec3f&		getVelocity() const;
-	bool					isTool();
-	bool					isTool() const;
 	float					getWidth();
 	float					getWidth() const;
+	
+	bool					isTool();
+	bool					isTool() const;
 private:
-	Finger( const ci::Vec3f& position = ci::Vec3f::zero(), const ci::Vec3f& direction = ci::Vec3f::zero(), 
-		const ci::Vec3f& velocity = ci::Vec3f::zero(), float length = 0.0f, float width = 0.0f, 
-		bool isTool = false );
-
 	ci::Vec3f				mDirection;
 	bool					mIsTool;
 	float					mLength;
@@ -86,6 +87,10 @@ private:
 class Hand 
 {
 public:
+	Hand( const FingerMap& fingerMap = FingerMap(), const ci::Vec3f& position = ci::Vec3f::zero(),
+		 const ci::Vec3f& direction = ci::Vec3f::zero(), const ci::Vec3f& velocity = ci::Vec3f::zero(),
+		 const ci::Vec3f& normal = ci::Vec3f::zero(), const ci::Vec3f& ballPosition = ci::Vec3f::zero(),
+		 float ballRadius = 0.0f );
 	~Hand();
 
 	const ci::Vec3f&		getBallPosition();
@@ -103,11 +108,6 @@ public:
 	const ci::Vec3f&		getVelocity();
 	const ci::Vec3f&		getVelocity() const;
 private:
-	Hand( const FingerMap& fingerMap = FingerMap(), const ci::Vec3f& position = ci::Vec3f::zero(), 
-		const ci::Vec3f& direction = ci::Vec3f::zero(), const ci::Vec3f& velocity = ci::Vec3f::zero(),
-		const ci::Vec3f& normal = ci::Vec3f::zero(), const ci::Vec3f& ballPosition = ci::Vec3f::zero(), 
-		float ballRadius = 0.0f );
-
 	ci::Vec3f				mBallPosition;
 	float					mBallRadius;
 	ci::Vec3f				mDirection;
@@ -154,7 +154,7 @@ protected:
 
 	volatile bool			mConnected;
 	volatile bool			mInitialized;
-	boost::mutex			mMutex;
+	std::mutex				mMutex;
 	volatile bool			mNewFrame;
 
 	Frame					mFrame;
@@ -197,7 +197,7 @@ private:
 
 	Listener				mListener;
 
-	typedef std::shared_ptr<boost::thread>	ThreadRef;
+	typedef std::shared_ptr<std::thread>	ThreadRef;
 	volatile bool			mRunning;
 	ThreadRef				mThread;
 	void					run();

@@ -137,7 +137,6 @@ void LeapApp::draw()
 // Called when Leap frame data is ready
 void LeapApp::onFrame( Frame frame )
 {
-	OutputDebugStringA( "signaled\n" );
 	mHands = frame.getHands();
 }
 

@@ -1,7 +1,5 @@
 #include "Cinder-LeapSdk.h"
 
-#include "Windows.h"
-
 using namespace ci;
 using namespace std;
 
@@ -224,19 +222,19 @@ Listener::Listener()
 
 void Listener::onConnect( const Leap::Controller& controller ) 
 {
-	boost::lock_guard<boost::mutex> lock( mMutex );
+	lock_guard<mutex> lock( mMutex );
 	mConnected = true;
 }
 
 void Listener::onDisconnect( const Leap::Controller& controller ) 
 {
-	boost::lock_guard<boost::mutex> lock( mMutex );
+	lock_guard<mutex> lock( mMutex );
 	mConnected = false;
 }
 
 void Listener::onFrame( const Leap::Controller& controller ) 
 {
-	boost::lock_guard<boost::mutex> lock( mMutex );
+	lock_guard<mutex> lock( mMutex );
 	if ( !mNewFrame ) {
 		const Leap::Frame& controllerFrame	= controller.frame();
 		const vector<Leap::Hand>& hands		= controllerFrame.hands();
@@ -271,7 +269,7 @@ void Listener::onFrame( const Leap::Controller& controller )
 			}
 
 			const vector<Leap::Finger>& fingers = handIter->fingers();
-			for ( vector<Leap::Finger>::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); fingerIter ) {
+			for ( vector<Leap::Finger>::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); ++fingerIter ) {
 				const Leap::Ray& tip	= fingerIter->tip();
 				const Leap::Vector& d	= tip.direction;
 				const Leap::Vector& p	= tip.position;
@@ -289,11 +287,11 @@ void Listener::onFrame( const Leap::Controller& controller )
 				float width				= (float)fingerIter->width();
 
 				Finger finger( fingerPosition, fingerDirection, fingerVelocity, length, width, isTool );
-				fingerMap.insert( make_pair<int32_t, Finger>( fingerIter->id(), finger ) );
+				fingerMap[ fingerIter->id() ] = finger;
 			}
 
 			Hand hand( fingerMap, position, direction, velocity, normal, ballPosition, ballRadius );
-			handMap.insert( make_pair<int32_t, Hand>( handIter->id(), hand ) );
+			handMap[ handIter->id() ] = hand;
 		}
 
 		int64_t id						= controllerFrame.id();
@@ -305,7 +303,7 @@ void Listener::onFrame( const Leap::Controller& controller )
 
 void Listener::onInit( const Leap::Controller& controller ) 
 {
-	boost::lock_guard<boost::mutex> lock( mMutex );
+	lock_guard<mutex> lock( mMutex );
 	mInitialized = true;
 }
 
@@ -364,8 +362,8 @@ void Device::removeCallback( uint32_t id )
 
 void Device::run()
 {
-	boost::lock_guard<boost::mutex> lock( mListener.mMutex );
-	Leap::Controller controller();// &mListener );
+	lock_guard<mutex> lock( mListener.mMutex );
+	Leap::Controller controller( &mListener );
 	while ( mRunning ) {
 	}
 }
@@ -373,7 +371,7 @@ void Device::run()
 void Device::start()
 {
 	mRunning	= true;
-	mThread		= ThreadRef( new boost::thread( &Device::run, this ) );
+	mThread		= ThreadRef( new thread( &Device::run, this ) );
 }
 
 void Device::stop()
@@ -387,7 +385,7 @@ void Device::stop()
 
 void Device::update()
 {
-	/*if ( mListener.mNewFrame ) {
+	if ( mListener.mNewFrame ) {
 		mSignal( mListener.mFrame );
 		mListener.mNewFrame = false;
 	}
