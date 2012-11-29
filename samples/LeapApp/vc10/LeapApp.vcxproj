@@ -74,7 +74,7 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy "..\..\..\..\..\blocks\Cinder-Leap\bin\msw\Leapd.dll" "$(ProjectDir)bin\" /Y /C</Command>
+      <Command>xcopy "..\..\..\..\..\blocks\Cinder-Leap\lib\msw\Leapd.dll" "$(ProjectDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\..\include;</AdditionalIncludeDirectories>
@@ -108,7 +108,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy "..\..\..\..\..\blocks\Cinder-Leap\bin\msw\Leap.dll" "$(ProjectDir)bin\" /Y /C</Command>
+      <Command>xcopy "..\..\..\..\..\blocks\Cinder-Leap\lib\msw\Leap.dll" "$(ProjectDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\..\include;</AdditionalIncludeDirectories>

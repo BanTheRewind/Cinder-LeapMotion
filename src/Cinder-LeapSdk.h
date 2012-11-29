@@ -154,7 +154,6 @@ protected:
 
 	volatile bool			mConnected;
 	volatile bool			mInitialized;
-	std::mutex				mMutex;
 	volatile bool			mNewFrame;
 
 	Frame					mFrame;
@@ -173,8 +172,6 @@ public:
 	void					start();
 	void					stop();
 	void					update();
-
-	Listener*				getListener();
 
 	bool					isConnected();
 	bool					isConnected() const;
@@ -195,12 +192,11 @@ private:
 	CallbackList							mCallbacks;
 	boost::signals2::signal<void ( Frame )>	mSignal;
 
-	Listener				mListener;
-
-	typedef std::shared_ptr<std::thread>	ThreadRef;
-	volatile bool			mRunning;
-	ThreadRef				mThread;
-	void					run();
+	typedef std::shared_ptr<Leap::Controller> ControllerRef;
+	
+	ControllerRef			mController;
+	Listener*				mListener;
+	std::mutex				mMutex;
 };
 
 }

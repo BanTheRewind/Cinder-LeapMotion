@@ -222,19 +222,16 @@ Listener::Listener()
 
 void Listener::onConnect( const Leap::Controller& controller ) 
 {
-	lock_guard<mutex> lock( mMutex );
 	mConnected = true;
 }
 
 void Listener::onDisconnect( const Leap::Controller& controller ) 
 {
-	lock_guard<mutex> lock( mMutex );
 	mConnected = false;
 }
 
 void Listener::onFrame( const Leap::Controller& controller ) 
 {
-	lock_guard<mutex> lock( mMutex );
 	if ( !mNewFrame ) {
 		const Leap::Frame& controllerFrame	= controller.frame();
 		const vector<Leap::Hand>& hands		= controllerFrame.hands();
@@ -303,7 +300,6 @@ void Listener::onFrame( const Leap::Controller& controller )
 
 void Listener::onInit( const Leap::Controller& controller ) 
 {
-	lock_guard<mutex> lock( mMutex );
 	mInitialized = true;
 }
 
@@ -316,7 +312,7 @@ DeviceRef Device::create()
 
 Device::Device()
 {
-	mRunning = false;
+	mListener = 0;
 }
 
 Device::~Device()
@@ -325,31 +321,27 @@ Device::~Device()
 		iter->second->disconnect();
 		iter = mCallbacks.erase( iter );
 	}
-}
-
-Listener* Device::getListener()
-{
-	return &mListener;
+	stop();
 }
 
 bool Device::isConnected()
 {
-	return mListener.mConnected;
+	return mListener->mConnected;
 }
 
 bool Device::isConnected() const
 {
-	return mListener.mConnected;
+	return mListener->mConnected;
 }
 
 bool Device::isInitialized()
 {
-	return mListener.mInitialized;
+	return mListener->mInitialized;
 }
 
 bool Device::isInitialized() const
 {
-	return mListener.mInitialized;
+	return mListener->mInitialized;
 }
 
 void Device::removeCallback( uint32_t id )
@@ -360,34 +352,31 @@ void Device::removeCallback( uint32_t id )
 	}
 }
 
-void Device::run()
-{
-	lock_guard<mutex> lock( mListener.mMutex );
-	Leap::Controller controller( &mListener );
-	while ( mRunning ) {
-	}
-}
-
 void Device::start()
 {
-	mRunning	= true;
-	mThread		= ThreadRef( new thread( &Device::run, this ) );
+	if ( !mController && mListener == 0 ) {
+		lock_guard<mutex> lock( mMutex );
+		mListener = new Listener();
+		mController = ControllerRef( new Leap::Controller( mListener ) );
+	}
 }
 
 void Device::stop()
 {
-	mRunning = false;
-	if ( mThread ) {
-		mThread->join();
-		mThread.reset();
+	if ( mController && mListener != 0 ) {
+		lock_guard<mutex> lock( mMutex );
+		mController.reset();
+		delete mListener;
+		mListener = 0;
 	}
 }
 
 void Device::update()
 {
-	if ( mListener.mNewFrame ) {
-		mSignal( mListener.mFrame );
-		mListener.mNewFrame = false;
+	lock_guard<mutex> lock( mMutex );
+	if ( mListener->mNewFrame ) {
+		mSignal( mListener->mFrame );
+		mListener->mNewFrame = false;
 	}
 }
 
