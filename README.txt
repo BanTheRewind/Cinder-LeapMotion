@@ -1,0 +1,15 @@
+This block wraps the Leap Motion SDK.
+
+This is currently incomplete. 0.1.0 will 
+be the first stable release.
+
+-----------------------------------------
+
+Version 0.0.0
+
+-----------------------------------------
+
+http://www.bantherewind.com
+http://www.libcinder.org
+
+bantherewind@gmail.com

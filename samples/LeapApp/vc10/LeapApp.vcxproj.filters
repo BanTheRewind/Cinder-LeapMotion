@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="blocks">
+      <UniqueIdentifier>{bc923a7f-9032-44d0-91e8-3747da8487ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{aba83541-eadc-4a4a-a5e3-de71d0e60139}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="blocks\Cinder-Leap">
+      <UniqueIdentifier>{1889549a-f9cc-477d-a1b8-75dc6b47e9dd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\LeapApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\Cinder-LeapSdk.cpp">
+      <Filter>blocks\Cinder-Leap</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resources.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\Leap.h">
+      <Filter>blocks\Cinder-Leap</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Cinder-LeapSdk.h">
+      <Filter>blocks\Cinder-Leap</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
