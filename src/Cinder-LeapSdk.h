@@ -58,18 +58,12 @@ public:
 		   const ci::Vec3f& velocity = ci::Vec3f::zero(), float length = 0.0f, float width = 0.0f,
 		   bool isTool = false );
 	
-	const ci::Vec3f&		getDirection();
 	const ci::Vec3f&		getDirection() const;
-	float					getLength();
 	float					getLength() const;
-	const ci::Vec3f&		getPosition();
 	const ci::Vec3f&		getPosition() const;
-	const ci::Vec3f&		getVelocity();
 	const ci::Vec3f&		getVelocity() const;
-	float					getWidth();
 	float					getWidth() const;
 	
-	bool					isTool();
 	bool					isTool() const;
 private:
 	ci::Vec3f				mDirection;
@@ -93,19 +87,12 @@ public:
 		 float ballRadius = 0.0f );
 	~Hand();
 
-	const ci::Vec3f&		getBallPosition();
 	const ci::Vec3f&		getBallPosition() const;
-	float					getBallRadius();
 	float					getBallRadius() const;
-	const ci::Vec3f&		getDirection();
 	const ci::Vec3f&		getDirection() const;
-	const FingerMap&		getFingers();
 	const FingerMap&		getFingers() const;
-	const ci::Vec3f&		getNormal();
 	const ci::Vec3f&		getNormal() const;
-	const ci::Vec3f&		getPosition();
 	const ci::Vec3f&		getPosition() const;
-	const ci::Vec3f&		getVelocity();
 	const ci::Vec3f&		getVelocity() const;
 private:
 	ci::Vec3f				mBallPosition;
@@ -126,11 +113,8 @@ class Frame
 public:
 	~Frame();
 
-	const HandMap&			getHands();
 	const HandMap&			getHands() const;
-	int64_t					getId();
 	int64_t					getId() const;
-	int64_t					getTimestamp();
 	int64_t					getTimestamp() const;
 private:
 	Frame( const HandMap& handMap = HandMap(), int64_t id = 0, int64_t timestamp = 0 );
@@ -174,11 +158,8 @@ public:
 	void					stop();
 	void					update();
 
-	bool					isCapturing();
 	bool					isCapturing() const;
-	bool					isConnected();
 	bool					isConnected() const;
-	bool					isInitialized();
 	bool					isInitialized() const;
 
 	template<typename T, typename Y> 

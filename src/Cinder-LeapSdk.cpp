@@ -54,19 +54,9 @@ Finger::Finger( const Vec3f& position, const Vec3f& direction, const Vec3f& velo
 	mWidth		= width;
 }
 
-const Vec3f& Finger::getDirection()
-{
-	return mDirection;
-}
-
 const Vec3f& Finger::getDirection() const
 {
 	return mDirection;
-}
-
-float Finger::getLength()
-{
-	return mLength;
 }
 
 float Finger::getLength() const
@@ -74,19 +64,9 @@ float Finger::getLength() const
 	return mLength;
 }
 
-const Vec3f& Finger::getPosition()
-{
-	return mPosition;
-}
-
 const Vec3f& Finger::getPosition() const
 {
 	return mPosition;
-}
-
-const Vec3f& Finger::getVelocity()
-{
-	return mVelocity;
 }
 
 const Vec3f& Finger::getVelocity() const
@@ -94,19 +74,9 @@ const Vec3f& Finger::getVelocity() const
 	return mVelocity;
 }
 
-float Finger::getWidth()
-{
-	return mWidth;
-}
-
 float Finger::getWidth() const
 {
 	return mWidth;
-}
-
-bool Finger::isTool()
-{
-	return mIsTool;
 }
 
 bool Finger::isTool() const
@@ -133,19 +103,9 @@ Hand::~Hand()
 	mFingers.clear();
 }
 
-const Vec3f& Hand::getBallPosition()
-{
-	return mBallPosition;
-}
-
 const Vec3f& Hand::getBallPosition() const
 {
 	return mBallPosition;
-}
-
-float Hand::getBallRadius()
-{
-	return mBallRadius;
 }
 
 float Hand::getBallRadius() const
@@ -153,19 +113,9 @@ float Hand::getBallRadius() const
 	return mBallRadius;
 }
 
-const Vec3f& Hand::getDirection()
-{
-	return mDirection;
-}
-
 const Vec3f& Hand::getDirection() const
 {
 	return mDirection;
-}
-
-const FingerMap& Hand::getFingers()
-{
-	return mFingers;
 }
 
 const FingerMap& Hand::getFingers() const
@@ -173,29 +123,14 @@ const FingerMap& Hand::getFingers() const
 	return mFingers;
 }
 
-const Vec3f& Hand::getNormal()
-{
-	return mNormal;
-}
-
 const Vec3f& Hand::getNormal() const
 {
 	return mNormal;
 }
 
-const Vec3f& Hand::getPosition()
-{
-	return mPosition;
-}
-
 const Vec3f& Hand::getPosition() const
 {
 	return mPosition;
-}
-
-const Vec3f& Hand::getVelocity()
-{
-	return mVelocity;
 }
 
 const Vec3f& Hand::getVelocity() const
@@ -217,29 +152,14 @@ Frame::~Frame()
 	mHands.clear();
 }
 
-const HandMap& Frame::getHands()
-{
-	return mHands;
-}
-
 const HandMap& Frame::getHands() const
 {
 	return mHands;
 }
 
-int64_t Frame::getId()
-{
-	return mId;
-}
-
 int64_t Frame::getId() const
 {
 	return mId;
-}
-
-int64_t Frame::getTimestamp()
-{
-	return mTimestamp;
 }
 
 int64_t Frame::getTimestamp() const
@@ -366,29 +286,14 @@ Device::~Device()
 	}
 }
 
-bool Device::isCapturing()
-{
-	return mCapturing;
-}
-
 bool Device::isCapturing() const
 {
 	return mCapturing;
 }
 
-bool Device::isConnected()
-{
-	return mListener->mConnected;
-}
-
 bool Device::isConnected() const
 {
 	return mListener->mConnected;
-}
-
-bool Device::isInitialized()
-{
-	return mListener->mInitialized;
 }
 
 bool Device::isInitialized() const
@@ -418,13 +323,14 @@ void Device::stop()
 	if ( mController && mListener != 0 ) {
 		mController.reset();
 		delete mListener;
-		mListener = 0;
-		mCapturing = false;
+		mListener	= 0;
+		mCapturing	= false;
 	}
 }
 
 void Device::update()
 {
+	lock_guard<mutex> lock( mMutex );
 	if ( mListener->mNewFrame ) {
 		mSignal( mListener->mFrame );
 		mListener->mNewFrame = false;
