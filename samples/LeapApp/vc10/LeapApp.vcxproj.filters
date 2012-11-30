@@ -29,9 +29,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\Leap.h">
-      <Filter>blocks\Cinder-Leap</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\Cinder-LeapSdk.h">
       <Filter>blocks\Cinder-Leap</Filter>
     </ClInclude>

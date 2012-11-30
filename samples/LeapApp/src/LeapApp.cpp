@@ -83,8 +83,15 @@ void LeapApp::draw()
 	gl::setViewport( getWindowBounds() );
 	gl::clear( Colorf::black() );
 	gl::setMatrices( mCamera );
+
+	// Enable depth
+	gl::enableAlphaBlending();
+	gl::enableDepthRead();
+	gl::enableDepthWrite();
 	
 	// Iterate through hands
+	float headLength = 6.0f;
+	float headRadius = 3.0f;
 	for ( HandMap::const_iterator handIter = mHands.begin(); handIter != mHands.end(); ++handIter ) {
 		const Hand& hand = handIter->second;
 
@@ -98,15 +105,15 @@ void LeapApp::draw()
 
 		// Hand direction
 		gl::color( 1.0f, 0.0f, 1.0f, 1.0f );
-		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getDirection() * 10.0f );
+		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getDirection() * 100.0f, headLength, headRadius );
 
 		// Hand normal
 		gl::color( 0.0f, 0.0f, 1.0f, 1.0f );
-		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getNormal() * 5.0f );
+		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getNormal() * 100.0f, headLength, headRadius );
 
 		// Hand velocity
-		gl::color( 1.0f, 0.0f, 0.0f, 1.0f );
-		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getVelocity() );
+		gl::color( 0.0f, 1.0f, 0.0f, 1.0f );
+		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getVelocity() * 100.0f, headLength, headRadius );
 
 		// Fingers
 		const FingerMap& fingers = hand.getFingers();
@@ -114,18 +121,19 @@ void LeapApp::draw()
 			const Finger& finger = fingerIter->second;
 
 			// Finger
+			Vec3f position = finger.getPosition() + finger.getDirection() * -finger.getLength() * 5.0f;
 			gl::color( ColorAf::white() );
-			gl::drawLine( finger.getPosition(), finger.getPosition() + finger.getDirection() * -finger.getLength() );
+			gl::drawLine( finger.getPosition(), position );
 
 			// Finger tip
 			gl::pushMatrices();
-			gl::translate( finger.getPosition() );
+			gl::translate( position );
 			gl::drawStrokedCircle( Vec2f::zero(), finger.getWidth(), 16 );
 			gl::popMatrices();
 
 			// Finger velocity
 			gl::color( 0.0f, 1.0f, 0.0f, 1.0f );
-			gl::drawVector( finger.getPosition(), finger.getPosition() + finger.getVelocity() );
+			gl::drawVector( position, position + finger.getVelocity() * 0.05f, headLength, headRadius );
 		}
 	}
 	
@@ -161,13 +169,10 @@ void LeapApp::setup()
 	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ); 
 	gl::enable( GL_POLYGON_SMOOTH );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
-	gl::enableAlphaBlending();
-	gl::enableDepthRead();
-	gl::enableDepthWrite();
 
 	// Set up camera
 	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
-	mCamera.lookAt( Vec3f( 0.0f, 100.0f, 500.0f ), Vec3f( 0.0f, 50.0f, 0.0f ) );
+	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
 	// Start device
 	mLeap = Device::create();
@@ -177,11 +182,15 @@ void LeapApp::setup()
 	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl( "Params", Vec2i( 200, 120 ) );
-	mParams.addParam( "Frame rate",		&mFrameRate, "", true );
-	mParams.addParam( "Full screen",	&mFullScreen, "key=f" );
+	mParams = params::InterfaceGl( "Params", Vec2i( 200, 200 ) );
+	mParams.addParam( "Frame rate",		&mFrameRate,						"", true );
+	mParams.addParam( "Full screen",	&mFullScreen,						"key=f"		);
+	mParams.addSeparator();
+	mParams.addButton( "Start",			bind( &Device::start, mLeap ),		"key=p" );
+	mParams.addButton( "Stop",			bind( &Device::stop, mLeap ),		"key=t" );
+	mParams.addSeparator();
 	mParams.addButton( "Screen shot",	bind( &LeapApp::screenShot, this ), "key=space" );
-	mParams.addButton( "Quit",			bind( &LeapApp::quit, this ), "key=q" );
+	mParams.addButton( "Quit",			bind( &LeapApp::quit, this ),		"key=q" );
 }
 
 // Quit
@@ -203,7 +212,7 @@ void LeapApp::update()
 	}
 
 	// Update device
-	if ( mLeap && mLeap->isConnected() ) {		
+	if ( mLeap && mLeap->isCapturing() ) {		
 		mLeap->update();
 	}
 }

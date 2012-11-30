@@ -173,6 +173,8 @@ public:
 	void					stop();
 	void					update();
 
+	bool					isCapturing();
+	bool					isCapturing() const;
 	bool					isConnected();
 	bool					isConnected() const;
 	bool					isInitialized();
@@ -194,6 +196,7 @@ private:
 
 	typedef std::shared_ptr<Leap::Controller> ControllerRef;
 	
+	bool					mCapturing;
 	ControllerRef			mController;
 	Listener*				mListener;
 	std::mutex				mMutex;
