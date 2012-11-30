@@ -222,16 +222,19 @@ Listener::Listener()
 
 void Listener::onConnect( const Leap::Controller& controller ) 
 {
+	lock_guard<mutex> lock( mMutex );
 	mConnected = true;
 }
 
 void Listener::onDisconnect( const Leap::Controller& controller ) 
 {
+	lock_guard<mutex> lock( mMutex );
 	mConnected = false;
 }
 
 void Listener::onFrame( const Leap::Controller& controller ) 
 {
+	lock_guard<mutex> lock( mMutex );
 	if ( !mNewFrame ) {
 		const Leap::Frame& controllerFrame	= controller.frame();
 		const vector<Leap::Hand>& hands		= controllerFrame.hands();
@@ -300,6 +303,7 @@ void Listener::onFrame( const Leap::Controller& controller )
 
 void Listener::onInit( const Leap::Controller& controller ) 
 {
+	lock_guard<mutex> lock( mMutex );
 	mInitialized = true;
 }
 
@@ -365,7 +369,7 @@ void Device::removeCallback( uint32_t id )
 
 void Device::start()
 {
-	lock_guard<mutex> lock( mMutex );
+	lock_guard<mutex> lock( mListener->mMutex );
 	if ( !mController && mListener == 0 ) {
 		mListener = new Listener();
 		mController = ControllerRef( new Leap::Controller( mListener ) );
@@ -375,7 +379,7 @@ void Device::start()
 
 void Device::stop()
 {
-	lock_guard<mutex> lock( mMutex );
+	lock_guard<mutex> lock( mListener->mMutex );
 	if ( mController && mListener != 0 ) {
 		mController.reset();
 		delete mListener;
@@ -386,7 +390,7 @@ void Device::stop()
 
 void Device::update()
 {
-	lock_guard<mutex> lock( mMutex );
+	lock_guard<mutex> lock( mListener->mMutex );
 	if ( mListener->mNewFrame ) {
 		mSignal( mListener->mFrame );
 		mListener->mNewFrame = false;

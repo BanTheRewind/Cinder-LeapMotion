@@ -154,6 +154,7 @@ protected:
 
 	volatile bool			mConnected;
 	volatile bool			mInitialized;
+	std::mutex				mMutex;
 	volatile bool			mNewFrame;
 
 	Frame					mFrame;
@@ -199,7 +200,6 @@ private:
 	bool					mCapturing;
 	ControllerRef			mController;
 	Listener*				mListener;
-	std::mutex				mMutex;
 };
 
 }
