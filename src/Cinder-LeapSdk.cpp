@@ -320,6 +320,7 @@ void Device::start()
 
 void Device::stop()
 {
+	lock_guard<mutex> lock( mMutex );
 	if ( mController && mListener != 0 ) {
 		mController.reset();
 		delete mListener;
