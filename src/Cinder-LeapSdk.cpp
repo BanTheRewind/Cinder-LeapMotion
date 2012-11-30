@@ -273,22 +273,16 @@ DeviceRef Device::create()
 
 Device::Device()
 {
-	mCapturing	= false;
-	mListener	= 0;
+	mListener	= new Listener( &mMutex );
+	mController = new Leap::Controller( mListener );
 }
 
 Device::~Device()
 {
-	stop();
 	for ( CallbackList::iterator iter = mCallbacks.begin(); iter != mCallbacks.end(); ) {
 		iter->second->disconnect();
 		iter = mCallbacks.erase( iter );
 	}
-}
-
-bool Device::isCapturing() const
-{
-	return mCapturing;
 }
 
 bool Device::isConnected() const
@@ -306,26 +300,6 @@ void Device::removeCallback( uint32_t id )
 	if ( mCallbacks.find( id ) != mCallbacks.end() ) {
 		mCallbacks.find( id )->second->disconnect();
 		mCallbacks.erase( id ); 
-	}
-}
-
-void Device::start()
-{
-	if ( !mController && mListener == 0 ) {
-		mListener = new Listener( &mMutex );
-		mController = ControllerRef( new Leap::Controller( mListener ) );
-		mCapturing = true;
-	}
-}
-
-void Device::stop()
-{
-	lock_guard<mutex> lock( mMutex );
-	if ( mController && mListener != 0 ) {
-		mController.reset();
-		delete mListener;
-		mListener	= 0;
-		mCapturing	= false;
 	}
 }
 

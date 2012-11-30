@@ -177,7 +177,6 @@ void LeapApp::setup()
 	// Start device
 	mLeap = Device::create();
 	mLeap->addCallback( &LeapApp::onFrame, this );
-	mLeap->start();
 
 	// Params
 	mFrameRate	= 0.0f;
@@ -185,10 +184,6 @@ void LeapApp::setup()
 	mParams = params::InterfaceGl( "Params", Vec2i( 200, 200 ) );
 	mParams.addParam( "Frame rate",		&mFrameRate,						"", true );
 	mParams.addParam( "Full screen",	&mFullScreen,						"key=f"		);
-	mParams.addSeparator();
-	mParams.addButton( "Start",			bind( &Device::start, mLeap ),		"key=p" );
-	mParams.addButton( "Stop",			bind( &Device::stop, mLeap ),		"key=t" );
-	mParams.addSeparator();
 	mParams.addButton( "Screen shot",	bind( &LeapApp::screenShot, this ), "key=space" );
 	mParams.addButton( "Quit",			bind( &LeapApp::quit, this ),		"key=q" );
 }
@@ -212,7 +207,7 @@ void LeapApp::update()
 	}
 
 	// Update device
-	if ( mLeap && mLeap->isCapturing() ) {		
+	if ( mLeap && mLeap->isConnected() ) {		
 		mLeap->update();
 	}
 }

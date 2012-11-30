@@ -41,9 +41,6 @@
 
 namespace LeapSdk {
 
-typedef boost::signals2::connection				Callback;
-typedef std::shared_ptr<Callback>				CallbackRef;
-typedef std::map<uint32_t, CallbackRef>			CallbackList;
 typedef std::shared_ptr<class Device>			DeviceRef;
 typedef std::map<int32_t, class Hand>			HandMap;
 typedef std::map<int32_t, class Finger>			FingerMap;
@@ -54,18 +51,24 @@ class Listener;
 class Finger
 {
 public:
+	//! Returns normalized vector of finger pointing direction.
+	const ci::Vec3f&		getDirection() const;
+	//! Returns length of finger in millimeters.
+	float					getLength() const;
+	//! Returns position vector of finger in millimeters.
+	const ci::Vec3f&		getPosition() const;
+	//! Returns velocity vector of finger in millimeters.
+	const ci::Vec3f&		getVelocity() const;
+	//! Returns width of finger in millimeters.
+	float					getWidth() const;
+	
+	//! Returns true if finger is holding a tool.
+	bool					isTool() const;
+private:
 	Finger( const ci::Vec3f& position = ci::Vec3f::zero(), const ci::Vec3f& direction = ci::Vec3f::zero(),
 		   const ci::Vec3f& velocity = ci::Vec3f::zero(), float length = 0.0f, float width = 0.0f,
 		   bool isTool = false );
-	
-	const ci::Vec3f&		getDirection() const;
-	float					getLength() const;
-	const ci::Vec3f&		getPosition() const;
-	const ci::Vec3f&		getVelocity() const;
-	float					getWidth() const;
-	
-	bool					isTool() const;
-private:
+
 	ci::Vec3f				mDirection;
 	bool					mIsTool;
 	float					mLength;
@@ -73,6 +76,7 @@ private:
 	ci::Vec3f				mVelocity;
 	float					mWidth;
 
+	friend FingerMap::mapped_type& FingerMap::operator[]( FingerMap::key_type&& );
 	friend class			Listener;
 };
 
@@ -81,20 +85,28 @@ private:
 class Hand 
 {
 public:
+	~Hand();
+
+	//! Returns position vector of hand ball in millimeters.
+	const ci::Vec3f&		getBallPosition() const;
+	//! Returns radius of hand ball in millimeters.
+	float					getBallRadius() const;
+	//! Returns normalized vector of palm face direction.
+	const ci::Vec3f&		getDirection() const;
+	//! Returns map of finger object.
+	const FingerMap&		getFingers() const;
+	//! Returns hand normal vector.
+	const ci::Vec3f&		getNormal() const;
+	//! Returns position vector of hand in millimeters.
+	const ci::Vec3f&		getPosition() const;
+	//! Returns velocity vector of hand in millimeters.
+	const ci::Vec3f&		getVelocity() const;
+private:
 	Hand( const FingerMap& fingerMap = FingerMap(), const ci::Vec3f& position = ci::Vec3f::zero(),
 		 const ci::Vec3f& direction = ci::Vec3f::zero(), const ci::Vec3f& velocity = ci::Vec3f::zero(),
 		 const ci::Vec3f& normal = ci::Vec3f::zero(), const ci::Vec3f& ballPosition = ci::Vec3f::zero(),
 		 float ballRadius = 0.0f );
-	~Hand();
 
-	const ci::Vec3f&		getBallPosition() const;
-	float					getBallRadius() const;
-	const ci::Vec3f&		getDirection() const;
-	const FingerMap&		getFingers() const;
-	const ci::Vec3f&		getNormal() const;
-	const ci::Vec3f&		getPosition() const;
-	const ci::Vec3f&		getVelocity() const;
-private:
 	ci::Vec3f				mBallPosition;
 	float					mBallRadius;
 	ci::Vec3f				mDirection;
@@ -103,6 +115,7 @@ private:
 	ci::Vec3f				mPosition;
 	ci::Vec3f				mVelocity;
 
+	friend HandMap::mapped_type& HandMap::operator[]( HandMap::key_type&& );
 	friend class			Listener;
 };
 
@@ -113,8 +126,11 @@ class Frame
 public:
 	~Frame();
 
+	//! Returns map of hands.
 	const HandMap&			getHands() const;
+	// Returns frame ID.
 	int64_t					getId() const;
+	// Return time stamp.
 	int64_t					getTimestamp() const;
 private:
 	Frame( const HandMap& handMap = HandMap(), int64_t id = 0, int64_t timestamp = 0 );
@@ -151,17 +167,20 @@ protected:
 class Device
 {
 public:
+	//! Creates and returns device instance.
 	static DeviceRef		create();
 	~Device();
 	
-	void					start();
-	void					stop();
+	//! Must be called to trigger frame events.
 	void					update();
 
-	bool					isCapturing() const;
+	//! Returns true if the device is connected.
 	bool					isConnected() const;
+	//! Returns true if LEAP application is initialized.
 	bool					isInitialized() const;
 
+	/*! Adds frame event callback. \a callback has the signature \a void(Frame). 
+		\a callbackObject is the instance receiving the event. Returns callback ID.*/
 	template<typename T, typename Y> 
 	inline uint32_t			addCallback( T callback, Y *callbackObject )
 	{
@@ -169,17 +188,19 @@ public:
 		mCallbacks.insert( std::make_pair( id, CallbackRef( new Callback( mSignal.connect( std::bind( callback, callbackObject, std::placeholders::_1 ) ) ) ) ) );
 		return id;
 	}
+	//! Remove callback by ID.
 	void					removeCallback( uint32_t id );
 private:
 	Device();
 
+	typedef boost::signals2::connection		Callback;
+	typedef std::shared_ptr<Callback>		CallbackRef;
+	typedef std::map<uint32_t, CallbackRef>	CallbackList;
+
 	CallbackList							mCallbacks;
 	boost::signals2::signal<void ( Frame )>	mSignal;
 
-	typedef std::shared_ptr<Leap::Controller> ControllerRef;
-	
-	bool					mCapturing;
-	ControllerRef			mController;
+	Leap::Controller*		mController;
 	Listener*				mListener;
 	std::mutex				mMutex;
 };
