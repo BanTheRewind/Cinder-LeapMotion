@@ -121,7 +121,7 @@ void LeapApp::draw()
 			const Finger& finger = fingerIter->second;
 
 			// Finger
-			Vec3f position = finger.getPosition() + finger.getDirection() * -finger.getLength() * 5.0f;
+			Vec3f position = finger.getPosition() + finger.getDirection() * -finger.getLength() * 3.0f;
 			gl::color( ColorAf::white() );
 			gl::drawLine( finger.getPosition(), position );
 

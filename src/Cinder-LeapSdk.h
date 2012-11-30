@@ -146,7 +146,7 @@ private:
 class Listener : public Leap::Listener
 {
 protected:
-	Listener();
+	Listener( std::mutex *mutex );
     virtual void			onConnect( const Leap::Controller& controller );
     virtual void			onDisconnect( const Leap::Controller& controller );
     virtual void			onFrame( const Leap::Controller& controller );
@@ -154,7 +154,7 @@ protected:
 
 	volatile bool			mConnected;
 	volatile bool			mInitialized;
-	std::mutex				mMutex;
+	std::mutex				*mMutex;
 	volatile bool			mNewFrame;
 
 	Frame					mFrame;
@@ -200,6 +200,7 @@ private:
 	bool					mCapturing;
 	ControllerRef			mController;
 	Listener*				mListener;
+	std::mutex				mMutex;
 };
 
 }
