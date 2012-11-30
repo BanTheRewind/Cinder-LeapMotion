@@ -181,7 +181,7 @@ void LeapApp::setup()
 	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl( "Params", Vec2i( 200, 200 ) );
+	mParams = params::InterfaceGl( "Params", Vec2i( 200, 105 ) );
 	mParams.addParam( "Frame rate",		&mFrameRate,						"", true );
 	mParams.addParam( "Full screen",	&mFullScreen,						"key=f"		);
 	mParams.addButton( "Screen shot",	bind( &LeapApp::screenShot, this ), "key=space" );
