@@ -183,16 +183,20 @@ class Finger : public Interface {
     /// If velocity is not available, then the function returns a null pointer.
     LEAP_EXPORT const Vector* velocity() const;
 
-    /// The estimated width of the finger or tool in millimeters. If the width
-    /// isn't known, then a value of 0 is returned.
+    /// The estimated width of the finger or tool in millimeters. 
+    /// 
+    /// The reported width is the average width of the visible portion of the tool 
+    /// from the hand to the tip. If the width isn't known, then a value of 0 is returned.
     LEAP_EXPORT double width() const;
 
-    /// The estimated length of the finger or tool in millimeters. If the length
-    /// isn't known, then a value of 0 is returned.
+    /// The estimated length of the finger or tool in millimeters. 
+    ///
+    /// The reported length is the visible length of the tool from the hand to 
+    /// tip. If the length isn't known, then a value of 0 is returned.
     LEAP_EXPORT double length() const;
 
     /// Whether or not the finger is believed to be a tool. Tools are generally
-    /// longer, thinner, and more straight than fingers.
+    /// longer, thinner, and straighter than fingers.
     LEAP_EXPORT bool isTool() const;
 };
 
@@ -292,7 +296,7 @@ class Config : public Interface {
 
     /// Enumerates the possible data types for configuration values.
     ///
-    /// The Config::type() function returns an item from the ValueType enumeration.
+    /// The Config::type() method returns an item from the ValueType enumeration.
     enum ValueType {
       TYPE_UNKNOWN, ///< The data type is unknown.
       TYPE_BOOLEAN, ///< A boolean value.
@@ -311,6 +315,10 @@ class Config : public Interface {
     /// @returns The native data type of the value, that is, the type that does not
     /// require a data conversion.
     LEAP_EXPORT ValueType type(const std::string& key) const;
+
+    /// Reports whether the value is an array of homogeneous objects. The type
+    /// of the objects in the array is returned using the Config::type() method.
+    LEAP_EXPORT bool isArray(const std::string& key) const;
 
     /// Gets the boolean representation for the specified key.
     LEAP_EXPORT bool getBool(const std::string& key) const;
@@ -335,6 +343,30 @@ class Config : public Interface {
 
     /// Gets the string representation for the specified key.
     LEAP_EXPORT std::string getString(const std::string& key) const;
+
+    /// Gets the boolean array representation for the specified key.
+    LEAP_EXPORT std::vector<bool> getBoolArray(const std::string& key) const;
+
+    /// Gets the 32-bit integer array representation for the specified key.
+    LEAP_EXPORT std::vector<int32_t> getInt32Array(const std::string& key) const;
+
+    /// Gets the 64-bit integer array representation for the specified key.
+    LEAP_EXPORT std::vector<int64_t> getInt64Array(const std::string& key) const;
+
+    /// Gets the unsigned 32-bit integer array representation for the specified key.
+    LEAP_EXPORT std::vector<uint32_t> getUInt32Array(const std::string& key) const;
+
+    /// Gets the unsigned 64-bit integer array representation for the specified key.
+    LEAP_EXPORT std::vector<uint64_t> getUInt64Array(const std::string& key) const;
+
+    /// Gets the floating point array representation for the specified key.
+    LEAP_EXPORT std::vector<float> getFloatArray(const std::string& key) const;
+
+    /// Gets the double precision array representation for the specified key.
+    LEAP_EXPORT std::vector<double> getDoubleArray(const std::string& key) const;
+
+    /// Gets the string array representation for the specified key.
+    LEAP_EXPORT std::vector<std::string> getStringArray(const std::string& key) const;
 };
 
 /// The Controller class is your main interface to the Leap device.
@@ -345,11 +377,13 @@ class Config : public Interface {
 /// most recent frame. Set the history parameter to a positive integer to access
 /// previous frames. A controller stores up to 60 frames in its frame history.
 ///
-/// You can also assign an instance of a Listener subclass to the controller
-/// to handle events as they occur. The Leap dispatches events to the listener
-/// on initialization, on connection changes, and when a new frame of motion
-/// tracking data is available. When these events occur, the controller object
-/// invokes the appropriate callback function defined in your Listener subclass.
+/// Polling is an appropriate strategy for applications which already have an
+/// intrinsic update loop, such as a game. You can also assign an instance of a 
+/// Listener subclass to the controller to handle events as they occur. The Leap 
+/// dispatches events to the listener on initialization, on connection changes, 
+/// and when a new frame of motion tracking data is available. When these events 
+/// occur, the controller object invokes the appropriate callback function defined 
+/// in your Listener subclass.
 ///
 /// To access frames of motion tracking data as they become available:
 /// 1. Implement a subclass of the Listener class and override the
