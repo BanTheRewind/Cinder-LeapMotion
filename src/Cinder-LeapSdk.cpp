@@ -208,21 +208,21 @@ void Listener::onFrame( const Leap::Controller& controller )
 			const Leap::Ball* ball		= handIter->ball();
 			if ( ball != 0 ) {
 				const Leap::Vector& p	= ball->position;
-				ballPosition			= Vec3f( p.x, p.y, p.z );
-				ballRadius				= ball->radius;
+				ballPosition			= Vec3f( (float)p.x, (float)p.y, (float)p.z );
+				ballRadius				= (float)ball->radius;
 			}
 
 			const Leap::Ray* palmRay = handIter->palm();
 			if ( palmRay != 0 ) {
 				const Leap::Vector& d	= palmRay->direction;
 				const Leap::Vector& p	= palmRay->position;
-				direction				= Vec3f( d.x, d.y, d.z );
-				position				= Vec3f( p.x, p.y, p.z );
+				direction				= Vec3f( (float)d.x, (float)d.y, (float)d.z );
+				position				= Vec3f( (float)p.x, (float)p.y, (float)p.z );
 			}
 
 			const Leap::Vector* n		= handIter->normal();
 			if ( n != 0 ) {
-				normal					= Vec3f( n->x, n->y, n->z );
+				normal					= Vec3f( (float)n->x, (float)n->y, (float)n->z );
 			}
 
 			const vector<Leap::Finger>& fingers = handIter->fingers();
@@ -230,13 +230,13 @@ void Listener::onFrame( const Leap::Controller& controller )
 				const Leap::Ray& tip	= fingerIter->tip();
 				const Leap::Vector& d	= tip.direction;
 				const Leap::Vector& p	= tip.position;
-				Vec3f fingerDirection	= Vec3f( d.x, d.y, d.z );
-				Vec3f fingerPosition	= Vec3f( p.x, p.y, p.z );
+				Vec3f fingerDirection	= Vec3f( (float)d.x, (float)d.y, (float)d.z );
+				Vec3f fingerPosition	= Vec3f( (float)p.x, (float)p.y, (float)p.z );
 
 				Vec3f fingerVelocity	= Vec3f::zero();
 				const Leap::Vector* v	= fingerIter->velocity();
 				if ( v != 0 ) {
-					fingerVelocity		= Vec3f( v->x, v->y, v->z );
+					fingerVelocity		= Vec3f( (float)v->x, (float)v->y, (float)v->z );
 				}
 
 				bool isTool				= fingerIter->isTool();
