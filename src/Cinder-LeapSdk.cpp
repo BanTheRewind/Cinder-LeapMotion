@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2012, Ban the Rewind
+* Copyright (c) 2013, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -43,74 +43,79 @@ namespace LeapSdk {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-Finger::Finger( const Vec3f& position, const Vec3f& direction, const Vec3f& velocity, 
-					 float length, float width, bool isTool )
+Pointable::Pointable()
 {
-	mDirection	= direction.normalized();
-	mIsTool		= isTool;
-	mLength		= length;
-	mPosition	= position;
-	mVelocity	= velocity;
-	mWidth		= width;
+	mDirection	= Vec3f::zero();
+	mLength		= 0.0f;
+	mPosition	= Vec3f::zero();
+	mVelocity	= Vec3f::zero();
+	mWidth		= 0.0f;
 }
-
-const Vec3f& Finger::getDirection() const
+	
+Pointable::Pointable( const Pointable& p )
+{
+	mDirection	= p.mDirection;
+	mLength		= p.mLength;
+	mPosition	= p.mPosition;
+	mVelocity	= p.mVelocity;
+	mWidth		= p.mWidth;
+}
+	
+const Vec3f& Pointable::getDirection() const
 {
 	return mDirection;
 }
 
-float Finger::getLength() const
+float Pointable::getLength() const
 {
 	return mLength;
 }
 
-const Vec3f& Finger::getPosition() const
+const Vec3f& Pointable::getPosition() const
 {
 	return mPosition;
 }
 
-const Vec3f& Finger::getVelocity() const
+const Vec3f& Pointable::getVelocity() const
 {
 	return mVelocity;
 }
 
-float Finger::getWidth() const
+float Pointable::getWidth() const
 {
 	return mWidth;
 }
 
-bool Finger::isTool() const
+Finger::Finger()
+: Pointable()
 {
-	return mIsTool;
+}
+
+Finger::Finger( const Pointable& p )
+: Pointable( p )
+{
+}
+
+Tool::Tool()
+: Pointable()
+{
+}
+	
+Tool::Tool( const Pointable& p )
+: Pointable( p )
+{
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-Hand::Hand( const FingerMap& fingerMap, const Vec3f& position, const Vec3f& direction, 
-	 const Vec3f& velocity, const Vec3f& normal, const Vec3f& ballPosition, float ballRadius )
+Hand::Hand()
 {
-	mBallPosition	= ballPosition;
-	mBallRadius		= ballRadius;
-	mDirection		= direction.normalized();
-	mFingers		= fingerMap;
-	mNormal			= normal.normalized();
-	mPosition		= position;
-	mVelocity		= velocity;
 }
 
 Hand::~Hand()
 {
 	mFingers.clear();
-}
-
-const Vec3f& Hand::getBallPosition() const
-{
-	return mBallPosition;
-}
-
-float Hand::getBallRadius() const
-{
-	return mBallRadius;
+	mTools.clear();
 }
 
 const Vec3f& Hand::getDirection() const
@@ -132,6 +137,16 @@ const Vec3f& Hand::getPosition() const
 {
 	return mPosition;
 }
+	
+const Vec3f& Hand::getSpherePosition() const
+{
+	return mSpherePosition;
+}
+
+float Hand::getSphereRadius() const
+{
+	return mSphereRadius;
+}
 
 const Vec3f& Hand::getVelocity() const
 {
@@ -140,13 +155,10 @@ const Vec3f& Hand::getVelocity() const
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-Frame::Frame( const HandMap& handMap, int64_t id, int64_t timestamp )
+Frame::Frame()
 {
-	mHands		= handMap;
-	mId			= id;
-	mTimestamp	= timestamp;
 }
-
+	
 Frame::~Frame()
 {
 	mHands.clear();
@@ -169,11 +181,11 @@ int64_t Frame::getTimestamp() const
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-Listener::Listener( mutex *mutex )
+Listener::Listener()
 {
 	mConnected		= false;
+	mExited			= false;
 	mInitialized	= false;
-	mMutex			= mutex;
 	mNewFrame		= false;
 }
 
@@ -188,80 +200,106 @@ void Listener::onDisconnect( const Leap::Controller& controller )
 	lock_guard<mutex> lock( *mMutex );
 	mConnected = false;
 }
+	
+void Listener::onExit( const Leap::Controller& controller )
+{
+	lock_guard<mutex> lock( *mMutex );
+	mExited = true;
+}
 
 void Listener::onFrame( const Leap::Controller& controller ) 
 {
-	lock_guard<mutex> lock( *mMutex );
+	/*lock_guard<mutex> lock( *mMutex );
 	if ( !mNewFrame ) {
 		const Leap::Frame& controllerFrame	= controller.frame();
-		const vector<Leap::Hand>& hands		= controllerFrame.hands();
+		const Leap::HandList& hands			= controllerFrame.hands();
+		
 		HandMap handMap;
-		for ( vector<Leap::Hand>::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
-			float ballRadius			= 0.0f;	
-			Vec3f ballPosition			= Vec3f::zero();
-			Vec3f direction				= Vec3f::zero();
+		for ( Leap::HandList::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
+			const Leap::Hand& hand	= *handIter;
+			Hand outHand;
+
 			FingerMap fingerMap;
-			Vec3f normal				= Vec3f::zero();
-			Vec3f position				= Vec3f::zero();
-			Vec3f velocity				= Vec3f::zero();
-
-			const Leap::Ball* ball		= handIter->ball();
-			if ( ball != 0 ) {
-				const Leap::Vector& p	= ball->position;
-				ballPosition			= Vec3f( (float)p.x, (float)p.y, (float)p.z );
-				ballRadius				= (float)ball->radius;
-			}
-
-			const Leap::Ray* palmRay = handIter->palm();
-			if ( palmRay != 0 ) {
-				const Leap::Vector& d	= palmRay->direction;
-				const Leap::Vector& p	= palmRay->position;
-				direction				= Vec3f( (float)d.x, (float)d.y, (float)d.z );
-				position				= Vec3f( (float)p.x, (float)p.y, (float)p.z );
-			}
-
-			const Leap::Vector* n		= handIter->normal();
-			if ( n != 0 ) {
-				normal					= Vec3f( (float)n->x, (float)n->y, (float)n->z );
-			}
-
-			const vector<Leap::Finger>& fingers = handIter->fingers();
-			for ( vector<Leap::Finger>::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); ++fingerIter ) {
-				const Leap::Ray& tip	= fingerIter->tip();
-				const Leap::Vector& d	= tip.direction;
-				const Leap::Vector& p	= tip.position;
-				Vec3f fingerDirection	= Vec3f( (float)d.x, (float)d.y, (float)d.z );
-				Vec3f fingerPosition	= Vec3f( (float)p.x, (float)p.y, (float)p.z );
-
-				Vec3f fingerVelocity	= Vec3f::zero();
-				const Leap::Vector* v	= fingerIter->velocity();
-				if ( v != 0 ) {
-					fingerVelocity		= Vec3f( (float)v->x, (float)v->y, (float)v->z );
+			ToolMap toolMap;
+			const Leap::PointableList& pointables = hand.pointables();
+			for ( Leap::PointableList::const_iterator ptIter = pointables.begin(); ptIter != pointables.end(); ++ptIter ) {
+				const Leap::Pointable& pt = *ptIter;
+				if ( pt.isValid() ) {
+					Pointable pointable;
+					
+					pointable.mDirection	= toVec3f( pt.direction() );
+					pointable.mLength		= (float)pt.length();
+					pointable.mPosition		= toVec3f( pt.tipPosition() );
+					pointable.mVelocity		= toVec3f( pt.tipVelocity() );
+					pointable.mWidth		= (float)pt.width();
+					
+					if ( pt.isFinger() ) {
+						fingerMap[ pt.id() ] = Finger( pointable );
+					} else if ( pt.isTool() ) {
+						toolMap[ pt.id() ] = Tool( pointable );
+					}
 				}
-
-				bool isTool				= fingerIter->isTool();
-				float length			= (float)fingerIter->length();
-				float width				= (float)fingerIter->width();
-
-				Finger finger( fingerPosition, fingerDirection, fingerVelocity, length, width, isTool );
-				fingerMap[ fingerIter->id() ] = finger;
 			}
+			
+			outHand.mDirection			= toVec3f( hand.direction() );
+			outHand.mFingers			= fingerMap;
+			outHand.mNormal				= toVec3f( hand.palmNormal() );
+			outHand.mPosition			= toVec3f( hand.palmPosition() );
+			outHand.mRotationAngle		= (float)hand.rotationAngle( mLeapFrame );
+			outHand.mRotationAxis		= toVec3f( hand.rotationAxis( mLeapFrame ) );
+			outHand.mRotationMatrix		= toMatrix44f( hand.rotationMatrix( mLeapFrame ) );
+			outHand.mScale				= (float)hand.scaleFactor( mLeapFrame );
+			outHand.mSphereRadius		= (float)hand.sphereRadius();
+			outHand.mSpherePosition		= toVec3f( hand.sphereCenter() );
+			outHand.mTools				= toolMap;
+			outHand.mTranslation		= toVec3f( hand.translation( mLeapFrame ) );
+			outHand.mVelocity			= toVec3f( hand.palmVelocity() );
 
-			Hand hand( fingerMap, position, direction, velocity, normal, ballPosition, ballRadius );
-			handMap[ handIter->id() ] = hand;
+			handMap[ hand.id() ] = outHand;
 		}
 
-		int64_t id						= controllerFrame.id();
-		int64_t timestamp				= controllerFrame.timestamp();
-		mFrame							= Frame( handMap, id, timestamp );
-		mNewFrame						= true;
-	}
+		mFrame.mHands		= handMap;
+		mFrame.mId			= controllerFrame.id();
+		mFrame.mTimestamp	= controllerFrame.timestamp();
+		
+		mLeapFrame			= controllerFrame;
+		mNewFrame			= true;
+	}*/
 }
 
 void Listener::onInit( const Leap::Controller& controller ) 
 {
 	lock_guard<mutex> lock( *mMutex );
 	mInitialized = true;
+}
+
+Matrix33f Listener::toMatrix33f( const Leap::Matrix& m )
+{
+	Matrix33f mtx;
+	Leap::FloatArray a = m.toArray3x3();
+	for ( size_t i = 0; i < 3; ++i ) {
+		size_t j = i * 3;
+		Vec3f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ] );
+		mtx.setRow( i, row );
+	}
+	return mtx;
+}
+	
+Matrix44f Listener::toMatrix44f( const Leap::Matrix& m )
+{
+	Matrix44f mtx;
+	Leap::FloatArray a = m.toArray4x4();
+	for ( size_t i = 0; i < 4; ++i ) {
+		size_t j = i * 4;
+		Vec4f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ], a[ j + 3 ] );
+		mtx.setRow( i, row );
+	}
+	return mtx;
+}
+	
+Vec3f Listener::toVec3f( const Leap::Vector& v )
+{
+	return Vec3f( (float)v.x, (float)v.y, (float)v.z );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -273,8 +311,8 @@ DeviceRef Device::create()
 
 Device::Device()
 {
-	mListener	= new Listener( &mMutex );
-	mController = new Leap::Controller( mListener );
+	mListener.mMutex	= &mMutex;
+	mController			= new Leap::Controller( mListener );
 }
 
 Device::~Device()
@@ -287,12 +325,12 @@ Device::~Device()
 
 bool Device::isConnected() const
 {
-	return mListener->mConnected;
+	return mListener.mConnected;
 }
 
 bool Device::isInitialized() const
 {
-	return mListener->mInitialized;
+	return mListener.mInitialized;
 }
 
 void Device::removeCallback( uint32_t id )
@@ -306,9 +344,9 @@ void Device::removeCallback( uint32_t id )
 void Device::update()
 {
 	lock_guard<mutex> lock( mMutex );
-	if ( mListener->mNewFrame ) {
-		mSignal( mListener->mFrame );
-		mListener->mNewFrame = false;
+	if ( mListener.mNewFrame ) {
+		mSignal( mListener.mFrame );
+		mListener.mNewFrame = false;
 	}
 }
 

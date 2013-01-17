@@ -54,6 +54,7 @@
 		AE1BA8711667F14D00E8CDFD /* Leap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Leap.h; path = ../../../src/Leap.h; sourceTree = "<group>"; };
 		AE1BA8731667F1BD00E8CDFD /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = CinderApp.icns; sourceTree = "<group>"; };
 		AE362B63166801590094CD37 /* libLeap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libLeap.dylib; path = ../../../lib/macosx/libLeap.dylib; sourceTree = "<group>"; };
+		AEC8E2AC16A7595A002B7DAD /* LeapMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LeapMath.h; path = ../../../src/LeapMath.h; sourceTree = "<group>"; };
 		CC680A809AF041E8BE4D8AE5 /* LeapApp_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeapApp_Prefix.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -171,6 +172,7 @@
 				AE1BA86F1667F14D00E8CDFD /* Cinder-LeapSdk.cpp */,
 				AE1BA8701667F14D00E8CDFD /* Cinder-LeapSdk.h */,
 				AE1BA8711667F14D00E8CDFD /* Leap.h */,
+				AEC8E2AC16A7595A002B7DAD /* LeapMath.h */,
 			);
 			name = "Cinder-LeapSdk";
 			sourceTree = "<group>";

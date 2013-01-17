@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2012, Ban the Rewind
+* Copyright (c) 2013, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -96,10 +96,10 @@ void LeapApp::draw()
 		const Hand& hand = handIter->second;
 
 		// Hand ball
-		if ( hand.getBallRadius() > 0.0f ) {
+		if ( hand.getSphereRadius() > 0.0f ) {
 			gl::color( ColorAf( 1.0f, 1.0f, 0.0f, 0.25f ) );
 			gl::enableWireframe();
-			gl::drawSphere( hand.getBallPosition(), hand.getBallRadius(), 16 );
+			gl::drawSphere( hand.getSpherePosition(), hand.getSphereRadius(), 16 );
 			gl::disableWireframe();
 		}
 

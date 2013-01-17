@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2012, Ban the Rewind
+* Copyright (c) 2013, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -31,53 +31,70 @@
 * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
 * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
+*
 */
 
+#pragma once
+
 #include "Leap.h"
+#include "boost/container/map.hpp"
 #include "boost/signals2.hpp"
+#include "cinder/Matrix.h"
 #include "cinder/Thread.h"
 #include "cinder/Vector.h"
 
 namespace LeapSdk {
 
-typedef std::shared_ptr<class Device>			DeviceRef;
-typedef std::map<int32_t, class Hand>			HandMap;
-typedef std::map<int32_t, class Finger>			FingerMap;
+typedef std::shared_ptr<class Device>					DeviceRef;
+typedef boost::container::map<int32_t, class Hand>		HandMap;
+typedef boost::container::map<int32_t, class Finger>	FingerMap;
+typedef boost::container::map<int32_t, class Tool>		ToolMap;
 class Listener;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-class Finger
+class Pointable
 {
 public:
-	//! Returns normalized vector of finger pointing direction.
-	const ci::Vec3f&		getDirection() const;
-	//! Returns length of finger in millimeters.
-	float					getLength() const;
-	//! Returns position vector of finger in millimeters.
-	const ci::Vec3f&		getPosition() const;
-	//! Returns velocity vector of finger in millimeters.
-	const ci::Vec3f&		getVelocity() const;
-	//! Returns width of finger in millimeters.
-	float					getWidth() const;
+	//! Returns normalized vector of pointing direction.
+	const ci::Vec3f&	getDirection() const;
+	//! Returns length in millimeters.
+	float				getLength() const;
+	//! Returns position vector in millimeters.
+	const ci::Vec3f&	getPosition() const;
+	//! Returns velocity vector in millimeters.
+	const ci::Vec3f&	getVelocity() const;
+	//! Returns width in millimeters.
+	float				getWidth() const;
+protected:
+	Pointable();
+	Pointable( const Pointable& p );
 	
-	//! Returns true if finger is holding a tool.
-	bool					isTool() const;
+	ci::Vec3f			mDirection;
+	float				mLength;
+	ci::Vec3f			mPosition;
+	ci::Vec3f			mVelocity;
+	float				mWidth;
+	
+	friend class		Listener;
+};
+	
+class Finger : public Pointable
+{
 private:
-	Finger( const ci::Vec3f& position = ci::Vec3f::zero(), const ci::Vec3f& direction = ci::Vec3f::zero(),
-		   const ci::Vec3f& velocity = ci::Vec3f::zero(), float length = 0.0f, float width = 0.0f,
-		   bool isTool = false );
-
-	ci::Vec3f				mDirection;
-	bool					mIsTool;
-	float					mLength;
-	ci::Vec3f				mPosition;
-	ci::Vec3f				mVelocity;
-	float					mWidth;
-
+	Finger();
+	Finger( const Pointable& p );
 	friend FingerMap::mapped_type& FingerMap::operator[]( FingerMap::key_type&& );
-	friend class			Listener;
+	friend class		Listener;
+};
+	
+class Tool : public Pointable
+{
+private:
+	Tool();
+	Tool( const Pointable& p );
+	friend ToolMap::mapped_type& ToolMap::operator[]( ToolMap::key_type&& );
+	friend class		Listener;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -87,32 +104,51 @@ class Hand
 public:
 	~Hand();
 
-	//! Returns position vector of hand ball in millimeters.
-	const ci::Vec3f&		getBallPosition() const;
-	//! Returns radius of hand ball in millimeters.
-	float					getBallRadius() const;
 	//! Returns normalized vector of palm face direction.
 	const ci::Vec3f&		getDirection() const;
-	//! Returns map of finger object.
+	//! Returns map of fingers.
 	const FingerMap&		getFingers() const;
-	//! Returns hand normal vector.
+	//! Returns normalized vector of palm face normal.
 	const ci::Vec3f&		getNormal() const;
 	//! Returns position vector of hand in millimeters.
 	const ci::Vec3f&		getPosition() const;
+	/*! The angle of rotation around the rotation axis derived from the 
+		change in orientation of this hand since the previous frame. */
+	float					getRotationAngle() const;
+	/*! The rotation axis derived from the change in orientation of this 
+		hand since the previous frame. */
+	const ci::Vec3f&		getRotationAxis() const;
+	/*! The rotation derived from the change in orientation of this 
+		hand since the previous frame. */
+	const ci::Matrix44f&	getRotationMatrix() const;
+	//! The scale difference since the previous frame.
+	float					getScale() const;
+	//! Returns position vector of hand sphere in millimeters.
+	const ci::Vec3f&		getSpherePosition() const;
+	//! Returns radius of hand sphere in millimeters.
+	float					getSphereRadius() const;
+	//! Returns map of tools.
+	const ToolMap&			getTools() const;
+	/*! The translation derived from the change of position of this
+		hand since the previous frame. */
+	const ci::Vec3f&		getTranslation() const;
 	//! Returns velocity vector of hand in millimeters.
 	const ci::Vec3f&		getVelocity() const;
 private:
-	Hand( const FingerMap& fingerMap = FingerMap(), const ci::Vec3f& position = ci::Vec3f::zero(),
-		 const ci::Vec3f& direction = ci::Vec3f::zero(), const ci::Vec3f& velocity = ci::Vec3f::zero(),
-		 const ci::Vec3f& normal = ci::Vec3f::zero(), const ci::Vec3f& ballPosition = ci::Vec3f::zero(),
-		 float ballRadius = 0.0f );
+	Hand();
 
-	ci::Vec3f				mBallPosition;
-	float					mBallRadius;
 	ci::Vec3f				mDirection;
 	FingerMap				mFingers;
 	ci::Vec3f				mNormal;
 	ci::Vec3f				mPosition;
+	float					mRotationAngle;
+	ci::Vec3f				mRotationAxis;
+	ci::Matrix44f			mRotationMatrix;
+	float					mScale;
+	ci::Vec3f				mSpherePosition;
+	float					mSphereRadius;
+	ToolMap					mTools;
+	ci::Vec3f				mTranslation;
 	ci::Vec3f				mVelocity;
 
 	friend HandMap::mapped_type& HandMap::operator[]( HandMap::key_type&& );
@@ -127,18 +163,19 @@ public:
 	~Frame();
 
 	//! Returns map of hands.
-	const HandMap&			getHands() const;
+	const HandMap&	getHands() const;
 	// Returns frame ID.
-	int64_t					getId() const;
+	int64_t			getId() const;
 	// Return time stamp.
-	int64_t					getTimestamp() const;
+	int64_t			getTimestamp() const;
 private:
-	Frame( const HandMap& handMap = HandMap(), int64_t id = 0, int64_t timestamp = 0 );
-	HandMap					mHands;
-	int64_t					mId;
-	int64_t					mTimestamp;
+	Frame();
+	
+	HandMap			mHands;
+	int64_t			mId;
+	int64_t			mTimestamp;
 
-	friend class			Listener;
+	friend class	Listener;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,20 +183,27 @@ private:
 class Listener : public Leap::Listener
 {
 protected:
-	Listener( std::mutex *mutex );
-    virtual void			onConnect( const Leap::Controller& controller );
-    virtual void			onDisconnect( const Leap::Controller& controller );
-    virtual void			onFrame( const Leap::Controller& controller );
-	virtual void			onInit( const Leap::Controller& controller );
+	Listener();
+    virtual void	onConnect( const Leap::Controller& controller );
+    virtual void	onDisconnect( const Leap::Controller& controller );
+	virtual void	onExit( const Leap::Controller& controller );
+    virtual void	onFrame( const Leap::Controller& controller );
+	virtual void	onInit( const Leap::Controller& controller );
 
-	volatile bool			mConnected;
-	volatile bool			mInitialized;
-	std::mutex				*mMutex;
-	volatile bool			mNewFrame;
+	volatile bool	mConnected;
+	volatile bool	mExited;
+	volatile bool	mInitialized;
+	std::mutex		*mMutex;
+	volatile bool	mNewFrame;
 
-	Frame					mFrame;
+	Frame			mFrame;
+	Leap::Frame		mLeapFrame;
 
-	friend class			Device;
+	friend class	Device;
+	
+	ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );
+	ci::Matrix44f	toMatrix44f( const Leap::Matrix& m );
+	ci::Vec3f		toVec3f( const Leap::Vector& v );
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,28 +212,28 @@ class Device
 {
 public:
 	//! Creates and returns device instance.
-	static DeviceRef		create();
+	static DeviceRef	create();
 	~Device();
 	
 	//! Must be called to trigger frame events.
-	void					update();
+	void				update();
 
 	//! Returns true if the device is connected.
-	bool					isConnected() const;
+	bool				isConnected() const;
 	//! Returns true if LEAP application is initialized.
-	bool					isInitialized() const;
+	bool				isInitialized() const;
 
 	/*! Adds frame event callback. \a callback has the signature \a void(Frame). 
 		\a callbackObject is the instance receiving the event. Returns callback ID.*/
 	template<typename T, typename Y> 
-	inline uint32_t			addCallback( T callback, Y *callbackObject )
+	inline uint32_t		addCallback( T callback, Y *callbackObject )
 	{
 		uint32_t id = mCallbacks.empty() ? 0 : mCallbacks.rbegin()->first + 1;
 		mCallbacks.insert( std::make_pair( id, CallbackRef( new Callback( mSignal.connect( std::bind( callback, callbackObject, std::placeholders::_1 ) ) ) ) ) );
 		return id;
 	}
 	//! Remove callback by ID.
-	void					removeCallback( uint32_t id );
+	void				removeCallback( uint32_t id );
 private:
 	Device();
 
@@ -200,9 +244,9 @@ private:
 	CallbackList							mCallbacks;
 	boost::signals2::signal<void ( Frame )>	mSignal;
 
-	Leap::Controller*		mController;
-	Listener*				mListener;
-	std::mutex				mMutex;
+	Leap::Controller*	mController;
+	Listener			mListener;
+	std::mutex			mMutex;
 };
 
 }
