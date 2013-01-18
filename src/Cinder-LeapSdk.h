@@ -37,18 +37,13 @@
 #pragma once
 
 #include "Leap.h"
-#include "boost/container/map.hpp"
 #include "boost/signals2.hpp"
 #include "cinder/Matrix.h"
 #include "cinder/Thread.h"
 #include "cinder/Vector.h"
 
 namespace LeapSdk {
-
-typedef std::shared_ptr<class Device>					DeviceRef;
-typedef boost::container::map<int32_t, class Hand>		HandMap;
-typedef boost::container::map<int32_t, class Finger>	FingerMap;
-typedef boost::container::map<int32_t, class Tool>		ToolMap;
+	
 class Listener;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,27 +76,31 @@ protected:
 	
 class Finger : public Pointable
 {
-private:
+public:
 	Finger();
 	Finger( const Pointable& p );
-	friend FingerMap::mapped_type& FingerMap::operator[]( FingerMap::key_type&& );
+private:
 	friend class		Listener;
 };
 	
 class Tool : public Pointable
 {
-private:
+public:
 	Tool();
 	Tool( const Pointable& p );
-	friend ToolMap::mapped_type& ToolMap::operator[]( ToolMap::key_type&& );
+private:
 	friend class		Listener;
 };
+
+typedef std::map<int32_t, Finger>	FingerMap;
+typedef std::map<int32_t, Tool>		ToolMap;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 class Hand 
 {
 public:
+	Hand();
 	~Hand();
 
 	//! Returns normalized vector of palm face direction.
@@ -118,9 +117,12 @@ public:
 	/*! The rotation axis derived from the change in orientation of this 
 		hand since the previous frame. */
 	const ci::Vec3f&		getRotationAxis() const;
-	/*! The rotation derived from the change in orientation of this 
+	/*! The rotation in 2d derived from the change in orientation of this
+	 hand since the previous frame. */
+	const ci::Matrix33f&	getRotationMatrix2d() const;
+	/*! The rotation in 3d derived from the change in orientation of this
 		hand since the previous frame. */
-	const ci::Matrix44f&	getRotationMatrix() const;
+	const ci::Matrix44f&	getRotationMatrix3d() const;
 	//! The scale difference since the previous frame.
 	float					getScale() const;
 	//! Returns position vector of hand sphere in millimeters.
@@ -135,25 +137,25 @@ public:
 	//! Returns velocity vector of hand in millimeters.
 	const ci::Vec3f&		getVelocity() const;
 private:
-	Hand();
-
 	ci::Vec3f				mDirection;
 	FingerMap				mFingers;
 	ci::Vec3f				mNormal;
 	ci::Vec3f				mPosition;
 	float					mRotationAngle;
 	ci::Vec3f				mRotationAxis;
-	ci::Matrix44f			mRotationMatrix;
+	ci::Matrix33f			mRotationMatrix2d;
+	ci::Matrix44f			mRotationMatrix3d;
 	float					mScale;
 	ci::Vec3f				mSpherePosition;
 	float					mSphereRadius;
 	ToolMap					mTools;
 	ci::Vec3f				mTranslation;
 	ci::Vec3f				mVelocity;
-
-	friend HandMap::mapped_type& HandMap::operator[]( HandMap::key_type&& );
+	
 	friend class			Listener;
 };
+
+typedef std::map<int32_t, Hand> HandMap;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -208,6 +210,8 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef std::shared_ptr<class Device> DeviceRef;
+
 class Device
 {
 public:
@@ -224,7 +228,7 @@ public:
 	bool				isInitialized() const;
 
 	/*! Adds frame event callback. \a callback has the signature \a void(Frame). 
-		\a callbackObject is the instance receiving the event. Returns callback ID.*/
+		\a callbackObject is the instance receiving the event. Returns callback ID. */
 	template<typename T, typename Y> 
 	inline uint32_t		addCallback( T callback, Y *callbackObject )
 	{

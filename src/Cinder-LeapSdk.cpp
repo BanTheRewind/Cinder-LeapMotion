@@ -209,7 +209,7 @@ void Listener::onExit( const Leap::Controller& controller )
 
 void Listener::onFrame( const Leap::Controller& controller ) 
 {
-	/*lock_guard<mutex> lock( *mMutex );
+	lock_guard<mutex> lock( *mMutex );
 	if ( !mNewFrame ) {
 		const Leap::Frame& controllerFrame	= controller.frame();
 		const Leap::HandList& hands			= controllerFrame.hands();
@@ -247,7 +247,8 @@ void Listener::onFrame( const Leap::Controller& controller )
 			outHand.mPosition			= toVec3f( hand.palmPosition() );
 			outHand.mRotationAngle		= (float)hand.rotationAngle( mLeapFrame );
 			outHand.mRotationAxis		= toVec3f( hand.rotationAxis( mLeapFrame ) );
-			outHand.mRotationMatrix		= toMatrix44f( hand.rotationMatrix( mLeapFrame ) );
+			outHand.mRotationMatrix2d	= toMatrix33f( hand.rotationMatrix( mLeapFrame ) );
+			outHand.mRotationMatrix3d	= toMatrix44f( hand.rotationMatrix( mLeapFrame ) );
 			outHand.mScale				= (float)hand.scaleFactor( mLeapFrame );
 			outHand.mSphereRadius		= (float)hand.sphereRadius();
 			outHand.mSpherePosition		= toVec3f( hand.sphereCenter() );
@@ -264,7 +265,7 @@ void Listener::onFrame( const Leap::Controller& controller )
 		
 		mLeapFrame			= controllerFrame;
 		mNewFrame			= true;
-	}*/
+	}
 }
 
 void Listener::onInit( const Leap::Controller& controller ) 
