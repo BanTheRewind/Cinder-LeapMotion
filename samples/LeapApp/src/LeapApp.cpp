@@ -63,9 +63,6 @@ private:
 	bool					mFullScreen;
 	ci::params::InterfaceGl	mParams;
 
-	// Calculate rotation matrix from vector
-	ci::Matrix44f			calcRotation( const ci::Vec3f& v );
-	
 	// Save screen shot
 	void					screenShot();
 };
@@ -78,36 +75,6 @@ using namespace ci;
 using namespace ci::app;
 using namespace LeapSdk;
 using namespace std;
-
-Matrix44f LeapApp::calcRotation( const Vec3f& v )
-{
-	static const float c = 0.54030230586f;	// cos( 1 )
-	static const float s = 0.8414709848f;	// sin( 1 )
-	static const float t = 0.45969769414;	// 1 - cos( 1 )
-	
-	Matrix44f m;
-	m.m00 = t * v.x * v.x + c;
-	m.m01 = t * v.x * v.y - s * v.z;
-	m.m02 = t * v.x * v.z + s * v.y;
-	m.m03 = 0.0f;
-	
-	m.m10 = t * v.x * v.y + s * v.z;
-	m.m11 = t * v.y * v.y + c;
-	m.m12 = t * v.y * v.z - s * v.x;
-	m.m13 = 0.0f;
-	
-	m.m20 = t * v.x * v.z + s * v.y;
-	m.m21 = t * v.y * v.z + s * v.x;
-	m.m22 = t * v.z * v.z + c;
-	m.m23 = 0.0f;
-	
-	m.m30 = 0.0f;
-	m.m31 = 0.0f;
-	m.m32 = 0.0f;
-	m.m33 = 0.0f;
-	
-	return m;
-}
 
 // Render
 void LeapApp::draw()
@@ -129,28 +96,31 @@ void LeapApp::draw()
 		const Hand& hand = handIter->second;
 
 		// Hand sphere
-		/*if ( hand.getSphereRadius() > 0.0f ) {
-			gl::color( ColorAf( 1.0f, 1.0f, 0.0f, 0.25f ) );
-			gl::enableWireframe();
-			gl::drawSphere( hand.getSpherePosition(), hand.getSphereRadius(), 16 );
-			gl::disableWireframe();
-		}*/
-		
+		gl::enableWireframe();
+		gl::color( ColorAf( Colorf::gray( 0.9f ), 0.5f ) );
+		gl::drawSphere( hand.getSpherePosition(), hand.getSphereRadius(), 16 );
+		gl::disableWireframe();
+
+		// Hand plane
+		gl::color( ColorAf( 0.75f, 0.0f, 0.75f, 0.25f ) );
 		gl::pushMatrices();
-		gl::multModelView( calcRotation( hand.getPosition() + hand.getDirection() ) );
-		gl::drawStrokedCircle( Vec2f::zero(), hand.getSphereRadius(), 16 );
+		gl::translate( hand.getPosition() );
+		gl::rotate( Quatf( hand.getPosition(), hand.getDirection() ) );
+		for ( float i = 0.25f; i <= 1.0f; i += 0.25f ) {
+			gl::drawStrokedCircle( Vec2f::zero(), hand.getSphereRadius() * i, 16 );
+		}
 		gl::popMatrices();
 
 		// Hand direction
-		gl::color( 1.0f, 0.0f, 1.0f, 1.0f );
-		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getDirection(), headLength, headRadius );
+		gl::color( 1.0f, 0.0f, 1.0f, 0.5f );
+		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getDirection() * 30.0f, headLength, headRadius );
 
 		// Hand normal
-		gl::color( 0.0f, 0.0f, 1.0f, 1.0f );
-		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getNormal(), headLength, headRadius );
+		gl::color( 0.0f, 0.0f, 1.0f, 0.5f );
+		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getNormal() * 30.0f, headLength, headRadius );
 
 		// Hand velocity
-		gl::color( 0.0f, 1.0f, 0.0f, 1.0f );
+		gl::color( 0.0f, 1.0f, 0.0f, 0.5f );
 		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getVelocity() * 0.05f, headLength, headRadius );
 
 		// Fingers
@@ -159,25 +129,25 @@ void LeapApp::draw()
 			const Finger& finger = fingerIter->second;
 
 			// Finger
-			Vec3f position = finger.getPosition() + finger.getDirection() * -finger.getLength();
-			gl::color( ColorAf::gray( 0.5f ) );
+			Vec3f position = finger.getPosition() + finger.getDirection() * finger.getLength();
+			gl::color( ColorAf::gray( 0.3f ) );
 			gl::drawLine( finger.getPosition(), position );
 
 			// Finger tip
+			gl::color( ColorAf::black() );
 			gl::pushMatrices();
 			gl::translate( position );
 			gl::drawStrokedCircle( Vec2f::zero(), finger.getWidth(), 16 );
 			gl::popMatrices();
 
 			// Finger velocity
-			gl::color( 0.0f, 1.0f, 0.0f, 1.0f );
+			gl::color( 0.0f, 1.0f, 0.0f, 0.5f );
 			gl::drawVector( position, position + finger.getVelocity() * 0.05f, headLength, headRadius );
 		}
 	}
 	
 	// Draw the interface
 	mParams.draw();
-
 }
 
 // Called when Leap frame data is ready
