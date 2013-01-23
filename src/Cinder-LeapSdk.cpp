@@ -138,6 +138,26 @@ const Vec3f& Hand::getPosition() const
 	return mPosition;
 }
 	
+const Vec3f& Hand::getRotationAxis() const
+{
+	return mRotationAxis;
+}
+
+const Matrix33f& Hand::getRotationMatrix2d() const
+{
+	return mRotationMatrix2d;
+}
+
+const Matrix44f& Hand::getRotationMatrix3d() const
+{
+	return mRotationMatrix3d;
+}
+
+float Hand::getScale() const
+{
+	return mScale;
+}
+	
 const Vec3f& Hand::getSpherePosition() const
 {
 	return mSpherePosition;
@@ -146,6 +166,16 @@ const Vec3f& Hand::getSpherePosition() const
 float Hand::getSphereRadius() const
 {
 	return mSphereRadius;
+}
+
+const ToolMap& Hand::getTools() const
+{
+	return mTools;
+}
+
+const Vec3f& Hand::getTranslation() const
+{
+	return mTranslation;
 }
 
 const Vec3f& Hand::getVelocity() const
