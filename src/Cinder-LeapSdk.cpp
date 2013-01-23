@@ -353,7 +353,12 @@ Device::~Device()
 		iter = mCallbacks.erase( iter );
 	}
 }
-
+	
+bool Device::hasExited() const
+{
+	return mListener.mExited;
+}
+	
 bool Device::isConnected() const
 {
 	return mListener.mConnected;

@@ -166,7 +166,12 @@ void LeapApp::prepareSettings( Settings *settings )
 // Take screen shot
 void LeapApp::screenShot()
 {
-	writeImage( getAppPath() / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
+#if defined( CINDER_MSW )
+	fs::path path = getAppPath();
+#else
+	fs::path path = getAppPath().parent_path();
+#endif
+	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
 // Set up

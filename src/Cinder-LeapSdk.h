@@ -222,6 +222,8 @@ public:
 	//! Must be called to trigger frame events.
 	void				update();
 
+	//! Returns true if the device has exited.
+	bool				hasExited() const;
 	//! Returns true if the device is connected.
 	bool				isConnected() const;
 	//! Returns true if LEAP application is initialized.

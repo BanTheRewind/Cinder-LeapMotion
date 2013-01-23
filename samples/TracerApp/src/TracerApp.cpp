@@ -46,7 +46,7 @@ class TracerApp : public ci::app::AppBasic
 {
 public:
 	void					draw();
-	void					onResize( ci::app::ResizeEvent event );
+	void					onResize();
 	void					prepareSettings( ci::app::AppBasic::Settings *settings );
 	void					setup();
 	void					shutdown();
@@ -103,8 +103,6 @@ void TracerApp::draw()
 	gl::drawSolidRect( Rectf( mFbo[ 0 ].getBounds() ) );
 
 	// Draw finger tips into the accumulation buffer
-	float headLength = 6.0f;
-	float headRadius = 3.0f;
 	gl::setMatrices( mCamera );
 	gl::enableAdditiveBlending();
 	for ( RibbonMap::const_iterator iter = mRibbons.begin(); iter != mRibbons.end(); ++iter ) {
@@ -123,8 +121,8 @@ void TracerApp::draw()
 		gl::clear();
 		
 		mShader[ i ].bind();
-		mShader[ i ].uniform( "size",		pixel );
-		mShader[ i ].uniform( "tex",		0 );
+		mShader[ i ].uniform( "size",	pixel );
+		mShader[ i ].uniform( "tex",	0 );
 				
 		gl::Texture& texture = mFbo[ i ].getTexture();
 		texture.bind();
@@ -159,7 +157,7 @@ void TracerApp::onFrame( Frame frame )
 	mHands = frame.getHands();
 }
 
-void TracerApp::onResize( ResizeEvent event )
+void TracerApp::onResize()
 {
 	// Enable polygon smoothing
 	gl::enable( GL_POLYGON_SMOOTH );
@@ -167,12 +165,16 @@ void TracerApp::onResize( ResizeEvent event )
 
 	// Set up FBOs
 	gl::Fbo::Format format;
+#if defined( CINDER_MSW )
 	format.setColorInternalFormat( GL_RGBA32F );
+#else
+	format.setColorInternalFormat( GL_RGBA32F_ARB );
+#endif
 	format.setMinFilter( GL_LINEAR );
 	format.setMagFilter( GL_LINEAR );
 	format.setWrap( GL_CLAMP, GL_CLAMP );
 	for ( size_t i = 0; i < 3; ++i ) {
-		mFbo[ i ]	= gl::Fbo( event.getWidth(), event.getHeight(), format );
+		mFbo[ i ]	= gl::Fbo( getWindowWidth(), getWindowHeight(), format );
 		mFbo[ i ].bindFramebuffer();
 		gl::setViewport( mFbo[ i ].getBounds() );
 		gl::clear();
@@ -192,7 +194,12 @@ void TracerApp::prepareSettings( Settings *settings )
 // Take screen shot
 void TracerApp::screenShot()
 {
-	writeImage( getAppPath() / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
+#if defined( CINDER_MSW )
+	fs::path path = getAppPath();
+#else
+	fs::path path = getAppPath().parent_path();
+#endif
+	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
 // Set up
@@ -231,7 +238,7 @@ void TracerApp::setup()
 	mParams.addButton( "Quit",			bind( &TracerApp::quit, this ),			"key=q" );
 
 	// Run resize event to set up OpenGL
-	onResize( ResizeEvent( getWindowSize() ) );
+	onResize();
 }
 
 // Quit
@@ -275,7 +282,7 @@ void TracerApp::update()
 				v.z = math<float>::abs( v.z );
 				Colorf color( ColorModel::CM_RGB, v );
 				Ribbon ribbon( id, color );
-				mRibbons.insert( make_pair<int32_t, Ribbon>( id, ribbon ) );
+				mRibbons[ id ] = ribbon;
 			}
 			float width = ( finger.getWidth() + finger.getVelocity().length() ) * 0.01f;
 			mRibbons[ id ].addPoint( finger.getPosition(), width );
