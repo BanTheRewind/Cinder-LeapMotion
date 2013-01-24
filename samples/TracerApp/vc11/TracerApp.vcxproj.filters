@@ -5,17 +5,18 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="blocks">
-      <UniqueIdentifier>{bc923a7f-9032-44d0-91e8-3747da8487ea}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files">
-      <UniqueIdentifier>{aba83541-eadc-4a4a-a5e3-de71d0e60139}</UniqueIdentifier>
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{27a5cf6d-84ad-4e9a-89f1-d66d8e3b79f4}</UniqueIdentifier>
+    <Filter Include="blocks">
+      <UniqueIdentifier>{45d24446-3e56-4215-a1fa-96eb967451d4}</UniqueIdentifier>
     </Filter>
     <Filter Include="blocks\Cinder-LeapSdk">
-      <UniqueIdentifier>{1889549a-f9cc-477d-a1b8-75dc6b47e9dd}</UniqueIdentifier>
+      <UniqueIdentifier>{b4c6b03c-4f71-4a06-a861-abda64840ef2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{db5b0def-827b-4809-a474-719156d9c1d7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -30,12 +31,23 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="cinder_app_icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
     <ResourceCompile Include="Resources.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\Cinder-LeapSdk.h">
+      <Filter>blocks\Cinder-LeapSdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Leap.h">
+      <Filter>blocks\Cinder-LeapSdk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\LeapMath.h">
       <Filter>blocks\Cinder-LeapSdk</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Resources.h">

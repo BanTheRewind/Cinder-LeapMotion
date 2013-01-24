@@ -240,15 +240,13 @@ void Listener::onFrame( const Leap::Controller& controller )
 		const Leap::HandList& hands			= controllerFrame.hands();
 		
 		HandMap handMap;
-		for ( Leap::HandList::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
-			const Leap::Hand& hand	= *handIter;
+		for ( const Leap::Hand& hand : hands ) {
 			Hand outHand;
 
 			FingerMap fingerMap;
 			ToolMap toolMap;
 			const Leap::PointableList& pointables = hand.pointables();
-			for ( Leap::PointableList::const_iterator ptIter = pointables.begin(); ptIter != pointables.end(); ++ptIter ) {
-				const Leap::Pointable& pt = *ptIter;
+			for ( const Leap::Pointable& pt : pointables ) {
 				if ( pt.isValid() ) {
 					Pointable pointable;
 					
@@ -313,10 +311,10 @@ Device::Device()
 
 Device::~Device()
 {
-	for ( CallbackList::iterator iter = mCallbacks.begin(); iter != mCallbacks.end(); ) {
-		iter->second->disconnect();
-		iter = mCallbacks.erase( iter );
+	for ( const auto& cb : mCallbacks ) {
+		cb.second->disconnect();
 	}
+	mCallbacks.clear();
 }
 	
 bool Device::hasExited() const
