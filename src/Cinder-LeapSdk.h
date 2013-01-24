@@ -117,12 +117,9 @@ public:
 	/*! The rotation axis derived from the change in orientation of this 
 		hand since the previous frame. */
 	const ci::Vec3f&		getRotationAxis() const;
-	/*! The rotation in 2d derived from the change in orientation of this
+	/*! The rotation derived from the change in orientation of this
 	 hand since the previous frame. */
-	const ci::Matrix33f&	getRotationMatrix2d() const;
-	/*! The rotation in 3d derived from the change in orientation of this
-		hand since the previous frame. */
-	const ci::Matrix44f&	getRotationMatrix3d() const;
+	const ci::Matrix44f&	getRotationMatrix() const;
 	//! The scale difference since the previous frame.
 	float					getScale() const;
 	//! Returns position vector of hand sphere in millimeters.
@@ -143,8 +140,7 @@ private:
 	ci::Vec3f				mPosition;
 	float					mRotationAngle;
 	ci::Vec3f				mRotationAxis;
-	ci::Matrix33f			mRotationMatrix2d;
-	ci::Matrix44f			mRotationMatrix3d;
+	ci::Matrix44f			mRotationMatrix;
 	float					mScale;
 	ci::Vec3f				mSpherePosition;
 	float					mSphereRadius;
@@ -202,10 +198,6 @@ protected:
 	Leap::Frame		mLeapFrame;
 
 	friend class	Device;
-	
-	ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );
-	ci::Matrix44f	toMatrix44f( const Leap::Matrix& m );
-	ci::Vec3f		toVec3f( const Leap::Vector& v );
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -254,5 +246,11 @@ private:
 	Listener			mListener;
 	std::mutex			mMutex;
 };
+
+ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );
+ci::Matrix44f	toMatrix44f( const Leap::Matrix& m );
+ci::Vec3f		toVec3f( const Leap::Vector& v );
+	
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 }

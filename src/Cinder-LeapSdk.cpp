@@ -143,14 +143,9 @@ const Vec3f& Hand::getRotationAxis() const
 	return mRotationAxis;
 }
 
-const Matrix33f& Hand::getRotationMatrix2d() const
+const Matrix44f& Hand::getRotationMatrix() const
 {
-	return mRotationMatrix2d;
-}
-
-const Matrix44f& Hand::getRotationMatrix3d() const
-{
-	return mRotationMatrix3d;
+	return mRotationMatrix;
 }
 
 float Hand::getScale() const
@@ -277,8 +272,7 @@ void Listener::onFrame( const Leap::Controller& controller )
 			outHand.mPosition			= toVec3f( hand.palmPosition() );
 			outHand.mRotationAngle		= (float)hand.rotationAngle( mLeapFrame );
 			outHand.mRotationAxis		= toVec3f( hand.rotationAxis( mLeapFrame ) );
-			outHand.mRotationMatrix2d	= toMatrix33f( hand.rotationMatrix( mLeapFrame ) );
-			outHand.mRotationMatrix3d	= toMatrix44f( hand.rotationMatrix( mLeapFrame ) );
+			outHand.mRotationMatrix		= toMatrix44f( hand.rotationMatrix( mLeapFrame ) );
 			outHand.mScale				= (float)hand.scaleFactor( mLeapFrame );
 			outHand.mSphereRadius		= (float)hand.sphereRadius();
 			outHand.mSpherePosition		= toVec3f( hand.sphereCenter() );
@@ -302,35 +296,6 @@ void Listener::onInit( const Leap::Controller& controller )
 {
 	lock_guard<mutex> lock( *mMutex );
 	mInitialized = true;
-}
-
-Matrix33f Listener::toMatrix33f( const Leap::Matrix& m )
-{
-	Matrix33f mtx;
-	Leap::FloatArray a = m.toArray3x3();
-	for ( size_t i = 0; i < 3; ++i ) {
-		size_t j = i * 3;
-		Vec3f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ] );
-		mtx.setRow( i, row );
-	}
-	return mtx;
-}
-	
-Matrix44f Listener::toMatrix44f( const Leap::Matrix& m )
-{
-	Matrix44f mtx;
-	Leap::FloatArray a = m.toArray4x4();
-	for ( size_t i = 0; i < 4; ++i ) {
-		size_t j = i * 4;
-		Vec4f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ], a[ j + 3 ] );
-		mtx.setRow( i, row );
-	}
-	return mtx;
-}
-	
-Vec3f Listener::toVec3f( const Leap::Vector& v )
-{
-	return Vec3f( (float)v.x, (float)v.y, (float)v.z );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -384,6 +349,37 @@ void Device::update()
 		mSignal( mListener.mFrame );
 		mListener.mNewFrame = false;
 	}
+}
+	
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+Matrix33f toMatrix33f( const Leap::Matrix& m )
+{
+	Matrix33f mtx;
+	Leap::FloatArray a = m.toArray3x3();
+	for ( size_t i = 0; i < 3; ++i ) {
+		size_t j = i * 3;
+		Vec3f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ] );
+		mtx.setRow( i, row );
+	}
+	return mtx;
+}
+
+Matrix44f toMatrix44f( const Leap::Matrix& m )
+{
+	Matrix44f mtx;
+	Leap::FloatArray a = m.toArray4x4();
+	for ( size_t i = 0; i < 4; ++i ) {
+		size_t j = i * 4;
+		Vec4f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ], a[ j + 3 ] );
+		mtx.setRow( i, row );
+	}
+	return mtx;
+}
+
+Vec3f toVec3f( const Leap::Vector& v )
+{
+	return Vec3f( (float)v.x, (float)v.y, (float)v.z );
 }
 
 }

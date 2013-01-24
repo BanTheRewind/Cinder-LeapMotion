@@ -144,6 +144,28 @@ void LeapApp::draw()
 			gl::color( 0.0f, 1.0f, 0.0f, 0.5f );
 			gl::drawVector( position, position + finger.getVelocity() * 0.05f, headLength, headRadius );
 		}
+		
+		// Tools
+		const ToolMap& tools = hand.getTools();
+		for ( ToolMap::const_iterator toolIter = tools.begin(); toolIter != tools.end(); ++toolIter ) {
+			const Finger& tool = toolIter->second;
+			
+			// Tool
+			Vec3f position = tool.getPosition() + tool.getDirection() * tool.getLength();
+			gl::color( ColorAf( 1.0f, 0.0f, 0.0f, 0.3f ) );
+			gl::drawLine( tool.getPosition(), position );
+			
+			// Tool tip
+			gl::color( ColorAf( 1.0f, 0.0f, 0.0f, 1.0f ) );
+			gl::pushMatrices();
+			gl::translate( position );
+			gl::drawStrokedCircle( Vec2f::zero(), tool.getWidth(), 16 );
+			gl::popMatrices();
+			
+			// Tool velocity
+			gl::color( 0.0f, 1.0f, 0.0f, 0.5f );
+			gl::drawVector( position, position + tool.getVelocity() * 0.05f, headLength, headRadius );
+		}
 	}
 	
 	// Draw the interface
