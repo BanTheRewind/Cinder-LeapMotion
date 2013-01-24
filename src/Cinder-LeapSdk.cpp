@@ -45,45 +45,41 @@ namespace LeapSdk {
 
 Pointable::Pointable()
 {
-	mDirection	= Vec3f::zero();
-	mLength		= 0.0f;
-	mPosition	= Vec3f::zero();
-	mVelocity	= Vec3f::zero();
-	mWidth		= 0.0f;
+}
+	
+Pointable::Pointable( const Leap::Pointable& pointable )
+{
+	mPointable = pointable;
 }
 	
 Pointable::Pointable( const Pointable& p )
 {
-	mDirection	= p.mDirection;
-	mLength		= p.mLength;
-	mPosition	= p.mPosition;
-	mVelocity	= p.mVelocity;
-	mWidth		= p.mWidth;
+	mPointable	= p.mPointable;
 }
 	
-const Vec3f& Pointable::getDirection() const
+Vec3f Pointable::getDirection() const
 {
-	return mDirection;
+	return toVec3f( mPointable.direction() );
 }
 
 float Pointable::getLength() const
 {
-	return mLength;
+	return (float)mPointable.length();
 }
 
-const Vec3f& Pointable::getPosition() const
+Vec3f Pointable::getPosition() const
 {
-	return mPosition;
+return toVec3f( mPointable.tipPosition() );
 }
 
-const Vec3f& Pointable::getVelocity() const
+Vec3f Pointable::getVelocity() const
 {
-	return mVelocity;
+	return toVec3f( mPointable.tipVelocity() );
 }
 
 float Pointable::getWidth() const
 {
-	return mWidth;
+return (float)mPointable.width();
 }
 
 Finger::Finger()
@@ -111,6 +107,20 @@ Tool::Tool( const Pointable& p )
 Hand::Hand()
 {
 }
+	
+Hand::Hand( const Leap::Hand& hand, const FingerMap& fingerMap, const ToolMap& toolMap, float rotAngle,
+		   const ci::Vec3f& rotAxis, const ci::Matrix44f& rotMatrix, float scale,
+		   const ci::Vec3f& translation )
+{
+	mHand			= hand;
+	mFingers		= fingerMap;
+	mRotationAngle	= rotAngle;
+	mRotationAxis	= rotAxis;
+	mRotationMatrix	= rotMatrix;
+	mScale			= scale;
+	mTools			= toolMap;
+	mTranslation	= translation;
+}
 
 Hand::~Hand()
 {
@@ -118,9 +128,9 @@ Hand::~Hand()
 	mTools.clear();
 }
 
-const Vec3f& Hand::getDirection() const
+Vec3f Hand::getDirection() const
 {
-	return mDirection;
+	return toVec3f( mHand.direction() );
 }
 
 const FingerMap& Hand::getFingers() const
@@ -128,19 +138,34 @@ const FingerMap& Hand::getFingers() const
 	return mFingers;
 }
 
-const Vec3f& Hand::getNormal() const
+Vec3f Hand::getNormal() const
 {
-	return mNormal;
+	return toVec3f( mHand.palmNormal() );
 }
 
-const Vec3f& Hand::getPosition() const
+Vec3f Hand::getPosition() const
 {
-	return mPosition;
+	return toVec3f( mHand.palmPosition() );
+}
+
+float Hand::getRotationAngle() const
+{
+	return mRotationAngle;
+}
+	
+float Hand::getRotationAngle( const Frame& frame ) const
+{
+	return (float)mHand.rotationAngle( frame.mFrame );
 }
 	
 const Vec3f& Hand::getRotationAxis() const
 {
 	return mRotationAxis;
+}
+	
+Vec3f Hand::getRotationAxis( const Frame& frame ) const
+{
+	return toVec3f( mHand.rotationAxis( frame.mFrame ) );
 }
 
 const Matrix44f& Hand::getRotationMatrix() const
@@ -148,19 +173,29 @@ const Matrix44f& Hand::getRotationMatrix() const
 	return mRotationMatrix;
 }
 
+Matrix44f Hand::getRotationMatrix( const Frame& frame ) const
+{
+	return toMatrix44f( mHand.rotationMatrix( frame.mFrame ) );
+}
+
 float Hand::getScale() const
 {
 	return mScale;
 }
-	
-const Vec3f& Hand::getSpherePosition() const
+
+float Hand::getScale( const Frame& frame ) const
 {
-	return mSpherePosition;
+	return (float)mHand.scaleFactor( frame.mFrame );
+}
+	
+Vec3f Hand::getSpherePosition() const
+{
+	return toVec3f( mHand.sphereCenter() );
 }
 
 float Hand::getSphereRadius() const
 {
-	return mSphereRadius;
+	return (float)mHand.sphereRadius();
 }
 
 const ToolMap& Hand::getTools() const
@@ -173,15 +208,26 @@ const Vec3f& Hand::getTranslation() const
 	return mTranslation;
 }
 
-const Vec3f& Hand::getVelocity() const
+Vec3f Hand::getTranslation( const Frame& frame ) const
 {
-	return mVelocity;
+	return toVec3f( mHand.translation( frame.mFrame ) );
+}
+
+Vec3f Hand::getVelocity() const
+{
+	return toVec3f( mHand.palmVelocity() );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 Frame::Frame()
 {
+}
+
+Frame::Frame( const Leap::Frame& frame, const HandMap& handMap )
+{
+	mFrame	= frame;
+	mHands	= handMap;
 }
 	
 Frame::~Frame()
@@ -196,22 +242,97 @@ const HandMap& Frame::getHands() const
 
 int64_t Frame::getId() const
 {
-	return mId;
+	return mFrame.id();
 }
 
 int64_t Frame::getTimestamp() const
 {
-	return mTimestamp;
+	return mFrame.timestamp();
+}
+
+	
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+Screen::Screen()
+{
+}
+
+Screen::Screen( const Leap::Screen& screen )
+{
+	mScreen = screen;
+}
+	
+float Screen::distanceToPoint( const Vec3f& v ) const
+{
+	Leap::Vector point;
+	point.x = v.x;
+	point.y = v.y;
+	point.z = v.z;
+	return mScreen.distanceToPoint( point );
+}
+
+Vec3f Screen::getBottomLeft() const
+{
+	return toVec3f( mScreen.bottomLeftCorner() );
+}
+
+string Screen::getDescription() const
+{
+	return mScreen.toString();
+}
+
+int32_t Screen::getHeight() const
+{
+	return mScreen.heightPixels();
+}
+
+Vec3f Screen::getHorizontalAxis() const
+{
+	return toVec3f( mScreen.horizontalAxis() );
+}
+
+Vec3f Screen::getNormal() const
+{
+	return toVec3f( mScreen.normal() );
+}
+
+Vec2i Screen::getSize() const
+{
+	return Vec2i( mScreen.widthPixels(), mScreen.heightPixels() );
+}
+
+Vec3f Screen::getVerticalAxis() const
+{
+	return toVec3f( mScreen.verticalAxis() );
+}
+
+int32_t Screen::getWidth() const
+{
+	return mScreen.widthPixels();
+}
+
+bool Screen::intersects( const Pointable& pointable, Vec3f& result, bool normalize,
+						float clampRatio ) const
+{
+	Leap::Vector v	= mScreen.intersect( pointable.mPointable, normalize, clampRatio );
+	if ( v.x != v.x ||
+		v.y != v.y ||
+		v.z != v.z ) { // NaN
+		return false;
+	}
+	result			= toVec3f( v );
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 Listener::Listener()
 {
-	mConnected		= false;
-	mExited			= false;
-	mInitialized	= false;
-	mNewFrame		= false;
+	mConnected			= false;
+	mExited				= false;
+	mFirstFrameReceived	= false;
+	mInitialized		= false;
+	mNewFrame			= false;
 }
 
 void Listener::onConnect( const Leap::Controller& controller ) 
@@ -241,21 +362,12 @@ void Listener::onFrame( const Leap::Controller& controller )
 		
 		HandMap handMap;
 		for ( const Leap::Hand& hand : hands ) {
-			Hand outHand;
-
 			FingerMap fingerMap;
 			ToolMap toolMap;
 			const Leap::PointableList& pointables = hand.pointables();
 			for ( const Leap::Pointable& pt : pointables ) {
 				if ( pt.isValid() ) {
-					Pointable pointable;
-					
-					pointable.mDirection	= toVec3f( pt.direction() );
-					pointable.mLength		= (float)pt.length();
-					pointable.mPosition		= toVec3f( pt.tipPosition() );
-					pointable.mVelocity		= toVec3f( pt.tipVelocity() );
-					pointable.mWidth		= (float)pt.width();
-					
+					Pointable pointable( pt );
 					if ( pt.isFinger() ) {
 						fingerMap[ pt.id() ] = Finger( pointable );
 					} else if ( pt.isTool() ) {
@@ -264,29 +376,22 @@ void Listener::onFrame( const Leap::Controller& controller )
 				}
 			}
 			
-			outHand.mDirection			= toVec3f( hand.direction() );
-			outHand.mFingers			= fingerMap;
-			outHand.mNormal				= toVec3f( hand.palmNormal() );
-			outHand.mPosition			= toVec3f( hand.palmPosition() );
-			outHand.mRotationAngle		= (float)hand.rotationAngle( mLeapFrame );
-			outHand.mRotationAxis		= toVec3f( hand.rotationAxis( mLeapFrame ) );
-			outHand.mRotationMatrix		= toMatrix44f( hand.rotationMatrix( mLeapFrame ) );
-			outHand.mScale				= (float)hand.scaleFactor( mLeapFrame );
-			outHand.mSphereRadius		= (float)hand.sphereRadius();
-			outHand.mSpherePosition		= toVec3f( hand.sphereCenter() );
-			outHand.mTools				= toolMap;
-			outHand.mTranslation		= toVec3f( hand.translation( mLeapFrame ) );
-			outHand.mVelocity			= toVec3f( hand.palmVelocity() );
-
-			handMap[ hand.id() ] = outHand;
+			float rotAngle			= (float)hand.rotationAngle( mFirstFrame.mFrame );
+			Vec3f rotAxis			= toVec3f( hand.rotationAxis( mFirstFrame.mFrame ) );
+			Matrix44f rotMatrix		= toMatrix44f( hand.rotationMatrix( mFirstFrame.mFrame ) );
+			float scale				= (float)hand.scaleFactor( mFirstFrame.mFrame );
+			Vec3f translation		= toVec3f( hand.translation( mFirstFrame.mFrame ) );
+			
+			handMap[ hand.id() ]	= Hand( hand, fingerMap, toolMap, rotAngle, rotAxis,
+										   rotMatrix, scale, translation );
 		}
 
-		mFrame.mHands		= handMap;
-		mFrame.mId			= controllerFrame.id();
-		mFrame.mTimestamp	= controllerFrame.timestamp();
-		
-		mLeapFrame			= controllerFrame;
-		mNewFrame			= true;
+		mFrame		= Frame( controllerFrame, handMap );
+		if ( !mFirstFrameReceived ) {
+			mFirstFrame			= Frame( controllerFrame, handMap );
+			mFirstFrameReceived	= true;
+		}
+		mNewFrame	= true;
 	}
 }
 
@@ -316,7 +421,17 @@ Device::~Device()
 	}
 	mCallbacks.clear();
 }
+
+Leap::Config Device::getConfig() const
+{
+	return mController->config();
+}
 	
+const ScreenMap& Device::getScreens() const
+{
+	return mScreens;
+}
+
 bool Device::hasExited() const
 {
 	return mListener.mExited;
@@ -346,6 +461,11 @@ void Device::update()
 	if ( mListener.mNewFrame ) {
 		mSignal( mListener.mFrame );
 		mListener.mNewFrame = false;
+	}
+	const Leap::ScreenList& screens = mController->calibratedScreens();
+	mScreens.clear();
+	for ( const Leap::Screen& iter : screens ) {
+		mScreens[ iter.id() ] = Screen( iter );
 	}
 }
 	

@@ -68,6 +68,7 @@ private:
 	ci::Vec3f				mCursorPositionTarget;
 	CursorType				mCursorType;
 	ci::gl::Texture			mTexture[ 3 ];
+	ci::Vec3f				warp( const ci::Vec3f& v );
 	
 	// UI
 	ci::gl::Texture			mButton[ 2 ];
@@ -77,7 +78,7 @@ private:
 	ci::Vec3f				mSliderPosition;
 	ci::gl::Texture			mTrack;
 	ci::Vec3f				mTrackPosition;
-
+	
 	// Params
 	float					mFrameRate;
 	bool					mFullScreen;
@@ -284,7 +285,7 @@ void UiApp::update()
 		const Hand& hand = mHands.begin()->second;
 		
 		// Update cursor position
-		mCursorPositionTarget	= hand.getPosition() * 3.0f;
+		mCursorPositionTarget	= warp( hand.getPosition() );
 		if ( mCursorType == CursorType::NONE ) {
 			mCursorPosition = mCursorPositionTarget;
 		}
@@ -324,6 +325,22 @@ void UiApp::update()
 		float x2			= mTrackPosition.x + (float)( mTrack.getWidth() - mSlider.getWidth() );
 		mSliderPosition.x	= math<float>::clamp( mCursorPosition.x, x1, x2 );
 	}
+}
+
+Vec3f UiApp::warp( const Vec3f& v )
+{
+	if ( mLeap ) {
+		const ScreenMap& screens = mLeap->getScreens();
+		if ( !screens.empty() ) {
+			const Screen& screen = screens.begin()->second;
+			console() << screen.getDescription() << endl;
+			console() << "BL: " << screen.getBottomLeft() << endl;
+			console() << "HA: " << screen.getHorizontalAxis() << endl;
+			console() << "VA: " << screen.getVerticalAxis() << endl;
+			console() << "N: " << screen.getNormal() << endl;
+		}
+	}
+	return v;
 }
 
 // Run application
