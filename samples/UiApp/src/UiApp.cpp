@@ -329,7 +329,9 @@ void UiApp::update()
 
 Vec3f UiApp::warp( const Vec3f& v )
 {
-	if ( mLeap ) {
+	return v * 3.0f;
+	// TODO apply screen calibration
+	/*if ( mLeap ) {
 		const ScreenMap& screens = mLeap->getScreens();
 		if ( !screens.empty() ) {
 			const Screen& screen = screens.begin()->second;
@@ -340,7 +342,7 @@ Vec3f UiApp::warp( const Vec3f& v )
 			console() << "N: " << screen.getNormal() << endl;
 		}
 	}
-	return v;
+	return v;*/
 }
 
 // Run application
