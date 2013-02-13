@@ -210,8 +210,8 @@ void LeapApp::setup()
 	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
 	// Start device
-	mLeap = Device::create();
-	mLeap->addCallback( &LeapApp::onFrame, this );
+	mLeap 		= Device::create();
+	mCallbackId = mLeap->addCallback( &LeapApp::onFrame, this );
 
 	// Params
 	mFrameRate	= 0.0f;

@@ -183,8 +183,8 @@ void UiApp::setup()
 	mOffset = Vec3f( 240.0f, -480.0f, 0.0f );
 	
 	// Start device
-	mLeap = Device::create();
-	mLeap->addCallback( &UiApp::onFrame, this );
+	mLeap 		= Device::create();
+	mCallbackId = mLeap->addCallback( &UiApp::onFrame, this );
 	
 	// Load cursor textures
 	for ( size_t i = 0; i < 3; ++i ) {
