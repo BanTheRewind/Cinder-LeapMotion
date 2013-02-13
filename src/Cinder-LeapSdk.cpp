@@ -361,11 +361,13 @@ void Listener::onFrame( const Leap::Controller& controller )
 		const Leap::HandList& hands			= controllerFrame.hands();
 		
 		HandMap handMap;
-		for ( const Leap::Hand& hand : hands ) {
+		for ( Leap::HandList::const_iterator iter = hands.begin(); iter != hands.end(); ++iter ) {
+			const Leap::Hand& hand = *iter;
 			FingerMap fingerMap;
 			ToolMap toolMap;
 			const Leap::PointableList& pointables = hand.pointables();
-			for ( const Leap::Pointable& pt : pointables ) {
+			for ( Leap::PointableList::const_iterator ptIter = pointables.begin(); ptIter != pointables.end(); ++ptIter ) {
+				const Leap::Pointable& pt = *ptIter;
 				if ( pt.isValid() ) {
 					Pointable pointable( pt );
 					if ( pt.isFinger() ) {
@@ -416,8 +418,8 @@ Device::Device()
 
 Device::~Device()
 {
-	for ( const auto& cb : mCallbacks ) {
-		cb.second->disconnect();
+	for ( CallbackList::const_iterator iter = mCallbacks.begin(); iter != mCallbacks.end(); ++iter ) {
+		iter->second->disconnect();
 	}
 	mCallbacks.clear();
 }
@@ -464,8 +466,9 @@ void Device::update()
 	}
 	const Leap::ScreenList& screens = mController->calibratedScreens();
 	mScreens.clear();
-	for ( const Leap::Screen& iter : screens ) {
-		mScreens[ iter.id() ] = Screen( iter );
+	size_t count = screens.count();
+	for ( size_t i = 0; i < count; ++i ) {
+		mScreens[ i ] = Screen( screens[ i ] );
 	}
 }
 	

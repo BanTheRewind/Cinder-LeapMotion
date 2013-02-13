@@ -92,8 +92,8 @@ void LeapApp::draw()
 	// Iterate through hands
 	float headLength = 6.0f;
 	float headRadius = 3.0f;
-	for ( const auto& handIter : mHands ) {
-		const Hand& hand = handIter.second;
+	for ( HandMap::const_iterator handIter = mHands.begin(); handIter != mHands.end(); ++handIter ) {
+		const Hand& hand = handIter->second;
 
 		// Hand sphere
 		gl::enableWireframe();
@@ -125,8 +125,8 @@ void LeapApp::draw()
 
 		// Fingers
 		const FingerMap& fingers = hand.getFingers();
-		for ( const auto& fingerIter : fingers ) {
-			const Finger& finger = fingerIter.second;
+		for ( FingerMap::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); ++fingerIter ) {
+			const Finger& finger = fingerIter->second;
 
 			// Finger
 			Vec3f position = finger.getPosition() + finger.getDirection() * finger.getLength();
@@ -147,8 +147,8 @@ void LeapApp::draw()
 		
 		// Tools
 		const ToolMap& tools = hand.getTools();
-		for ( const auto& toolIter : tools ) {
-			const Finger& tool = toolIter.second;
+		for ( ToolMap::const_iterator toolIter = tools.begin(); toolIter != tools.end(); ++toolIter ) {
+			const Finger& tool = toolIter->second;
 			
 			// Tool
 			Vec3f position = tool.getPosition() + tool.getDirection() * tool.getLength();

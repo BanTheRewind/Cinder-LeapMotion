@@ -1,17 +1,8 @@
 This block wraps the Leap Motion SDK.
 
-This is currently incomplete. 0.1.0 will 
-be the first stable release.
-
-UPDATE: The Windows version works. I'm waiting on 
-Leap to create a dylib which uses libc++ (instead of 
-libstdc++) before the XCode version will work.
-
-At least one more sample application is on the way.
-
 -----------------------------------------
 
-Version 0.0.1
+Version 0.0.5
 
 -----------------------------------------
 
