@@ -311,7 +311,7 @@ int32_t Screen::getWidth() const
 	return mScreen.widthPixels();
 }
 
-bool Screen::intersects( const Pointable& pointable, Vec3f& result, bool normalize,
+bool Screen::intersects( const Pointable& pointable, Vec3f* result, bool normalize,
 						float clampRatio ) const
 {
 	Leap::Vector v	= mScreen.intersect( pointable.mPointable, normalize, clampRatio );
@@ -320,7 +320,7 @@ bool Screen::intersects( const Pointable& pointable, Vec3f& result, bool normali
 		v.z != v.z ) { // NaN
 		return false;
 	}
-	result			= toVec3f( v );
+	*result			= toVec3f( v );
 	return true;
 }
 

@@ -222,7 +222,7 @@ public:
 		the intersection to \a result. Set \a normalize to true for \a result to 
 		represent a percentage of screen size. Default is false. \a clampRatio 
 		adjusts the screen border. */
-	bool			intersects( const Pointable& pointable, ci::Vec3f& result,
+	bool			intersects( const Pointable& pointable, ci::Vec3f* result,
 							   bool normalize = false, float clampRatio = 1.0f ) const;
 private:
 	Leap::Screen	mScreen;
