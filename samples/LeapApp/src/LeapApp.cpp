@@ -211,7 +211,7 @@ void LeapApp::setup()
 	
 	// Start device
 	mLeap = Device::create();
-	mLeap->addCallback( &LeapApp::onFrame, this );
+	mCallbackId = mLeap->addCallback( &LeapApp::onFrame, this );
 
 	// Params
 	mFrameRate	= 0.0f;

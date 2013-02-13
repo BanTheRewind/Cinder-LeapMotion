@@ -184,7 +184,7 @@ void UiApp::setup()
 	
 	// Start device
 	mLeap = Device::create();
-	mLeap->addCallback( &UiApp::onFrame, this );
+	mCallbackId = mLeap->addCallback( &UiApp::onFrame, this );
 	
 	// Load cursor textures
 	for ( size_t i = 0; i < 3; ++i ) {

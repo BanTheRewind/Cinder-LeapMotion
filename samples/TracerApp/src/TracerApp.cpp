@@ -212,7 +212,7 @@ void TracerApp::setup()
 	
 	// Start device
 	mLeap = Device::create();
-	mLeap->addCallback( &TracerApp::onFrame, this );
+	mCallbackId = mLeap->addCallback( &TracerApp::onFrame, this );
 
 	// Load shaders
 	try {
