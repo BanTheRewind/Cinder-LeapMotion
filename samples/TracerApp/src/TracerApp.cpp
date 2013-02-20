@@ -66,8 +66,6 @@ private:
 
 	// Camera
 	ci::CameraPersp			mCamera;
-	ci::Vec3f				mLookAt;
-	ci::Vec3f				mLookAtDest;
 
 	// Params
 	float					mFrameRate;
@@ -206,9 +204,8 @@ void TracerApp::screenShot()
 void TracerApp::setup()
 {
 	// Set up camera
-	mLookAt		= Vec3f( 0.0f, 250.0f, 0.0f );
-	mLookAtDest = mLookAt;
 	mCamera		= CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
+	mCamera.lookAt( Vec3f( 0.0f, 93.75f, 250.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
 	// Start device
 	mLeap		= Device::create();
@@ -265,13 +262,11 @@ void TracerApp::update()
 	}
 	
 	// Process hand data
-	float count		= 0.0f;
-	Vec3f centroid	= Vec3f::zero();
 	for ( HandMap::const_iterator handIter = mHands.begin(); handIter != mHands.end(); ++handIter ) {
 		const Hand& hand = handIter->second;
 		
 		const FingerMap& fingers = hand.getFingers();
-		for ( FingerMap::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); ++fingerIter, count += 1.0f ) {
+		for ( FingerMap::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); ++fingerIter ) {
 			const Finger& finger = fingerIter->second;
 
 			int32_t id = fingerIter->first;
@@ -284,17 +279,11 @@ void TracerApp::update()
 				Ribbon ribbon( id, color );
 				mRibbons[ id ] = ribbon;
 			}
-			float width = ( finger.getWidth() + finger.getVelocity().length() ) * 0.01f;
+			float width = math<float>::abs( finger.getVelocity().y ) * 0.0025f;
+			width		= math<float>::max( width, 5.0f );
 			mRibbons[ id ].addPoint( finger.getPosition(), width );
-
-			centroid += finger.getPosition();
 		}
 	}
-	if ( count > 0.0f ) {
-		mLookAtDest = centroid / count;
-	}
-	mLookAt = mLookAt.lerp( 0.021f, mLookAtDest );
-	mCamera.lookAt( Vec3f( -mLookAt.x * 0.5f, 125.0f + -mLookAt.y * 0.125f, 250.0f ), mLookAt );
 
 	// Update ribbons
 	for ( RibbonMap::iterator iter = mRibbons.begin(); iter != mRibbons.end(); ++iter ) {
