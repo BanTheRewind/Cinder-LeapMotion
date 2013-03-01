@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<cinder>
+<block
+	name="Leap Motion"
+	id="leapmotion.bantherewind.com"
+	author="Stephen Schieberl"
+	git="git://github.com/BanTheRewind/Cinder-LeapSdk.git"
+	summary=""
+	libraryUrl="https://www.leapmotion.com/"
+	version="0.7.4"
+	>
+	<supports os="macosx" />
+	<supports os="msw" />
+	<source>src/Cinder-LeapSdk.cpp</source>
+	<header>src/Cinder-LeapSdk.h</header>
+	<header>src/Leap.h</header>
+	<header>src/LeapMath.h</header>
+	<includePath>src</includePath>
+	<platform os="macosx">
+		<dynamicLibrary>lib/macosx/libLeap.dylib</dynamicLibrary>
+		<buildCopy>lib/macosx/libLeap.dylib</buildCopy>
+	</platform>
+</block>
+<template>templates/Basic GL/template.xml</template>
+</cinder>
