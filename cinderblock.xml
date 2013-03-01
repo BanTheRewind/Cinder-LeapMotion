@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <cinder>
 <block
-	name="Leap Motion"
+	name="LeapMotion"
 	id="leapmotion.bantherewind.com"
 	author="Stephen Schieberl"
 	git="git://github.com/BanTheRewind/Cinder-LeapSdk.git"
@@ -10,7 +10,7 @@
 	version="0.7.4"
 	>
 	<supports os="macosx" />
-	<supports os="msw" />
+	<supports os="msw" compiler="vc10" />
 	<source>src/Cinder-LeapSdk.cpp</source>
 	<header>src/Cinder-LeapSdk.h</header>
 	<header>src/Leap.h</header>
@@ -19,6 +19,16 @@
 	<platform os="macosx">
 		<dynamicLibrary>lib/macosx/libLeap.dylib</dynamicLibrary>
 		<buildCopy>lib/macosx/libLeap.dylib</buildCopy>
+	</platform>
+	<platform os="msw" compiler="vc10">
+		<platform config="debug">
+			<buildCopy>lib/msw/Leapd.dll</buildCopy>
+			<staticLibrary>lib/msw/Leapd.lib</staticLibrary>
+		</platform>
+		<platform config="release">
+			<buildCopy>lib/msw/Leap.dll</buildCopy>
+			<staticLibrary>lib/msw/Leap.lib</staticLibrary>
+		</platform>
 	</platform>
 </block>
 <template>templates/Basic GL/template.xml</template>

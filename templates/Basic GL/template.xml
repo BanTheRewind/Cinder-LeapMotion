@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <cinder>
 <template name="Leap SDK: Basic GL" parent="org.libcinder.apptemplates.basicopengl">
-	<requires>leapmotion.bantherewind.com</requires>	
+	<requires>leapmotion.bantherewind.com</requires>
+	<supports os="macosx" />
+	<supports os="msw" compiler="vc10" />
 	<source replaceContents="true" replaceName="true">src/_TBOX_PREFIX_App.cpp</source>
 </template>
 </cinder>
