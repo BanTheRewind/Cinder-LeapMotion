@@ -47,9 +47,9 @@ Pointable::Pointable()
 {
 }
 	
-Pointable::Pointable( const Leap::Pointable& pointable )
+Pointable::Pointable( const Leap::Pointable& p )
 {
-	mPointable = pointable;
+	mPointable = p;
 }
 	
 Pointable::Pointable( const Pointable& p )
@@ -311,16 +311,16 @@ int32_t Screen::getWidth() const
 	return mScreen.widthPixels();
 }
 
-bool Screen::intersects( const Pointable& pointable, Vec3f& result, bool normalize,
+bool Screen::intersects( const Pointable& p, Vec3f* result, bool normalize,
 						float clampRatio ) const
 {
-	Leap::Vector v	= mScreen.intersect( pointable.mPointable, normalize, clampRatio );
+	Leap::Vector v	= mScreen.intersect( p.mPointable, normalize, clampRatio );
 	if ( v.x != v.x ||
 		v.y != v.y ||
 		v.z != v.z ) { // NaN
 		return false;
 	}
-	result			= toVec3f( v );
+	*result			= toVec3f( v );
 	return true;
 }
 
@@ -424,6 +424,22 @@ Device::~Device()
 	mCallbacks.clear();
 }
 
+const Screen& Device::getClosestScreen( const Pointable& p ) const
+{
+	const Leap::ScreenList& screens = mController->calibratedScreens();
+	Leap::Screen closestScreen = screens.closestScreenHit( p.mPointable );
+	for ( ScreenMap::const_iterator iter = mScreens.begin(); iter != mScreens.end(); ++iter ) {
+		const Screen& screen = iter->second;
+		if ( screen.mScreen.id() == closestScreen.id() ) {
+			return screen;
+		}
+	}
+	if ( mScreens.begin() != mScreens.end() ) {
+		return mScreens.begin()->second;
+	}
+	throw Exception();
+}
+	
 Leap::Config Device::getConfig() const
 {
 	return mController->config();

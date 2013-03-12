@@ -66,11 +66,12 @@ public:
 	float			getWidth() const;
 protected:
 	Pointable();
-	Pointable( const Leap::Pointable& pointable );
+	Pointable( const Leap::Pointable& p );
 	Pointable( const Pointable& p );
 	
 	Leap::Pointable	mPointable;
 	
+	friend class	Device;
 	friend class	Listener;
 	friend class	Screen;
 };
@@ -222,10 +223,11 @@ public:
 		the intersection to \a result. Set \a normalize to true for \a result to 
 		represent a percentage of screen size. Default is false. \a clampRatio 
 		adjusts the screen border. */
-	bool			intersects( const Pointable& pointable, ci::Vec3f& result,
+	bool			intersects( const Pointable& p, ci::Vec3f* result,
 							   bool normalize = false, float clampRatio = 1.0f ) const;
 private:
 	Leap::Screen	mScreen;
+	friend class	Device;
 };
 
 typedef std::map<int32_t, Screen> ScreenMap;
@@ -269,6 +271,7 @@ public:
 	//! Must be called to trigger frame events.
 	void				update();
 
+	const Screen&		getClosestScreen( const Pointable& p ) const;
 	/*! Returns a LEAP::Config object, which you can use to query the Leap 
 		system for configuration information. */
 	Leap::Config		getConfig() const;

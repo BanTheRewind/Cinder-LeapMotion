@@ -35,7 +35,6 @@
 */
 
 #include "cinder/app/AppBasic.h"
-#include "cinder/Camera.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapSdk.h"
@@ -45,6 +44,7 @@ class UiApp : public ci::app::AppBasic
 public:
 	void					draw();
 	void					prepareSettings( ci::app::AppBasic::Settings* settings );
+	void					resize();
 	void					setup();
 	void					shutdown();
 	void					update();
@@ -54,30 +54,28 @@ private:
 	LeapSdk::HandMap		mHands;
 	LeapSdk::DeviceRef		mLeap;
 	void 					onFrame( LeapSdk::Frame frame );
-
-	// Camera
-	ci::CameraPersp			mCamera;
-	ci::Vec3f				mOffset;
 	
 	// Cursor
 	enum
 	{
 		GRAB, HAND, TOUCH, NONE
 	} typedef CursorType;
-	ci::Vec3f				mCursorPosition;
-	ci::Vec3f				mCursorPositionTarget;
+	ci::Vec2f				mCursorPosition;
+	ci::Vec2f				mCursorPositionTarget;
 	CursorType				mCursorType;
+	ci::Vec2f				mFingerTipPosition;
 	ci::gl::Texture			mTexture[ 3 ];
-	ci::Vec3f				warp( const ci::Vec3f& v );
+	ci::Vec2f				warp( const LeapSdk::Hand& h );
+	ci::Vec2f				warp( const LeapSdk::Pointable& p );
 	
 	// UI
 	ci::gl::Texture			mButton[ 2 ];
-	ci::Vec3f				mButtonPosition[ 3 ];
+	ci::Vec2f				mButtonPosition[ 3 ];
 	bool					mButtonState[ 3 ];
 	ci::gl::Texture			mSlider;
-	ci::Vec3f				mSliderPosition;
+	ci::Vec2f				mSliderPosition;
 	ci::gl::Texture			mTrack;
-	ci::Vec3f				mTrackPosition;
+	ci::Vec2f				mTrackPosition;
 	
 	// Params
 	float					mFrameRate;
@@ -104,7 +102,8 @@ void UiApp::draw()
 	// Clear window
 	gl::setViewport( getWindowBounds() );
 	gl::clear( Colorf::white() );
-	gl::setMatrices( mCamera );
+	gl::setMatricesWindow( getWindowSize() );
+	gl::color( ColorAf::white() );
 	
 	// Make PNG backgrounds transparent
 	gl::enableAlphaBlending();
@@ -113,7 +112,6 @@ void UiApp::draw()
 	
 	// Master offset
 	gl::pushMatrices();
-	gl::translate( mOffset );
 	
 	// Draw buttons
 	for ( size_t i = 0; i < 3; ++i ) {
@@ -145,6 +143,14 @@ void UiApp::draw()
 	
 	gl::popMatrices();
 	
+	// Draw finger position for pressing buttons
+	if ( mCursorType == CursorType::TOUCH )
+	{
+		gl::color( ColorAf( 1.0f, 0.7f, 0.0f ) );
+		gl::drawSolidCircle( mFingerTipPosition, 20.0f );
+		gl::drawStrokedCircle( mFingerTipPosition, 40.0f );
+	}
+	
 	// Draw the interface
 	mParams.draw();
 }
@@ -173,15 +179,31 @@ void UiApp::screenShot()
 	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
+// Handles window resize
+void UiApp::resize()
+{
+	// Initialize buttons
+	float h = (float)getWindowHeight() * 0.333f;
+	float w = (float)getWindowWidth() * 0.25f;
+	Vec2f position( w, h );
+	position -= Vec2f( mButton[ 0 ].getSize() ) * 0.5f;
+	for ( size_t i = 0; i < 3; ++i, position.x += w ) {
+		mButtonPosition[ i ]	= position;
+		mButtonState[ i ]		= false;
+	}
+
+	// Initialize slider
+	position = Vec2f( w * 2.0f, h * 2.0f );
+	mTrackPosition		= position - Vec2f( mTrack.getSize() ) * 0.5f;
+	mSliderPosition		= mTrackPosition;
+	mSliderPosition.y	-= 45.0f;
+}
+
 // Set up
 void UiApp::setup()
 {
 	glShadeModel( GL_FLAT );
-	
-	// Set up camera
-	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 45.0f, 0.01f, 1000.0f );
-	mOffset = Vec3f( 240.0f, -480.0f, 0.0f );
-	
+		
 	// Start device
 	mLeap 		= Device::create();
 	mCallbackId = mLeap->addCallback( &UiApp::onFrame, this );
@@ -201,27 +223,21 @@ void UiApp::setup()
 			case NONE:
 				break;
 		}
-		mTexture[ i ].setFlipped( true );
 		mTexture[ i ].setMagFilter( GL_NEAREST );
 		mTexture[ i ].setMinFilter( GL_NEAREST );
 	}
 	
 	// Initialize cursor
 	mCursorType				= CursorType::NONE;
-	mCursorPosition			= Vec3f::zero();
-	mCursorPositionTarget	= Vec3f::zero();
+	mCursorPosition			= Vec2f::zero();
+	mCursorPositionTarget	= Vec2f::zero();
+	mFingerTipPosition		= Vec2i::zero();
 	
 	// Load UI textures
 	mButton[ 0 ]	= gl::Texture( loadImage( loadResource( RES_TEX_BUTTON_OFF ) ) );
 	mButton[ 1 ]	= gl::Texture( loadImage( loadResource( RES_TEX_BUTTON_ON ) ) );
 	mSlider			= gl::Texture( loadImage( loadResource( RES_TEX_SLIDER ) ) );
 	mTrack			= gl::Texture( loadImage( loadResource( RES_TEX_TRACK ) ) );
-
-	// Flip textures
-	mButton[ 0 ].setFlipped( true );
-	mButton[ 1 ].setFlipped( true );
-	mSlider.setFlipped( true );
-	mTrack.setFlipped( true );
 	
 	// Disable anti-aliasing
 	mButton[ 0 ].setMagFilter( GL_NEAREST );
@@ -233,18 +249,6 @@ void UiApp::setup()
 	mTrack.setMagFilter( GL_NEAREST );
 	mTrack.setMinFilter( GL_NEAREST );
 	
-	// Initialize buttons
-	Vec3f position( -120.0f, 950.0f, 0.0f );
-	for ( size_t i = 0; i < 3; ++i, position.x += 320.0f ) {
-		mButtonPosition[ i ]	= position;
-		mButtonState[ i ]		= false;
-	}
-	
-	// Initialize sliider
-	mTrackPosition		= Vec3f( 0.0f, 700.0f, 0.0f );
-	mSliderPosition		= mTrackPosition;
-	mSliderPosition.y	-= 45.0f;
-	
 	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
@@ -253,6 +257,9 @@ void UiApp::setup()
 	mParams.addParam( "Full screen",	&mFullScreen,						"key=f"		);
 	mParams.addButton( "Screen shot",	bind( &UiApp::screenShot, this ),	"key=space" );
 	mParams.addButton( "Quit",			bind( &UiApp::quit, this ),			"key=q" );
+	
+	// Run resize to initialize layout
+	resize();
 }
 
 // Quit
@@ -285,7 +292,7 @@ void UiApp::update()
 		const Hand& hand = mHands.begin()->second;
 		
 		// Update cursor position
-		mCursorPositionTarget	= warp( hand.getPosition() );
+		mCursorPositionTarget	= warp( hand );
 		if ( mCursorType == CursorType::NONE ) {
 			mCursorPosition = mCursorPositionTarget;
 		}
@@ -294,9 +301,25 @@ void UiApp::update()
 		switch ( hand.getFingers().size() ) {
 			case 0:
 				mCursorType	= CursorType::GRAB;
+				
+				// Slider
+				if ( mSlider.getBounds().contains( mCursorPosition - mSliderPosition ) ) {
+					float x1			= mTrackPosition.x;
+					float x2			= mTrackPosition.x + (float)( mTrack.getWidth() - mSlider.getWidth() );
+					mSliderPosition.x	= math<float>::clamp( mCursorPosition.x, x1, x2 );
+				}
 				break;
 			case 1:
 				mCursorType	= CursorType::TOUCH;
+				
+				// Buttons
+				mFingerTipPosition = warp( hand.getFingers().begin()->second );
+				for ( size_t i = 0; i < 3; ++i ) {
+					mButtonState[ i ] = false;
+					if ( mButton[ 0 ].getBounds().contains( mFingerTipPosition - mButtonPosition[ i ] ) ) {
+						mButtonState[ i ] = true;
+					}
+				}
 				break;
 			default:
 				mCursorType	= CursorType::HAND;
@@ -306,43 +329,40 @@ void UiApp::update()
 	
 	// Smooth cursor animation
 	mCursorPosition = mCursorPosition.lerp( 0.21f, mCursorPositionTarget );
-	mCursorPosition.z = 0.0f;
-	
-	// Hit buttons
-	for ( size_t i = 0; i < 3; ++i ) {
-		mButtonState[ i ] = false;
-		if ( mCursorType == CursorType::TOUCH &&
-			mCursorPosition.distance( mButtonPosition[ i ] ) < (float)mButton[ 0 ].getSize().length() * 0.5f ) {
-			mButtonState[ i ] = true;
-		}
-	}
-	
-	// Slider
-	if ( mCursorType == CursorType::GRAB &&
-		math<float>::abs( mCursorPosition.x - mSliderPosition.x ) < (float)mSlider.getWidth() * 0.5f &&
-		math<float>::abs( mCursorPosition.y - mSliderPosition.y ) < (float)mSlider.getHeight() * 0.5f ) {
-		float x1			= mTrackPosition.x;
-		float x2			= mTrackPosition.x + (float)( mTrack.getWidth() - mSlider.getWidth() );
-		mSliderPosition.x	= math<float>::clamp( mCursorPosition.x, x1, x2 );
-	}
 }
 
-Vec3f UiApp::warp( const Vec3f& v )
+// Maps hand position to the screen in pixels
+Vec2f UiApp::warp( const Hand& h )
 {
-	return v * 3.0f;
-	// TODO apply screen calibration
-	/*if ( mLeap ) {
+	Vec3f result = Vec3f::zero();
+	if ( mLeap ) {
 		const ScreenMap& screens = mLeap->getScreens();
 		if ( !screens.empty() ) {
 			const Screen& screen = screens.begin()->second;
-			console() << screen.getDescription() << endl;
-			console() << "BL: " << screen.getBottomLeft() << endl;
-			console() << "HA: " << screen.getHorizontalAxis() << endl;
-			console() << "VA: " << screen.getVerticalAxis() << endl;
-			console() << "N: " << screen.getNormal() << endl;
+
+			result		= h.getPosition() - screen.getBottomLeft();
+			// Divide by camera resolution for good approximation
+			result		/= Vec3f( 320.0f, 240.0f, 1.0f );
+			result		*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
+			result.y	= (float)getWindowHeight() - result.y;
+			result		+= Vec3f( Vec2f( mTexture[ 0 ].getSize() ), 0.0f ) * 0.5f;
 		}
 	}
-	return v;*/
+	return result.xy();
+}
+
+// Maps finger's ray to the screen in pixels
+Vec2f UiApp::warp( const Pointable& p )
+{
+	Vec3f result = Vec3f::zero();
+	if ( mLeap ) {
+		const Screen& screen = mLeap->getClosestScreen( p );
+		if ( screen.intersects( p, &result, true ) ) {
+			result		*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
+			result.y	= (float)getWindowHeight() - result.y;
+		}
+	}
+	return result.xy();
 }
 
 // Run application
