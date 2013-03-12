@@ -762,9 +762,9 @@ class Hand : public Interface {
  *
  * Get valid Gesture instances from a Frame object. You can get a list of gestures
  * with the Frame::gestures() method. You can get a list of gestures since a
- * specified frame with the `Frame::gesturesSince()` methods. You can also use the
- * `Frame::gesture()` method to find a gesture in the current frame using an ID
- * value obtained in a previous frame.
+ * specified frame with the `Frame::gestures(const Frame&)` method. You can also
+ * use the `Frame::gesture()` method to find a gesture in the current frame using
+ * an ID value obtained in a previous frame.
  *
  * Gesture objects can be invalid. For example, when you get a gesture by ID
  * using `Frame::gesture()`, and there is no gesture with that ID in the current
@@ -783,21 +783,21 @@ class Gesture : public Interface {
      * The supported types of gestures.
      */
     enum Type {
-      TYPE_INVALID    = -1, /* An invalid type. */
-      TYPE_SWIPE      = 1,  /* A straight line movement by the hand with fingers extended. */
-      TYPE_CIRCLE     = 4,  /* A circular movement by a finger. */
-      TYPE_SCREEN_TAP = 5,  /* A forward tapping movement by a finger. */
-      TYPE_KEY_TAP    = 6   /* A downward tapping movement by a finger. */
+      TYPE_INVALID    = -1, /**< An invalid type. */
+      TYPE_SWIPE      = 1,  /**< A straight line movement by the hand with fingers extended. */
+      TYPE_CIRCLE     = 4,  /**< A circular movement by a finger. */
+      TYPE_SCREEN_TAP = 5,  /**< A forward tapping movement by a finger. */
+      TYPE_KEY_TAP    = 6   /**< A downward tapping movement by a finger. */
     };
 
     /**
      * The possible gesture states.
      */
     enum State {
-      STATE_INVALID = -1, /* An invalid state */
-      STATE_START   = 1,  /* The gesture is starting. Just enough has happened to recognize it. */
-      STATE_UPDATE  = 2,  /* The gesture is in progress. (Note: not all gestures have updates). */
-      STATE_STOP    = 3,  /* The gesture has completed or stopped. */
+      STATE_INVALID = -1, /**< An invalid state */
+      STATE_START   = 1,  /**< The gesture is starting. Just enough has happened to recognize it. */
+      STATE_UPDATE  = 2,  /**< The gesture is in progress. (Note: not all gestures have updates). */
+      STATE_STOP    = 3,  /**< The gesture has completed or stopped. */
     };
 
     /**
@@ -1247,13 +1247,7 @@ class KeyTapGesture : public Gesture
     LEAP_EXPORT Vector position() const;
 
     /**
-     * The current direction of finger tip motion.
-     *
-     * At the start of the key tap gesture, the direction points in the direction of
-     * the tap. At the end of the key tap gesture, the direction will either point
-     * toward the original finger tip position or it will be a zero-vector,
-     * which indicates that finger movement stopped before returning to the
-     * starting point.
+     * The direction of finger tip motion.
      *
      * @returns Vector A unit direction vector if the finger tip is moving;
      * otherwise, a zero-vector.
@@ -2032,7 +2026,7 @@ class Frame : public Interface {
      * The gestures recognized or continuing in this frame.
      *
      * Circle and swipe gestures are updated every frame. Tap gestures
-     * only appear in the list when they start.
+     * only appear in the list  for a single frame.
      *
      * @return GestureList the list of gestures.
      */
@@ -2246,15 +2240,15 @@ class Config : public Interface {
      * The Config::type() function returns an item from the ValueType enumeration.
      */
     enum ValueType {
-      TYPE_UNKNOWN, /** The data type is unknown. */
-      TYPE_BOOLEAN, /** A boolean value. */
-      TYPE_INT32,   /** A 32-bit integer. */
-      TYPE_INT64,   /** A 64-bit integer. */
-      TYPE_UINT32,  /** A 32-bit unsigned integer. */
-      TYPE_UINT64,  /** A 64-bit unsigned integer. */
-      TYPE_FLOAT,   /** A floating-point number. */
-      TYPE_DOUBLE,  /** A double precision floating-point number. */
-      TYPE_STRING   /** A string of characters. */
+      TYPE_UNKNOWN, /**< The data type is unknown. */
+      TYPE_BOOLEAN, /**< A boolean value. */
+      TYPE_INT32,   /**< A 32-bit integer. */
+      TYPE_INT64,   /**< A 64-bit integer. */
+      TYPE_UINT32,  /**< A 32-bit unsigned integer. */
+      TYPE_UINT64,  /**< A 64-bit unsigned integer. */
+      TYPE_FLOAT,   /**< A floating-point number. */
+      TYPE_DOUBLE,  /**< A double precision floating-point number. */
+      TYPE_STRING   /**< A string of characters. */
     };
 
     /**
