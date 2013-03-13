@@ -169,6 +169,7 @@ typedef std::map<int32_t, Hand> HandMap;
 class Frame
 {
 public:
+	Frame();
 	~Frame();
 
 	//! Returns map of hands.
@@ -178,7 +179,6 @@ public:
 	// Return time stamp.
 	int64_t			getTimestamp() const;
 private:
-	Frame();
 	Frame( const Leap::Frame& frame, const HandMap& handMap );
 	
 	Leap::Frame		mFrame;
