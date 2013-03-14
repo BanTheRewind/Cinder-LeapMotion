@@ -43,17 +43,42 @@
 #include "cinder/Vector.h"
 
 namespace LeapSdk {
-	
+
+class Finger;
 class Frame;
 class Device;
+class Hand;
 class Listener;
+class Pointable;
 class Screen;
+class Tool;
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+Finger			fromLeapFinger( const Leap::Finger& f );
+Leap::Finger	toLeapFinger( const Finger& f );
+Frame			fromLeapFrame( const Leap::Frame& f );
+Leap::Frame		toLeapFrame( const Frame& f );
+Hand			fromLeapHand( const Leap::Hand& h, const Leap::Frame& frame );
+Leap::Hand		toLeapHand( const Hand& h );
+Pointable		fromLeapPointable( const Leap::Pointable& p );
+Leap::Pointable	toLeapPointable( const Pointable& p );
+Screen			fromLeapScreen( const Leap::Screen& s );
+Leap::Screen	toLeapScreen( const Screen& s );
+Tool			fromLeapTool( const Leap::Tool& t );
+Leap::Tool		toLeapTool( const Tool& t );
+
+ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );
+ci::Matrix44f	toMatrix44f( const Leap::Matrix& m );
+ci::Vec3f		toVec3f( const Leap::Vector& v );
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 class Pointable
 {
 public:
+	Pointable();
+	
 	//! Returns normalized vector of pointing direction.
 	ci::Vec3f		getDirection() const;
 	//! Returns length in millimeters.
@@ -65,15 +90,22 @@ public:
 	//! Returns width in millimeters.
 	float			getWidth() const;
 protected:
-	Pointable();
 	Pointable( const Leap::Pointable& p );
 	Pointable( const Pointable& p );
 	
 	Leap::Pointable	mPointable;
 	
 	friend class	Device;
+	friend class	Hand;
 	friend class	Listener;
 	friend class	Screen;
+	
+	friend Finger			LeapSdk::fromLeapFinger( const Leap::Finger& f );
+	friend Leap::Finger		LeapSdk::toLeapFinger( const Finger& f );
+	friend Pointable		LeapSdk::fromLeapPointable( const Leap::Pointable& p );
+	friend Leap::Pointable	LeapSdk::toLeapPointable( const Pointable& f );
+	friend Tool				LeapSdk::fromLeapTool( const Leap::Tool& t );
+	friend Leap::Tool		LeapSdk::toLeapTool( const Tool& f );
 };
 	
 class Finger : public Pointable
@@ -103,8 +135,6 @@ class Hand
 {
 public:
 	Hand();
-	Hand( const Leap::Hand& hand, const FingerMap& fingerMap, const ToolMap& toolMap, float rotAngle,
-		 const ci::Vec3f& rotAxis, const ci::Matrix44f& rotMatrix, float scale, const ci::Vec3f& translation );
 	~Hand();
 
 	//! Returns normalized vector of palm face direction.
@@ -119,24 +149,24 @@ public:
 		change in orientation of this hand since the first frame. */
 	float					getRotationAngle() const;
 	/*! The angle of rotation around the rotation axis derived from the
-	 change in orientation of this hand since the specified frame. */
-	float					getRotationAngle( const Frame& frame ) const;
+	 change in orientation of this hand since the specified frame \a f. */
+	float					getRotationAngle( const Frame& f ) const;
 	/*! The rotation axis derived from the change in orientation of this
 		hand since the first frame. */
 	const ci::Vec3f&		getRotationAxis() const;
 	/*! The rotation axis derived from the change in orientation of this
-	 hand since the specified frame. */
-	ci::Vec3f				getRotationAxis( const Frame& frame ) const;
+	 hand since the specified frame \a f. */
+	ci::Vec3f				getRotationAxis( const Frame& f ) const;
 	/*! The rotation derived from the change in orientation of this
 	 hand since the first frame. */
 	const ci::Matrix44f&	getRotationMatrix() const;
 	/*! The rotation derived from the change in orientation of this
-	 hand since the specified frame. */
-	ci::Matrix44f			getRotationMatrix( const Frame& frame ) const;
+	 hand since the specified frame \a f. */
+	ci::Matrix44f			getRotationMatrix( const Frame& f ) const;
 	//! The scale difference since the first frame.
 	float					getScale() const;
 	//! The scale difference since the specified frame.
-	float					getScale( const Frame& frame ) const;
+	float					getScale( const Frame& f ) const;
 	//! Returns position vector of hand sphere in millimeters.
 	ci::Vec3f				getSpherePosition() const;
 	//! Returns radius of hand sphere in millimeters.
@@ -147,11 +177,13 @@ public:
 		hand since the previous frame. */
 	const ci::Vec3f&		getTranslation() const;
 	/*! The translation derived from the change of position of this
-	 hand since the specified frame. */
-	ci::Vec3f				getTranslation( const Frame& frame ) const;
+	 hand since the specified frame \a f. */
+	ci::Vec3f				getTranslation( const Frame& f ) const;
 	//! Returns velocity vector of hand in millimeters.
 	ci::Vec3f				getVelocity() const;
 private:
+	Hand( const Leap::Hand& hand, const Leap::Frame& frame );
+
 	FingerMap				mFingers;
 	Leap::Hand				mHand;
 	float					mRotationAngle;
@@ -160,6 +192,11 @@ private:
 	float					mScale;
 	ToolMap					mTools;
 	ci::Vec3f				mTranslation;
+	
+	friend class			Frame;
+	
+	friend Hand				fromLeapHand( const Leap::Hand& h, const Leap::Frame& f );
+	friend Leap::Hand		toLeapHand( const Hand& h );
 };
 
 typedef std::map<int32_t, Hand> HandMap;
@@ -179,13 +216,16 @@ public:
 	// Return time stamp.
 	int64_t			getTimestamp() const;
 private:
-	Frame( const Leap::Frame& frame, const HandMap& handMap );
+	Frame( const Leap::Frame& frame );
 	
 	Leap::Frame		mFrame;
 	HandMap			mHands;
 
 	friend class	Hand;
 	friend class	Listener;
+	
+	friend Frame		LeapSdk::fromLeapFrame( const Leap::Frame& f );
+	friend Leap::Frame	LeapSdk::toLeapFrame( const Frame& f );
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,9 +234,8 @@ class Screen
 {
 public:
 	Screen();
-	Screen( const Leap::Screen& screen );
 	
-	/*! The shortest distance from the specified point to the plane in which this
+	/*! The shortest distance from the specified point \a v to the plane in which this
 		screen lies. */
 	float			distanceToPoint( const ci::Vec3f& v ) const;
 	/*! A vector representing the bottom left corner of this screen within the
@@ -226,8 +265,13 @@ public:
 	bool			intersects( const Pointable& p, ci::Vec3f* result,
 							   bool normalize = false, float clampRatio = 1.0f ) const;
 private:
+	Screen( const Leap::Screen& screen );
+	
 	Leap::Screen	mScreen;
 	friend class	Device;
+	
+	friend Screen		LeapSdk::fromLeapScreen( const Leap::Screen& f );
+	friend Leap::Screen	LeapSdk::toLeapScreen( const Screen& f );
 };
 
 typedef std::map<int32_t, Screen> ScreenMap;
@@ -271,6 +315,7 @@ public:
 	//! Must be called to trigger frame events.
 	void				update();
 
+	//! Returns calibrated screen closest to Pointable \a p.
 	const Screen&		getClosestScreen( const Pointable& p ) const;
 	/*! Returns a LEAP::Config object, which you can use to query the Leap 
 		system for configuration information. */
@@ -311,11 +356,5 @@ private:
 	std::mutex			mMutex;
 	ScreenMap			mScreens;
 };
-
-ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );
-ci::Matrix44f	toMatrix44f( const Leap::Matrix& m );
-ci::Vec3f		toVec3f( const Leap::Vector& v );
-	
-//////////////////////////////////////////////////////////////////////////////////////////////
 
 }

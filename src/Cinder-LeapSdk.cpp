@@ -43,6 +43,97 @@ namespace LeapSdk {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+Finger fromLeapFinger( const Leap::Finger& f )
+{
+	return (Finger)Pointable( (Leap::Pointable)f );
+}
+
+Leap::Finger toLeapFinger( const Finger& f )
+{
+	return (Leap::Finger)f.mPointable;
+}
+
+Frame fromLeapFrame( const Leap::Frame& f )
+{
+	return Frame( f );
+}
+
+Leap::Frame toLeapFrame( const Frame& f )
+{
+	return f.mFrame;
+}
+
+Hand fromLeapHand( const Leap::Hand& h, const Leap::Frame& f )
+{
+	return Hand( h, f );
+}
+
+Leap::Hand toLeapHand( const Hand& h )
+{
+	return h.mHand;
+}
+
+Pointable fromLeapPointable( const Leap::Pointable& p )
+{
+	return Pointable( p );
+}
+
+Leap::Pointable	toLeapPointable( const Pointable& p )
+{
+	return p.mPointable;
+}
+
+Screen fromLeapScreen( const Leap::Screen& s )
+{
+	return Screen( s );
+}
+
+Leap::Screen toLeapScreen( const Screen& s )
+{
+	return s.mScreen;
+}
+
+Tool fromLeapTool( const Leap::Tool& t )
+{
+	return (Tool)Pointable( (Leap::Pointable)t );
+}
+
+Leap::Tool toLeapTool( const Tool& t )
+{
+	return (Leap::Tool)t.mPointable;
+}
+
+Matrix33f toMatrix33f( const Leap::Matrix& m )
+{
+	Matrix33f mtx;
+	Leap::FloatArray a = m.toArray3x3();
+	for ( size_t i = 0; i < 3; ++i ) {
+		size_t j = i * 3;
+		Vec3f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ] );
+		mtx.setRow( i, row );
+	}
+	return mtx;
+}
+
+Matrix44f toMatrix44f( const Leap::Matrix& m )
+{
+	Matrix44f mtx;
+	Leap::FloatArray a = m.toArray4x4();
+	for ( size_t i = 0; i < 4; ++i ) {
+		size_t j = i * 4;
+		Vec4f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ], a[ j + 3 ] );
+		mtx.setRow( i, row );
+	}
+	return mtx;
+}
+
+Vec3f toVec3f( const Leap::Vector& v )
+{
+	return Vec3f( (float)v.x, (float)v.y, (float)v.z );
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
 Pointable::Pointable()
 {
 }
@@ -108,18 +199,27 @@ Hand::Hand()
 {
 }
 	
-Hand::Hand( const Leap::Hand& hand, const FingerMap& fingerMap, const ToolMap& toolMap, float rotAngle,
-		   const ci::Vec3f& rotAxis, const ci::Matrix44f& rotMatrix, float scale,
-		   const ci::Vec3f& translation )
+Hand::Hand( const Leap::Hand& h, const Leap::Frame& f )
 {
-	mHand			= hand;
-	mFingers		= fingerMap;
-	mRotationAngle	= rotAngle;
-	mRotationAxis	= rotAxis;
-	mRotationMatrix	= rotMatrix;
-	mScale			= scale;
-	mTools			= toolMap;
-	mTranslation	= translation;
+	mHand = h;
+	const Leap::PointableList& pointables = h.pointables();
+	for ( Leap::PointableList::const_iterator ptIter = pointables.begin(); ptIter != pointables.end(); ++ptIter ) {
+		const Leap::Pointable& pt = *ptIter;
+		if ( pt.isValid() ) {
+			Pointable pointable( pt );
+			if ( pt.isFinger() ) {
+				mFingers[ pt.id() ] = Finger( pointable );
+			} else if ( pt.isTool() ) {
+				mTools[ pt.id() ] = Tool( pointable );
+			}
+		}
+	}
+	
+	mRotationAngle		= (float)h.rotationAngle( f );
+	mRotationAxis		= toVec3f( h.rotationAxis( f ) );
+	mRotationMatrix		= toMatrix44f( h.rotationMatrix( f ) );
+	mScale				= (float)h.scaleFactor( f );
+	mTranslation		= toVec3f( h.translation( f ) );
 }
 
 Hand::~Hand()
@@ -153,9 +253,9 @@ float Hand::getRotationAngle() const
 	return mRotationAngle;
 }
 	
-float Hand::getRotationAngle( const Frame& frame ) const
+float Hand::getRotationAngle( const Frame& f ) const
 {
-	return (float)mHand.rotationAngle( frame.mFrame );
+	return (float)mHand.rotationAngle( f.mFrame );
 }
 	
 const Vec3f& Hand::getRotationAxis() const
@@ -163,9 +263,9 @@ const Vec3f& Hand::getRotationAxis() const
 	return mRotationAxis;
 }
 	
-Vec3f Hand::getRotationAxis( const Frame& frame ) const
+Vec3f Hand::getRotationAxis( const Frame& f ) const
 {
-	return toVec3f( mHand.rotationAxis( frame.mFrame ) );
+	return toVec3f( mHand.rotationAxis( f.mFrame ) );
 }
 
 const Matrix44f& Hand::getRotationMatrix() const
@@ -173,9 +273,9 @@ const Matrix44f& Hand::getRotationMatrix() const
 	return mRotationMatrix;
 }
 
-Matrix44f Hand::getRotationMatrix( const Frame& frame ) const
+Matrix44f Hand::getRotationMatrix( const Frame& f ) const
 {
-	return toMatrix44f( mHand.rotationMatrix( frame.mFrame ) );
+	return toMatrix44f( mHand.rotationMatrix( f.mFrame ) );
 }
 
 float Hand::getScale() const
@@ -183,9 +283,9 @@ float Hand::getScale() const
 	return mScale;
 }
 
-float Hand::getScale( const Frame& frame ) const
+float Hand::getScale( const Frame& f ) const
 {
-	return (float)mHand.scaleFactor( frame.mFrame );
+	return (float)mHand.scaleFactor( f.mFrame );
 }
 	
 Vec3f Hand::getSpherePosition() const
@@ -208,9 +308,9 @@ const Vec3f& Hand::getTranslation() const
 	return mTranslation;
 }
 
-Vec3f Hand::getTranslation( const Frame& frame ) const
+Vec3f Hand::getTranslation( const Frame& f ) const
 {
-	return toVec3f( mHand.translation( frame.mFrame ) );
+	return toVec3f( mHand.translation( f.mFrame ) );
 }
 
 Vec3f Hand::getVelocity() const
@@ -224,10 +324,16 @@ Frame::Frame()
 {
 }
 
-Frame::Frame( const Leap::Frame& frame, const HandMap& handMap )
+Frame::Frame( const Leap::Frame& frame )
 {
 	mFrame	= frame;
-	mHands	= handMap;
+	
+	mHands.clear();
+	Leap::HandList hands = mFrame.hands();
+	for ( Leap::HandList::const_iterator iter = hands.begin(); iter != hands.end(); ++iter ) {
+		const Leap::Hand& hand	= *iter;
+		mHands[ hand.id() ]		= Hand( hand, frame );
+	}
 }
 	
 Frame::~Frame()
@@ -357,40 +463,10 @@ void Listener::onFrame( const Leap::Controller& controller )
 {
 	lock_guard<mutex> lock( *mMutex );
 	if ( !mNewFrame ) {
-		const Leap::Frame& controllerFrame	= controller.frame();
-		const Leap::HandList& hands			= controllerFrame.hands();
-		
-		HandMap handMap;
-		for ( Leap::HandList::const_iterator iter = hands.begin(); iter != hands.end(); ++iter ) {
-			const Leap::Hand& hand = *iter;
-			FingerMap fingerMap;
-			ToolMap toolMap;
-			const Leap::PointableList& pointables = hand.pointables();
-			for ( Leap::PointableList::const_iterator ptIter = pointables.begin(); ptIter != pointables.end(); ++ptIter ) {
-				const Leap::Pointable& pt = *ptIter;
-				if ( pt.isValid() ) {
-					Pointable pointable( pt );
-					if ( pt.isFinger() ) {
-						fingerMap[ pt.id() ] = Finger( pointable );
-					} else if ( pt.isTool() ) {
-						toolMap[ pt.id() ] = Tool( pointable );
-					}
-				}
-			}
-			
-			float rotAngle			= (float)hand.rotationAngle( mFirstFrame.mFrame );
-			Vec3f rotAxis			= toVec3f( hand.rotationAxis( mFirstFrame.mFrame ) );
-			Matrix44f rotMatrix		= toMatrix44f( hand.rotationMatrix( mFirstFrame.mFrame ) );
-			float scale				= (float)hand.scaleFactor( mFirstFrame.mFrame );
-			Vec3f translation		= toVec3f( hand.translation( mFirstFrame.mFrame ) );
-			
-			handMap[ hand.id() ]	= Hand( hand, fingerMap, toolMap, rotAngle, rotAxis,
-										   rotMatrix, scale, translation );
-		}
-
-		mFrame		= Frame( controllerFrame, handMap );
+		const Leap::Frame& frame	= controller.frame();
+		mFrame						= Frame( frame );
 		if ( !mFirstFrameReceived ) {
-			mFirstFrame			= Frame( controllerFrame, handMap );
+			mFirstFrame			= mFrame;
 			mFirstFrameReceived	= true;
 		}
 		mNewFrame	= true;
@@ -486,37 +562,6 @@ void Device::update()
 	for ( size_t i = 0; i < count; ++i ) {
 		mScreens[ i ] = Screen( screens[ i ] );
 	}
-}
-	
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-Matrix33f toMatrix33f( const Leap::Matrix& m )
-{
-	Matrix33f mtx;
-	Leap::FloatArray a = m.toArray3x3();
-	for ( size_t i = 0; i < 3; ++i ) {
-		size_t j = i * 3;
-		Vec3f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ] );
-		mtx.setRow( i, row );
-	}
-	return mtx;
-}
-
-Matrix44f toMatrix44f( const Leap::Matrix& m )
-{
-	Matrix44f mtx;
-	Leap::FloatArray a = m.toArray4x4();
-	for ( size_t i = 0; i < 4; ++i ) {
-		size_t j = i * 4;
-		Vec4f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ], a[ j + 3 ] );
-		mtx.setRow( i, row );
-	}
-	return mtx;
-}
-
-Vec3f toVec3f( const Leap::Vector& v )
-{
-	return Vec3f( (float)v.x, (float)v.y, (float)v.z );
 }
 
 }
