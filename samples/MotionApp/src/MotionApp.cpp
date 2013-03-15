@@ -158,8 +158,6 @@ void MotionApp::screenShot()
 void MotionApp::setup()
 {
 	// Set up OpenGL
-	gl::enable( GL_LINE_SMOOTH );
-	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ); 
 	gl::enable( GL_POLYGON_SMOOTH );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 	

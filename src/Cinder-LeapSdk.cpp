@@ -73,6 +73,49 @@ Leap::Hand toLeapHand( const Hand& h )
 	return h.mHand;
 }
 
+Matrix33f fromLeapMatrix33( const Leap::Matrix& m )
+{
+	Matrix33f mtx;
+	Leap::FloatArray a = m.toArray3x3();
+	for ( size_t i = 0; i < 3; ++i ) {
+		size_t j = i * 3;
+		Vec3f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ] );
+		mtx.setRow( i, row );
+	}
+	return mtx;
+}
+
+Leap::Matrix toLeapMatrix33( const Matrix33f& m )
+{
+	Leap::Matrix matrix;
+	matrix.xBasis = Leap::Vector( m.m00, m.m01, m.m02 );
+	matrix.yBasis = Leap::Vector( m.m10, m.m11, m.m12 );
+	matrix.zBasis = Leap::Vector( m.m20, m.m21, m.m22 );
+	return matrix;
+}
+	
+Matrix44f fromLeapMatrix44( const Leap::Matrix& m )
+{
+	Matrix44f mtx;
+	Leap::FloatArray a = m.toArray4x4();
+	for ( size_t i = 0; i < 4; ++i ) {
+		size_t j = i * 4;
+		Vec4f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ], a[ j + 3 ] );
+		mtx.setRow( i, row );
+	}
+	return mtx;
+}
+	
+Leap::Matrix toLeapMatrix44( const Matrix44f m )
+{
+	Leap::Matrix matrix;
+	matrix.xBasis = Leap::Vector( m.m00, m.m01, m.m02 );
+	matrix.yBasis = Leap::Vector( m.m10, m.m11, m.m12 );
+	matrix.zBasis = Leap::Vector( m.m20, m.m21, m.m22 );
+	matrix.origin = Leap::Vector( m.m30, m.m31, m.m32 );
+	return matrix;
+}
+
 Pointable fromLeapPointable( const Leap::Pointable& p )
 {
 	return Pointable( p );
@@ -103,35 +146,16 @@ Leap::Tool toLeapTool( const Tool& t )
 	return (Leap::Tool)t.mPointable;
 }
 
-Matrix33f toMatrix33f( const Leap::Matrix& m )
+Vec3f fromLeapVector( const Leap::Vector& v )
 {
-	Matrix33f mtx;
-	Leap::FloatArray a = m.toArray3x3();
-	for ( size_t i = 0; i < 3; ++i ) {
-		size_t j = i * 3;
-		Vec3f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ] );
-		mtx.setRow( i, row );
-	}
-	return mtx;
+	return Vec3f( v.x, v.y, v.z );
 }
-
-Matrix44f toMatrix44f( const Leap::Matrix& m )
+	
+Leap::Vector toLeapVector( const Vec3f& v )
 {
-	Matrix44f mtx;
-	Leap::FloatArray a = m.toArray4x4();
-	for ( size_t i = 0; i < 4; ++i ) {
-		size_t j = i * 4;
-		Vec4f row( a[ j + 0 ], a[ j + 1 ], a[ j + 2 ], a[ j + 3 ] );
-		mtx.setRow( i, row );
-	}
-	return mtx;
+	return Leap::Vector( v.x, v.y, v.z );
 }
-
-Vec3f toVec3f( const Leap::Vector& v )
-{
-	return Vec3f( (float)v.x, (float)v.y, (float)v.z );
-}
-
+	
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 Pointable::Pointable()
@@ -150,7 +174,7 @@ Pointable::Pointable( const Pointable& p )
 	
 Vec3f Pointable::getDirection() const
 {
-	return toVec3f( mPointable.direction() );
+	return fromLeapVector( mPointable.direction() );
 }
 
 float Pointable::getLength() const
@@ -160,12 +184,12 @@ float Pointable::getLength() const
 
 Vec3f Pointable::getPosition() const
 {
-return toVec3f( mPointable.tipPosition() );
+return fromLeapVector( mPointable.tipPosition() );
 }
 
 Vec3f Pointable::getVelocity() const
 {
-	return toVec3f( mPointable.tipVelocity() );
+	return fromLeapVector( mPointable.tipVelocity() );
 }
 
 float Pointable::getWidth() const
@@ -216,10 +240,10 @@ Hand::Hand( const Leap::Hand& h, const Leap::Frame& f )
 	}
 	
 	mRotationAngle		= (float)h.rotationAngle( f );
-	mRotationAxis		= toVec3f( h.rotationAxis( f ) );
-	mRotationMatrix		= toMatrix44f( h.rotationMatrix( f ) );
+	mRotationAxis		= fromLeapVector( h.rotationAxis( f ) );
+	mRotationMatrix		= fromLeapMatrix44( h.rotationMatrix( f ) );
 	mScale				= (float)h.scaleFactor( f );
-	mTranslation		= toVec3f( h.translation( f ) );
+	mTranslation		= fromLeapVector( h.translation( f ) );
 }
 
 Hand::~Hand()
@@ -230,7 +254,7 @@ Hand::~Hand()
 
 Vec3f Hand::getDirection() const
 {
-	return toVec3f( mHand.direction() );
+	return fromLeapVector( mHand.direction() );
 }
 
 const FingerMap& Hand::getFingers() const
@@ -240,12 +264,12 @@ const FingerMap& Hand::getFingers() const
 
 Vec3f Hand::getNormal() const
 {
-	return toVec3f( mHand.palmNormal() );
+	return fromLeapVector( mHand.palmNormal() );
 }
 
 Vec3f Hand::getPosition() const
 {
-	return toVec3f( mHand.palmPosition() );
+	return fromLeapVector( mHand.palmPosition() );
 }
 
 float Hand::getRotationAngle() const
@@ -265,7 +289,7 @@ const Vec3f& Hand::getRotationAxis() const
 	
 Vec3f Hand::getRotationAxis( const Frame& f ) const
 {
-	return toVec3f( mHand.rotationAxis( f.mFrame ) );
+	return fromLeapVector( mHand.rotationAxis( f.mFrame ) );
 }
 
 const Matrix44f& Hand::getRotationMatrix() const
@@ -275,7 +299,7 @@ const Matrix44f& Hand::getRotationMatrix() const
 
 Matrix44f Hand::getRotationMatrix( const Frame& f ) const
 {
-	return toMatrix44f( mHand.rotationMatrix( f.mFrame ) );
+	return fromLeapMatrix44( mHand.rotationMatrix( f.mFrame ) );
 }
 
 float Hand::getScale() const
@@ -290,7 +314,7 @@ float Hand::getScale( const Frame& f ) const
 	
 Vec3f Hand::getSpherePosition() const
 {
-	return toVec3f( mHand.sphereCenter() );
+	return fromLeapVector( mHand.sphereCenter() );
 }
 
 float Hand::getSphereRadius() const
@@ -310,12 +334,12 @@ const Vec3f& Hand::getTranslation() const
 
 Vec3f Hand::getTranslation( const Frame& f ) const
 {
-	return toVec3f( mHand.translation( f.mFrame ) );
+	return fromLeapVector( mHand.translation( f.mFrame ) );
 }
 
 Vec3f Hand::getVelocity() const
 {
-	return toVec3f( mHand.palmVelocity() );
+	return fromLeapVector( mHand.palmVelocity() );
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,6 +351,12 @@ Frame::Frame()
 Frame::Frame( const Leap::Frame& frame )
 {
 	mFrame	= frame;
+	
+	mGestures.clear();
+	Leap::GestureList gestures = mFrame.gestures();
+	for ( Leap::GestureList::const_iterator iter = gestures.begin(); iter != gestures.end(); ++iter ) {
+		mGestures.push_back( *iter );
+	}
 	
 	mHands.clear();
 	Leap::HandList hands = mFrame.hands();
@@ -341,6 +371,11 @@ Frame::~Frame()
 	mHands.clear();
 }
 
+const vector<Leap::Gesture>& Frame::getGestures() const
+{
+	return mGestures;
+}
+	
 const HandMap& Frame::getHands() const
 {
 	return mHands;
@@ -379,7 +414,7 @@ float Screen::distanceToPoint( const Vec3f& v ) const
 
 Vec3f Screen::getBottomLeft() const
 {
-	return toVec3f( mScreen.bottomLeftCorner() );
+	return fromLeapVector( mScreen.bottomLeftCorner() );
 }
 
 string Screen::getDescription() const
@@ -394,12 +429,12 @@ int32_t Screen::getHeight() const
 
 Vec3f Screen::getHorizontalAxis() const
 {
-	return toVec3f( mScreen.horizontalAxis() );
+	return fromLeapVector( mScreen.horizontalAxis() );
 }
 
 Vec3f Screen::getNormal() const
 {
-	return toVec3f( mScreen.normal() );
+	return fromLeapVector( mScreen.normal() );
 }
 
 Vec2i Screen::getSize() const
@@ -409,7 +444,7 @@ Vec2i Screen::getSize() const
 
 Vec3f Screen::getVerticalAxis() const
 {
-	return toVec3f( mScreen.verticalAxis() );
+	return fromLeapVector( mScreen.verticalAxis() );
 }
 
 int32_t Screen::getWidth() const
@@ -426,7 +461,7 @@ bool Screen::intersects( const Pointable& p, Vec3f* result, bool normalize,
 		v.z != v.z ) { // NaN
 		return false;
 	}
-	*result			= toVec3f( v );
+	*result			= fromLeapVector( v );
 	return true;
 }
 
@@ -464,6 +499,7 @@ void Listener::onFrame( const Leap::Controller& controller )
 	lock_guard<mutex> lock( *mMutex );
 	if ( !mNewFrame ) {
 		const Leap::Frame& frame	= controller.frame();
+		
 		mFrame						= Frame( frame );
 		if ( !mFirstFrameReceived ) {
 			mFirstFrame			= mFrame;
@@ -498,6 +534,13 @@ Device::~Device()
 		iter->second->disconnect();
 	}
 	mCallbacks.clear();
+}
+
+void Device::enableGesture( Gesture::Type t )
+{
+	if ( mController != 0 ) {
+		mController->enableGesture( t );
+	}
 }
 
 const Screen& Device::getClosestScreen( const Pointable& p ) const

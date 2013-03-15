@@ -61,16 +61,18 @@ Frame			fromLeapFrame( const Leap::Frame& f );
 Leap::Frame		toLeapFrame( const Frame& f );
 Hand			fromLeapHand( const Leap::Hand& h, const Leap::Frame& frame );
 Leap::Hand		toLeapHand( const Hand& h );
+ci::Matrix33f	fromLeapMatrix33( const Leap::Matrix& m );
+Leap::Matrix	toLeapMatrix33( const ci::Matrix33f& m );
+ci::Matrix44f	fromLeapMatrix44( const Leap::Matrix& m );
+Leap::Matrix	toLeapMatrix44( const ci::Matrix44f m );
 Pointable		fromLeapPointable( const Leap::Pointable& p );
 Leap::Pointable	toLeapPointable( const Pointable& p );
 Screen			fromLeapScreen( const Leap::Screen& s );
 Leap::Screen	toLeapScreen( const Screen& s );
 Tool			fromLeapTool( const Leap::Tool& t );
 Leap::Tool		toLeapTool( const Tool& t );
-
-ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );
-ci::Matrix44f	toMatrix44f( const Leap::Matrix& m );
-ci::Vec3f		toVec3f( const Leap::Vector& v );
+ci::Vec3f		fromLeapVector( const Leap::Vector& v );
+Leap::Vector	toLeapVector( const ci::Vec3f& v );
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -128,6 +130,13 @@ private:
 
 typedef std::map<int32_t, Finger>	FingerMap;
 typedef std::map<int32_t, Tool>		ToolMap;
+	
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace Gesture {
+	typedef Leap::Gesture::State	State;
+	typedef Leap::Gesture::Type		Type;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -208,24 +217,27 @@ class Frame
 public:
 	Frame();
 	~Frame();
-
+	
+	//! Returns vector of native Leap::Gesture objects.
+	const std::vector<Leap::Gesture>&	getGestures() const;
 	//! Returns map of hands.
-	const HandMap&	getHands() const;
+	const HandMap&						getHands() const;
 	// Returns frame ID.
-	int64_t			getId() const;
+	int64_t								getId() const;
 	// Return time stamp.
-	int64_t			getTimestamp() const;
+	int64_t								getTimestamp() const;
 private:
 	Frame( const Leap::Frame& frame );
 	
-	Leap::Frame		mFrame;
-	HandMap			mHands;
-
-	friend class	Hand;
-	friend class	Listener;
+	Leap::Frame							mFrame;
+	std::vector<Leap::Gesture>			mGestures;
+	HandMap								mHands;
 	
-	friend Frame		LeapSdk::fromLeapFrame( const Leap::Frame& f );
-	friend Leap::Frame	LeapSdk::toLeapFrame( const Frame& f );
+	friend class						Hand;
+	friend class						Listener;
+	
+	friend Frame						LeapSdk::fromLeapFrame( const Leap::Frame& f );
+	friend Leap::Frame					LeapSdk::toLeapFrame( const Frame& f );
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -287,7 +299,7 @@ protected:
 	virtual void	onExit( const Leap::Controller& controller );
     virtual void	onFrame( const Leap::Controller& controller );
 	virtual void	onInit( const Leap::Controller& controller );
-
+	
 	volatile bool	mConnected;
 	volatile bool	mExited;
 	volatile bool	mFirstFrameReceived;
@@ -315,6 +327,9 @@ public:
 	//! Must be called to trigger frame events.
 	void				update();
 
+	//! Enable a specific type of gesture. 
+	void				enableGesture( Gesture::Type t );
+	
 	//! Returns calibrated screen closest to Pointable \a p.
 	const Screen&		getClosestScreen( const Pointable& p ) const;
 	/*! Returns a LEAP::Config object, which you can use to query the Leap 
@@ -350,7 +365,7 @@ private:
 
 	CallbackList							mCallbacks;
 	boost::signals2::signal<void ( Frame )>	mSignal;
-
+	
 	Leap::Controller*	mController;
 	Listener			mListener;
 	std::mutex			mMutex;
