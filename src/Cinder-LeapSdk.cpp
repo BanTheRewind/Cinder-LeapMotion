@@ -546,6 +546,9 @@ void Device::enableGesture( Gesture::Type t )
 const Screen& Device::getClosestScreen( const Pointable& p ) const
 {
 	const Leap::ScreenList& screens = mController->calibratedScreens();
+	if ( screens.empty() ) {
+		throw ExcNoCalibratedScreens();
+	}
 	Leap::Screen closestScreen = screens.closestScreenHit( p.mPointable );
 	for ( ScreenMap::const_iterator iter = mScreens.begin(); iter != mScreens.end(); ++iter ) {
 		const Screen& screen = iter->second;
@@ -556,7 +559,7 @@ const Screen& Device::getClosestScreen( const Pointable& p ) const
 	if ( mScreens.begin() != mScreens.end() ) {
 		return mScreens.begin()->second;
 	}
-	throw Exception();
+	throw ExcNoClosestScreen();
 }
 	
 Leap::Config Device::getConfig() const

@@ -38,12 +38,14 @@
 
 #include "Leap.h"
 #include "boost/signals2.hpp"
+#include "cinder/Exception.h"
 #include "cinder/Matrix.h"
 #include "cinder/Thread.h"
 #include "cinder/Vector.h"
 
 namespace LeapSdk {
 
+// Forward declarations
 class Finger;
 class Frame;
 class Device;
@@ -55,27 +57,46 @@ class Tool;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Converts a native Leap finger into a LeapSdk one.
 Finger			fromLeapFinger( const Leap::Finger& f );
+//! Converts a LeapSdk finger into a native Leap one.
 Leap::Finger	toLeapFinger( const Finger& f );
+//! Converts a native Leap frame into a LeapSdk one.
 Frame			fromLeapFrame( const Leap::Frame& f );
+//! Converts a LeapSdk frame into a native Leap one.
 Leap::Frame		toLeapFrame( const Frame& f );
+//! Converts a native Leap hand into a LeapSdk one.
 Hand			fromLeapHand( const Leap::Hand& h, const Leap::Frame& frame );
+//! Converts a LeapSdk hand into a native Leap one.
 Leap::Hand		toLeapHand( const Hand& h );
+//! Converts a native Leap 3x3 matrix into a Cinder one.
 ci::Matrix33f	fromLeapMatrix33( const Leap::Matrix& m );
+//! Converts a Cinder 3x3 matrix into a native Leap one.
 Leap::Matrix	toLeapMatrix33( const ci::Matrix33f& m );
+//! Converts a native Leap 4x4 matrix into a Cinder one.
 ci::Matrix44f	fromLeapMatrix44( const Leap::Matrix& m );
+//! Converts a Cinder 4x4 matrix into a native Leap one.
 Leap::Matrix	toLeapMatrix44( const ci::Matrix44f m );
+//! Converts a native Leap pointable into a LeapSdk one.
 Pointable		fromLeapPointable( const Leap::Pointable& p );
+//! Converts a LeapSdk pointable into a native Leap one.
 Leap::Pointable	toLeapPointable( const Pointable& p );
+//! Converts a native Leap screen into a LeapSdk one.
 Screen			fromLeapScreen( const Leap::Screen& s );
+//! Converts a LeapSdk screen into a native Leap one.
 Leap::Screen	toLeapScreen( const Screen& s );
+//! Converts a native Leap tool into a LeapSdk one.
 Tool			fromLeapTool( const Leap::Tool& t );
+//! Converts a LeapSdk tool into a native Leap one.
 Leap::Tool		toLeapTool( const Tool& t );
+//! Converts a native Leap vector into a Cinder one.
 ci::Vec3f		fromLeapVector( const Leap::Vector& v );
+//! Converts a Cinder vector into a native Leap one.
 Leap::Vector	toLeapVector( const ci::Vec3f& v );
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Represents a Leap pointable and its physical properties.
 class Pointable
 {
 public:
@@ -110,6 +131,7 @@ protected:
 	friend Leap::Tool		LeapSdk::toLeapTool( const Tool& f );
 };
 	
+//! Represents a Leap finger pointable.
 class Finger : public Pointable
 {
 public:
@@ -118,7 +140,8 @@ public:
 private:
 	friend class		Listener;
 };
-	
+
+//! Represents a Leap tool pointable.
 class Tool : public Pointable
 {
 public:
@@ -133,6 +156,7 @@ typedef std::map<int32_t, Tool>		ToolMap;
 	
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Localizes Leap's gesture enumerators.
 namespace Gesture {
 	typedef Leap::Gesture::State	State;
 	typedef Leap::Gesture::Type		Type;
@@ -140,6 +164,7 @@ namespace Gesture {
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Represents a Leap hand physical data and a collection of pointables.
 class Hand 
 {
 public:
@@ -212,6 +237,7 @@ typedef std::map<int32_t, Hand> HandMap;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Contains all available data in a Leap frame.
 class Frame
 {
 public:
@@ -242,6 +268,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Represents a Leap calibrated screen.
 class Screen
 {
 public:
@@ -290,6 +317,7 @@ typedef std::map<int32_t, Screen> ScreenMap;
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+//! Receives and manages Leap controller data.
 class Listener : public Leap::Listener
 {
 protected:
@@ -317,6 +345,7 @@ protected:
 
 typedef std::shared_ptr<class Device> DeviceRef;
 
+//! A class representing and managing a Leap controller and listener.
 class Device
 {
 public:
@@ -370,6 +399,39 @@ private:
 	Listener			mListener;
 	std::mutex			mMutex;
 	ScreenMap			mScreens;
+};
+	
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+//! Base class for LeapSdk exceptions.
+class Exception : public cinder::Exception
+{
+};
+
+//! Exception expressing inability to locate a calibrated screen near a pointable.
+class ExcNoClosestScreen : public Exception {
+public:
+	ExcNoClosestScreen() throw()
+	{
+	}
+	
+	virtual const char* what() const throw()
+	{
+		return "Unable to locate calibrated screen near pointable.";
+	}
+};
+
+//! Exception expressing the absence of calibrated screens
+class ExcNoCalibratedScreens : public Exception {
+public:
+	ExcNoCalibratedScreens() throw()
+	{
+	}
+	
+	virtual const char* what() const throw()
+	{
+		return "No calibrated screens are available.";
+	}
 };
 
 }
