@@ -20,6 +20,7 @@
 		AE1BA8741667F1BD00E8CDFD /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = AE1BA8731667F1BD00E8CDFD /* CinderApp.icns */; };
 		AE362B64166801590094CD37 /* libLeap.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = AE362B63166801590094CD37 /* libLeap.dylib */; };
 		AE362B65166801950094CD37 /* libLeap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AE362B63166801590094CD37 /* libLeap.dylib */; };
+		AE6540B816F39CB300F522E2 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE6540B716F39CB300F522E2 /* QuickTime.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -54,6 +55,7 @@
 		AE1BA8711667F14D00E8CDFD /* Leap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Leap.h; path = ../../../src/Leap.h; sourceTree = "<group>"; };
 		AE1BA8731667F1BD00E8CDFD /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = CinderApp.icns; sourceTree = "<group>"; };
 		AE362B63166801590094CD37 /* libLeap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libLeap.dylib; path = ../../../lib/macosx/libLeap.dylib; sourceTree = "<group>"; };
+		AE6540B716F39CB300F522E2 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
 		AEC8E2AC16A7595A002B7DAD /* LeapMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LeapMath.h; path = ../../../src/LeapMath.h; sourceTree = "<group>"; };
 		CC680A809AF041E8BE4D8AE5 /* LeapApp_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeapApp_Prefix.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -63,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE6540B816F39CB300F522E2 /* QuickTime.framework in Frameworks */,
 				AE362B65166801950094CD37 /* libLeap.dylib in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				0091D8F90E81B9330029341E /* OpenGL.framework in Frameworks */,
@@ -97,6 +100,7 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AE6540B716F39CB300F522E2 /* QuickTime.framework */,
 				00B784AF0FF439BC000DE1D7 /* Accelerate.framework */,
 				00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */,
 				00B784B10FF439BC000DE1D7 /* AudioUnit.framework */,

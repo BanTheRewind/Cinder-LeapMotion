@@ -15,6 +15,7 @@
 		5323E6B20EAFCA74003A9687 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B10EAFCA74003A9687 /* CoreVideo.framework */; };
 		5323E6B60EAFCA7E003A9687 /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5323E6B50EAFCA7E003A9687 /* QTKit.framework */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		AE15E04016F39D3D00238DC0 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE15E03F16F39D3D00238DC0 /* QuickTime.framework */; };
 		AE1BA86D1667F13800E8CDFD /* UiApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1BA86C1667F13800E8CDFD /* UiApp.cpp */; };
 		AE1BA8721667F14D00E8CDFD /* Cinder-LeapSdk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1BA86F1667F14D00E8CDFD /* Cinder-LeapSdk.cpp */; };
 		AE1BA8741667F1BD00E8CDFD /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = AE1BA8731667F1BD00E8CDFD /* CinderApp.icns */; };
@@ -55,6 +56,7 @@
 		5323E6B10EAFCA74003A9687 /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = /System/Library/Frameworks/CoreVideo.framework; sourceTree = "<absolute>"; };
 		5323E6B50EAFCA7E003A9687 /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = /System/Library/Frameworks/QTKit.framework; sourceTree = "<absolute>"; };
 		8D1107320486CEB800E47090 /* UiApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UiApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE15E03F16F39D3D00238DC0 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
 		AE1BA86C1667F13800E8CDFD /* UiApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UiApp.cpp; path = ../src/UiApp.cpp; sourceTree = "<group>"; };
 		AE1BA86F1667F14D00E8CDFD /* Cinder-LeapSdk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "Cinder-LeapSdk.cpp"; path = "../../../src/Cinder-LeapSdk.cpp"; sourceTree = "<group>"; };
 		AE1BA8701667F14D00E8CDFD /* Cinder-LeapSdk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "Cinder-LeapSdk.h"; path = "../../../src/Cinder-LeapSdk.h"; sourceTree = "<group>"; };
@@ -78,6 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AE15E04016F39D3D00238DC0 /* QuickTime.framework in Frameworks */,
 				AE362B65166801950094CD37 /* libLeap.dylib in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				0091D8F90E81B9330029341E /* OpenGL.framework in Frameworks */,
@@ -112,6 +115,7 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AE15E03F16F39D3D00238DC0 /* QuickTime.framework */,
 				00B784AF0FF439BC000DE1D7 /* Accelerate.framework */,
 				00B784B00FF439BC000DE1D7 /* AudioToolbox.framework */,
 				00B784B10FF439BC000DE1D7 /* AudioUnit.framework */,
