@@ -1,58 +1,29 @@
 #include "cinder/app/AppNative.h"
+#include "cinder/Camera.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
-#include "cinder/Camera.h"
 
 #include "Cinder-LeapSdk.h"
 
-using namespace ci;
-using namespace ci::app;
-using namespace std;
-
-class _TBOX_PREFIX_App : public AppNative {
-  public:
-	void setup();
-	void update();
-	void draw();
-	void shutdown();
-
-  private:	
+class _TBOX_PREFIX_App : public ci::app::AppNative 
+{
+ public:
+	void 					draw();
+	void 					setup();
+	void 					shutdown();
+	void 					update();
+ private:	
 	uint32_t				mCallbackId;
 	LeapSdk::HandMap		mHands;
 	LeapSdk::DeviceRef		mLeap;
 	void 					onFrame( LeapSdk::Frame frame );
 
-	// Camera
 	ci::CameraPersp			mCamera;
 };
 
-void _TBOX_PREFIX_App::setup()
-{	 
-	// Set up OpenGL
-	gl::enableAlphaBlending();
-	gl::enableDepthRead();
-	gl::enableDepthWrite();
-	
-	// Set up camera
-	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
-	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
-	
-	// Start device
-	mLeap 		= LeapSdk::Device::create();
-	mCallbackId = mLeap->addCallback( &_TBOX_PREFIX_App::onFrame, this );
-}
-
-void _TBOX_PREFIX_App::update()
-{	 
-	if( mLeap && mLeap->isConnected() ) {		
-		mLeap->update();
-	}
-}
-
-void _TBOX_PREFIX_App::onFrame( LeapSdk::Frame frame )
-{
-	mHands = frame.getHands();
-}
+using namespace ci;
+using namespace ci::app;
+using namespace std;
 
 void _TBOX_PREFIX_App::draw() 
 {
@@ -62,7 +33,7 @@ void _TBOX_PREFIX_App::draw()
 	gl::setMatrices( mCamera );
 	
 	// Iterate through hands
-	for( LeapSdk::HandMap::const_iterator handIter = mHands.begin(); handIter != mHands.end(); ++handIter ) {
+	for ( LeapSdk::HandMap::const_iterator handIter = mHands.begin(); handIter != mHands.end(); ++handIter ) {
 		const LeapSdk::Hand& hand = handIter->second;
 
 		// Fingers
@@ -81,10 +52,38 @@ void _TBOX_PREFIX_App::draw()
 	}
 }
 
+void _TBOX_PREFIX_App::onFrame( LeapSdk::Frame frame )
+{
+	mHands = frame.getHands();
+}
+
+void _TBOX_PREFIX_App::setup()
+{	 
+	// Set up OpenGL
+	gl::enableAlphaBlending();
+	gl::enableDepthRead();
+	gl::enableDepthWrite();
+	
+	// Set up camera
+	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
+	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
+	
+	// Start device
+	mLeap 		= LeapSdk::Device::create();
+	mCallbackId = mLeap->addCallback( &_TBOX_PREFIX_App::onFrame, this );
+}
+
 void _TBOX_PREFIX_App::shutdown()
 {
 	mLeap->removeCallback( mCallbackId );
 	mHands.clear();
+}
+
+void _TBOX_PREFIX_App::update()
+{	 
+	if ( mLeap && mLeap->isConnected() ) {		
+		mLeap->update();
+	}
 }
 
 CINDER_APP_NATIVE( _TBOX_PREFIX_App, RendererGl )
