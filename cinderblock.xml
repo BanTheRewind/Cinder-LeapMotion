@@ -30,6 +30,16 @@
 			<staticLibrary>lib/msw/Leap.lib</staticLibrary>
 		</platform>
 	</platform>
+	<platform os="msw" compiler="vc11">
+		<platform config="debug">
+			<buildCopy>lib/msw/Leapd.dll</buildCopy>
+			<staticLibrary>lib/msw/Leapd.lib</staticLibrary>
+		</platform>
+		<platform config="release">
+			<buildCopy>lib/msw/Leap.dll</buildCopy>
+			<staticLibrary>lib/msw/Leap.lib</staticLibrary>
+		</platform>
+	</platform>
 </block>
 <template>templates/Basic GL/template.xml</template>
 </cinder>
