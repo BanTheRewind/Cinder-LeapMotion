@@ -4,6 +4,7 @@
 	<requires>leapmotion.bantherewind.com</requires>
 	<supports os="macosx" />
 	<supports os="msw" compiler="vc10" />
+	<supports os="msw" compiler="vc11" />
 	<source replaceContents="true" replaceName="true">src/_TBOX_PREFIX_App.cpp</source>
 </template>
 </cinder>

@@ -11,6 +11,7 @@
 	>
 	<supports os="macosx" />
 	<supports os="msw" compiler="vc10" />
+	<supports os="msw" compiler="vc11" />
 	<source>src/Cinder-LeapSdk.cpp</source>
 	<header>src/Cinder-LeapSdk.h</header>
 	<header>src/Leap.h</header>
