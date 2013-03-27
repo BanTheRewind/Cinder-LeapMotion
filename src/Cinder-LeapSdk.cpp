@@ -465,6 +465,11 @@ bool Screen::intersects( const Pointable& p, Vec3f* result, bool normalize,
 	return true;
 }
 
+Vec3f Screen::project( const Vec3f& v, bool normalize, float clampRatio ) const
+{
+	return fromLeapVector( mScreen.project( toLeapVector( v ), normalize, clampRatio ) );
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 Listener::Listener()

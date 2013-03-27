@@ -303,6 +303,11 @@ public:
 		adjusts the screen border. */
 	bool			intersects( const Pointable& p, ci::Vec3f* result,
 							   bool normalize = false, float clampRatio = 1.0f ) const;
+	/*! Returns the projection from the specified position \a v onto this screen. 
+		Set \a normalize to true for \a result to represent a percentage of screen 
+		size. Default is false. \a clampRatio adjusts the screen border. */
+	ci::Vec3f		project( const ci::Vec3f& v, bool normalize = false, 
+							float clampRatio = 1.0f ) const;
 private:
 	Screen( const Leap::Screen& screen );
 	
