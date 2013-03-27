@@ -6,8 +6,8 @@
 	author="Stephen Schieberl"
 	git="git://github.com/BanTheRewind/Cinder-LeapSdk.git"
 	summary=""
-	libraryUrl="https://www.leapmotion.com/"
-	version="0.7.5"
+	libraryUrl="https://developer.leapmotion.com/"
+	version="0.7.6"
 	>
 	<supports os="macosx" />
 	<supports os="msw" compiler="vc10" />
