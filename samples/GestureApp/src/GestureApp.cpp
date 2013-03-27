@@ -516,15 +516,10 @@ Vec2f GestureApp::warpVector( const Vec3f& v )
 		const ScreenMap& screens = mLeap->getScreens();
 		if ( !screens.empty() ) {
 			const Screen& screen = screens.begin()->second;
-			
-			result		= v - screen.getBottomLeft();
-			// Divide by camera resolution for good approximation
-			result		/= Vec3f( 320.0f, 240.0f, 1.0f );
-			result		*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
-			result.y	= (float)getWindowHeight() - result.y;
+			result = screen.project( v, true );
 		}
 	}
-	return result.xy();
+	return result.xy() * Vec2f( getWindowSize() );
 }
 
 // Run application

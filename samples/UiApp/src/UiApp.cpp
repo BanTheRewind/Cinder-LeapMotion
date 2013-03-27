@@ -54,7 +54,9 @@ private:
 	LeapSdk::HandMap		mHands;
 	LeapSdk::DeviceRef		mLeap;
 	void 					onFrame( LeapSdk::Frame frame );
-	
+	ci::Vec2f				warpPointable( const LeapSdk::Pointable& p );
+	ci::Vec2f				warpVector( const ci::Vec3f& v );
+
 	// Cursor
 	enum
 	{
@@ -65,8 +67,6 @@ private:
 	CursorType				mCursorType;
 	ci::Vec2f				mFingerTipPosition;
 	ci::gl::Texture			mTexture[ 3 ];
-	ci::Vec2f				warp( const LeapSdk::Hand& h );
-	ci::Vec2f				warp( const LeapSdk::Pointable& p );
 	
 	// UI
 	ci::gl::Texture			mButton[ 2 ];
@@ -292,7 +292,7 @@ void UiApp::update()
 		const Hand& hand = mHands.begin()->second;
 		
 		// Update cursor position
-		mCursorPositionTarget	= warp( hand );
+		mCursorPositionTarget	= warpVector( hand.getPosition() );
 		if ( mCursorType == CursorType::NONE ) {
 			mCursorPosition = mCursorPositionTarget;
 		}
@@ -313,7 +313,7 @@ void UiApp::update()
 				mCursorType	= CursorType::TOUCH;
 				
 				// Buttons
-				mFingerTipPosition = warp( hand.getFingers().begin()->second );
+				mFingerTipPosition = warpPointable( hand.getFingers().begin()->second );
 				for ( size_t i = 0; i < 3; ++i ) {
 					mButtonState[ i ] = false;
 					if ( mButton[ 0 ].getBounds().contains( mFingerTipPosition - mButtonPosition[ i ] ) ) {
@@ -331,28 +331,8 @@ void UiApp::update()
 	mCursorPosition = mCursorPosition.lerp( 0.21f, mCursorPositionTarget );
 }
 
-// Maps hand position to the screen in pixels
-Vec2f UiApp::warp( const Hand& h )
-{
-	Vec3f result = Vec3f::zero();
-	if ( mLeap ) {
-		const ScreenMap& screens = mLeap->getScreens();
-		if ( !screens.empty() ) {
-			const Screen& screen = screens.begin()->second;
-
-			result		= h.getPosition() - screen.getBottomLeft();
-			// Divide by camera resolution for good approximation
-			result		/= Vec3f( 320.0f, 240.0f, 1.0f );
-			result		*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
-			result.y	= (float)getWindowHeight() - result.y;
-			result		+= Vec3f( Vec2f( mTexture[ 0 ].getSize() ), 0.0f ) * 0.5f;
-		}
-	}
-	return result.xy();
-}
-
-// Maps finger's ray to the screen in pixels
-Vec2f UiApp::warp( const Pointable& p )
+// Maps pointable's ray to the screen in pixels
+Vec2f UiApp::warpPointable( const Pointable& p )
 {
 	Vec3f result = Vec3f::zero();
 	if ( mLeap ) {
@@ -363,6 +343,20 @@ Vec2f UiApp::warp( const Pointable& p )
 		}
 	}
 	return result.xy();
+}
+
+// Maps Leap vector to the screen in pixels
+Vec2f UiApp::warpVector( const Vec3f& v )
+{
+	Vec3f result = Vec3f::zero();
+	if ( mLeap ) {
+		const ScreenMap& screens = mLeap->getScreens();
+		if ( !screens.empty() ) {
+			const Screen& screen = screens.begin()->second;
+			result = screen.project( v, true );
+		}
+	}
+	return result.xy() * Vec2f( getWindowSize() );
 }
 
 // Run application
