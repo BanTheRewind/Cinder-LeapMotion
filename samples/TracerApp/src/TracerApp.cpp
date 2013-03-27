@@ -47,7 +47,7 @@ class TracerApp : public ci::app::AppBasic
 public:
 	void					draw();
 	void					onResize();
-	void					prepareSettings( ci::app::AppBasic::Settings *settings );
+	void					prepareSettings( ci::app::AppBasic::Settings* settings );
 	void					setup();
 	void					shutdown();
 	void					update();
@@ -183,7 +183,7 @@ void TracerApp::onResize()
 }
 
 // Prepare window
-void TracerApp::prepareSettings( Settings *settings )
+void TracerApp::prepareSettings( Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
 	settings->setFrameRate( 60.0f );
@@ -227,7 +227,7 @@ void TracerApp::setup()
 
 	// Params
 	mFrameRate	= 0.0f;
-	mFullScreen	= false;
+	mFullScreen	= true;
 	mParams = params::InterfaceGl( "Params", Vec2i( 200, 105 ) );
 	mParams.addParam( "Frame rate",		&mFrameRate,							"", true );
 	mParams.addParam( "Full screen",	&mFullScreen,							"key=f"		);
