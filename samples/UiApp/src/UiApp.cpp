@@ -356,7 +356,9 @@ Vec2f UiApp::warpVector( const Vec3f& v )
 			result = screen.project( v, true );
 		}
 	}
-	return result.xy() * Vec2f( getWindowSize() );
+	result *= Vec3f( getWindowSize(), 0.0f );
+	result.y = (float)getWindowHeight() - result.y;
+	return result.xy();
 }
 
 // Run application
