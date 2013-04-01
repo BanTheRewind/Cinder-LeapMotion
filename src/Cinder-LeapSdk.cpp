@@ -603,15 +603,17 @@ void Device::removeCallback( uint32_t id )
 void Device::update()
 {
 	lock_guard<mutex> lock( mMutex );
-	if ( mListener.mNewFrame ) {
-		mSignal( mListener.mFrame );
-		mListener.mNewFrame = false;
-	}
-	const Leap::ScreenList& screens = mController->calibratedScreens();
-	mScreens.clear();
-	size_t count = screens.count();
-	for ( size_t i = 0; i < count; ++i ) {
-		mScreens[ i ] = Screen( screens[ i ] );
+	if ( mListener.mConnected && mListener.mInitialized ) {
+		if ( mListener.mNewFrame ) {
+			mSignal( mListener.mFrame );
+			mListener.mNewFrame = false;
+		}
+		const Leap::ScreenList& screens = mController->calibratedScreens();
+		mScreens.clear();
+		size_t count = screens.count();
+		for ( size_t i = 0; i < count; ++i ) {
+			mScreens[ i ] = Screen( screens[ i ] );
+		}
 	}
 }
 
