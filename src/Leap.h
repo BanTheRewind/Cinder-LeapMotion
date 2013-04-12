@@ -35,11 +35,11 @@ typedef unsigned __int64 uint64_t;
 #endif
 #define LEAP_EXPORT_CLASS
 #define LEAP_EXPORT_PLUGIN __declspec(dllexport)
-#elif defined(__APPLE__) // Mac OS
+#elif !defined(SWIG)
 #define LEAP_EXPORT __attribute__((visibility("default")))
 #define LEAP_EXPORT_CLASS __attribute__((visibility("default")))
 #define LEAP_EXPORT_PLUGIN __attribute__((visibility("default")))
-#else // GNU/Linux
+#else
 #define LEAP_EXPORT
 #define LEAP_EXPORT_CLASS
 #define LEAP_EXPORT_PLUGIN
@@ -106,14 +106,12 @@ class Listener;
  */
 class Pointable : public Interface {
   public:
-#if !defined(SWIG)
     // For internal use only.
     Pointable(PointableImplementation*);
     // For internal use only.
     Pointable(FingerImplementation*);
     // For internal use only.
     Pointable(ToolImplementation*);
-#endif
 
     /**
      * Constructs a Pointable object.
@@ -275,10 +273,8 @@ class Pointable : public Interface {
  */
 class Finger : public Pointable {
   public:
-#if !defined(SWIG)
     // For internal use only.
     Finger(FingerImplementation*);
-#endif
 
     /**
      * Constructs a Finger object.
@@ -331,10 +327,8 @@ class Finger : public Pointable {
  */
 class Tool : public Pointable {
   public:
-#if !defined(SWIG)
     // For internal use only.
     Tool(ToolImplementation*);
-#endif
 
     /**
      * Constructs a Tool object.
@@ -385,10 +379,8 @@ class Tool : public Pointable {
  */
 class Hand : public Interface {
   public:
-#if !defined(SWIG)
     // For internal use only.
     Hand(HandImplementation*);
-#endif
 
     /**
      * Constructs a Hand object.
@@ -586,6 +578,21 @@ class Hand : public Interface {
     LEAP_EXPORT Vector translation(const Frame& sinceFrame) const;
 
     /**
+     * The estimated probability that the hand motion between the current
+     * frame and the specified frame is intended to be a translating motion.
+     *
+     * If a corresponding Hand object is not found in sinceFrame, or if either
+     * this frame or sinceFrame are invalid Frame objects, then this method
+     * returns zero.
+     *
+     * @param sinceFrame The starting frame for computing the translation.
+     * @returns A value between 0 and 1 representing the estimated probability
+     * that the hand motion between the current frame and the specified frame
+     * is intended to be a translating motion.
+     */
+    LEAP_EXPORT float translationProbability(const Frame& sinceFrame) const;
+
+    /**
      * The axis of rotation derived from the change in orientation of this
      * hand, and any associated fingers and tools, between the current frame
      * and the specified frame.
@@ -661,6 +668,21 @@ class Hand : public Interface {
     LEAP_EXPORT Matrix rotationMatrix(const Frame& sinceFrame) const;
 
     /**
+     * The estimated probability that the hand motion between the current
+     * frame and the specified frame is intended to be a rotating motion.
+     *
+     * If a corresponding Hand object is not found in sinceFrame, or if either
+     * this frame or sinceFrame are invalid Frame objects, then this method
+     * returns zero.
+     *
+     * @param sinceFrame The starting frame for computing the relative rotation.
+     * @returns A value between 0 and 1 representing the estimated probability
+     * that the hand motion between the current frame and the specified frame
+     * is intended to be a rotating motion.
+     */
+    LEAP_EXPORT float rotationProbability(const Frame& sinceFrame) const;
+
+    /**
      * The scale factor derived from this hand's motion between the current frame
      * and the specified frame.
      *
@@ -682,6 +704,21 @@ class Hand : public Interface {
      * specified in the sinceFrame parameter.
      */
     LEAP_EXPORT float scaleFactor(const Frame& sinceFrame) const;
+
+    /**
+     * The estimated probability that the hand motion between the current
+     * frame and the specified frame is intended to be a scaling motion.
+     *
+     * If a corresponding Hand object is not found in sinceFrame, or if either
+     * this frame or sinceFrame are invalid Frame objects, then this method
+     * returns zero.
+     *
+     * @param sinceFrame The starting frame for computing the relative scaling.
+     * @returns A value between 0 and 1 representing the estimated probability
+     * that the hand motion between the current frame and the specified frame
+     * is intended to be a scaling motion.
+     */
+    LEAP_EXPORT float scaleProbability(const Frame& sinceFrame) const;
 
     /**
      * Reports whether this is a valid Hand object.
@@ -771,13 +808,27 @@ class Hand : public Interface {
  * frame, then `gesture()` returns an Invalid Gesture object (rather than a null
  * value). Always check object validity in situations where a gesture might be
  * invalid.
+ * 
+ * The following keys can be used with the Config class to configure the gesture 
+ * recognizer:
+ * 
+ * Key string | Value type | Default value | Units
+ * -----------|------------|---------------|------
+ * Gesture.Circle.MinRadius | float | 5.0 | mm
+ * Gesture.Circle.MinArc | float | 1.5 | radians
+ * Gesture.Swipe.MinLength | float | 150 | mm
+ * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
+ * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
+ * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
+ * Gesture.KeyTap.MinDistance | float | 3.0 | mm
+ * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
+ * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
+ * Gesture.ScreenTap.MinDistance | float | 5.0 | mm
  */
 class Gesture : public Interface {
   public:
-#if !defined(SWIG)
     // For internal use only.
     Gesture(GestureImplementation*);
-#endif
 
     /**
      * The supported types of gestures.
@@ -945,9 +996,23 @@ class Gesture : public Interface {
  * **Important:** To use swipe gestures in your application, you must enable
  * recognition of the swipe gesture. You can enable recognition with:
  *
- *     Controller::enableGesture(Gesture::TYPE_SWIPE);
+ * \include Gesture_Swipe_Enable.txt
  *
  * Swipe gestures are continuous.
+ *
+ * You can set the minimum length and velocity required for a movement
+ * to be recognized as a swipe using the config attribute of a connected
+ * Controller object. Use the following keys to configure swipe recognition:
+ *
+ * Key string | Value type | Default value | Units
+ * -----------|------------|---------------|------
+ * Gesture.Swipe.MinLength | float | 150 | mm
+ * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
+ *
+ * The following example demonstrates how to set the swipe configuration
+ * parameters:
+ *
+ * \include Gesture_Swipe_Params.txt
  */
 class SwipeGesture : public Gesture
 {
@@ -1025,7 +1090,7 @@ class SwipeGesture : public Gesture
  * **Important:** To use circle gestures in your application, you must enable
  * recognition of the circle gesture. You can enable recognition with:
  *
- *    Controller::enableGesture(Gesture::TYPE_CIRCLE);
+ * \include Gesture_Circle_Enable.txt
  *
  * Circle gestures are continuous. The CircleGesture objects for the gesture have
  * three possible states:
@@ -1034,6 +1099,20 @@ class SwipeGesture : public Gesture
  *  progressed far enough for the recognizer to classify it as a circle.
  * * State::STATE_UPDATE -- The circle gesture is continuing.
  * * State::STATE_STOP -- The circle gesture is finished.
+ *
+ * You can set the minimum radius and minimum arc length required for a movement
+ * to be recognized as a circle using the config attribute of a connected 
+ * Controller object. Use the following keys to configure circle recognition:
+ *
+ * Key string | Value type | Default value | Units
+ * -----------|------------|---------------|------
+ * Gesture.Circle.MinRadius | float | 5.0 | mm
+ * Gesture.Circle.MinArc | float | 1.5 | radians
+ *
+ * The following example demonstrates how to set the circle configuration
+ * parameters:
+ *
+ * \include Gesture_Circle_Params.txt
  */
 class CircleGesture : public Gesture
 {
@@ -1134,11 +1213,27 @@ class CircleGesture : public Gesture
  * **Important:** To use screen tap gestures in your application, you must enable
  * recognition of the screen tap gesture. You can enable recognition with:
  *
- *     Controller::enableGesture(Gesture::TYPE_SCREEN_TAP);
+ * \include Gesture_ScreenTap_Enable.txt
  *
  * ScreenTap gestures are discrete. The ScreenTapGesture object representing a tap always
  * has the state, STATE_STOP. Only one ScreenTapGesture object is created for each
  * screen tap gesture recognized.
+ *
+ * You can set the minimum finger movement and velocity required for a movement
+ * to be recognized as a screen tap as well as adjust the detection window for
+ * evaluating the movement using the config attribute of a connected
+ * Controller object. Use the following keys to configure screen tap recognition:
+ *
+ * Key string | Value type | Default value | Units
+ * -----------|------------|---------------|------
+ * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
+ * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
+ * Gesture.ScreenTap.MinDistance | float | 5.0 | mm
+ *
+ * The following example demonstrates how to set the screen tap configuration
+ * parameters:
+ *
+ * \include Gesture_ScreenTap_Params.txt
  */
 class ScreenTapGesture : public Gesture
 {
@@ -1207,11 +1302,28 @@ class ScreenTapGesture : public Gesture
  * **Important:** To use key tap gestures in your application, you must enable
  * recognition of the key tap gesture. You can enable recognition with:
  *
- *     Controller::enableGesture(Gesture::TYPE_KEY_TAP);
+ * \include Gesture_KeyTap_Enable.txt
  *
  * Key tap gestures are discrete. The KeyTapGesture object representing a tap always
  * has the state, STATE_STOP. Only one KeyTapGesture object is created for each
  * key tap gesture recognized.
+ *
+ * You can set the minimum finger movement and velocity required for a movement
+ * to be recognized as a key tap as well as adjust the detection window for
+ * evaluating the movement using the config attribute of a connected
+ * Controller object. Use the following configuration keys to configure key tap
+ * recognition:
+ *
+ * Key string | Value type | Default value | Units
+ * -----------|------------|---------------|------
+ * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
+ * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
+ * Gesture.KeyTap.MinDistance | float | 3.0 | mm
+ *
+ * The following example demonstrates how to set the key tap configuration
+ * parameters:
+ *
+ * \include Gesture_KeyTap_Params.txt
  */
 class KeyTapGesture : public Gesture
 {
@@ -1295,16 +1407,15 @@ class KeyTapGesture : public Gesture
  */
 class Screen : public Interface {
   public:
-#if !defined(SWIG)
     // For internal use only.
     Screen(ScreenImplementation*);
-#endif
+
     /**
      * Constructs a Screen object.
      *
      * An uninitialized screen is considered invalid.
      * Get valid Screen objects from a ScreenList object obtained using the
-     * Controller::calibratedScreens() method.
+     * Controller::locatedScreens() method.
      */
     LEAP_EXPORT Screen();
 
@@ -1350,6 +1461,8 @@ class Screen : public Interface {
      * for any points clamped would also be placed on this larger outer border.
      * The positions reported for any intersection points inside the clamping
      * border are unaffected by clamping.
+     *
+     * \include Screen_Normalized_2.txt
      *
      * If the Pointable object does not point toward the plane of the screen
      * (i.e. it is pointing parallel to or away from the screen), then the
@@ -1635,6 +1748,12 @@ class ConstListIterator {
     const ConstListIterator<L,T>& operator++() { ++m_index; return *this; }
     bool operator!=(const ConstListIterator<L,T>& rhs) const { return m_index != rhs.m_index; }
 
+    typedef std::ptrdiff_t difference_type;
+    typedef T value_type;
+    typedef const T* pointer;
+    typedef const T& reference;
+    typedef std::forward_iterator_tag iterator_category;
+
   private:
     const L& m_list;
     int m_index;
@@ -1665,6 +1784,12 @@ class PointableList : public Interface {
      * Reports whether the list is empty.
      * @returns True, if the list has no members.
      */
+    LEAP_EXPORT bool isEmpty() const;
+
+    /**
+     * Deprecated. Use PointableList::isEmpty() instead.
+     * @see PointableList::isEmpty()
+     */
     LEAP_EXPORT bool empty() const;
 
     /**
@@ -1694,6 +1819,31 @@ class PointableList : public Interface {
      * to append to the end of this PointableList.
      */
     LEAP_EXPORT PointableList& append(const ToolList& other);
+
+    /**
+     * The member of the list that is farthest to the left within the standard
+     * Leap frame of reference (i.e has the smallest X coordinate).
+     *
+     * @returns The leftmost pointable, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Pointable leftmost() const;
+
+    /**
+     * The member of the list that is farthest to the right within the standard
+     * Leap frame of reference (i.e has the largest X coordinate).
+     *
+     * @returns The rightmost pointable, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Pointable rightmost() const;
+
+
+    /**
+     * The member of the list that is farthest to the front within the standard
+     * Leap frame of reference (i.e has the smallest Z coordinate).
+     *
+     * @returns The frontmost pointable, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Pointable frontmost() const;
 
     /** A C++ iterator type for PointableList objects. */
     typedef ConstListIterator<PointableList, Pointable> const_iterator;
@@ -1728,6 +1878,12 @@ class FingerList : public Interface {
      * Reports whether the list is empty.
      * @returns True, if the list has no members.
      */
+    LEAP_EXPORT bool isEmpty() const;
+
+    /**
+     * Deprecated. Use FingerList::isEmpty() instead.
+     * @see FingerList::isEmpty()
+     */
     LEAP_EXPORT bool empty() const;
 
     /**
@@ -1743,6 +1899,30 @@ class FingerList : public Interface {
      * to append to the end of this FingerList.
      */
     LEAP_EXPORT FingerList& append(const FingerList& other);
+
+    /**
+     * The member of the list that is farthest to the left within the standard
+     * Leap frame of reference (i.e has the smallest X coordinate).
+     *
+     * @returns The leftmost finger, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Finger leftmost() const;
+
+    /**
+     * The member of the list that is farthest to the right within the standard
+     * Leap frame of reference (i.e has the largest X coordinate).
+     *
+     * @returns The rightmost finger, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Finger rightmost() const;
+
+    /**
+     * The member of the list that is farthest to the front within the standard
+     * Leap frame of reference (i.e has the smallest Z coordinate).
+     *
+     * @returns The frontmost finger, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Finger frontmost() const;
 
     /** A C++ iterator type for FingerList objects. */
     typedef ConstListIterator<FingerList, Finger> const_iterator;
@@ -1777,6 +1957,12 @@ class ToolList : public Interface {
      * Reports whether the list is empty.
      * @returns True, if the list has no members.
      */
+    LEAP_EXPORT bool isEmpty() const;
+
+    /**
+     * Deprecated. Use ToolList::isEmpty() instead.
+     * @see ToolList::isEmpty()
+     */
     LEAP_EXPORT bool empty() const;
 
     /**
@@ -1792,6 +1978,30 @@ class ToolList : public Interface {
      * to append to the end of this ToolList.
      */
     LEAP_EXPORT ToolList& append(const ToolList& other);
+
+    /** 
+     * The member of the list that is farthest to the left within the standard
+     * Leap frame of reference (i.e has the smallest X coordinate).
+     *
+     * @returns The leftmost tool, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Tool leftmost() const;
+
+    /** 
+     * The member of the list that is farthest to the right within the standard
+     * Leap frame of reference (i.e has the largest X coordinate).
+     *
+     * @returns The rightmost tool, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Tool rightmost() const;
+
+    /** 
+     * The member of the list that is farthest to the front within the standard
+     * Leap frame of reference (i.e has the smallest Z coordinate).
+     *
+     * @returns The frontmost tool, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Tool frontmost() const;
 
     /** A C++ iterator type for ToolList objects. */
     typedef ConstListIterator<ToolList, Tool> const_iterator;
@@ -1826,6 +2036,12 @@ class HandList : public Interface {
      * Reports whether the list is empty.
      * @returns True, if the list has no members.
      */
+    LEAP_EXPORT bool isEmpty() const;
+
+    /**
+     * Deprecated. Use HandList::isEmpty() instead.
+     * @see HandList::isEmpty()
+     */
     LEAP_EXPORT bool empty() const;
 
     /**
@@ -1841,6 +2057,30 @@ class HandList : public Interface {
      * to append to the end of this HandList.
      */
     LEAP_EXPORT HandList& append(const HandList& other);
+
+    /**
+     * The member of the list that is farthest to the left within the standard
+     * Leap frame of reference (i.e has the smallest X coordinate).
+     *
+     * @returns The leftmost hand, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Hand leftmost() const;
+
+    /**
+     * The member of the list that is farthest to the right within the standard
+     * Leap frame of reference (i.e has the largest X coordinate).
+     *
+     * @returns The rightmost hand, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Hand rightmost() const;
+
+    /**
+     * The member of the list that is farthest to the front within the standard
+     * Leap frame of reference (i.e has the smallest Z coordinate).
+     *
+     * @returns The frontmost hand, or invalid if list is empty. 
+     */
+    LEAP_EXPORT Hand frontmost() const;
 
     /** A C++ iterator type for this HandList objects. */
     typedef ConstListIterator<HandList, Hand> const_iterator;
@@ -1874,6 +2114,12 @@ class GestureList : public Interface {
     /**
      * Reports whether the list is empty.
      * @returns True, if the list has no members.
+     */
+    LEAP_EXPORT bool isEmpty() const;
+
+    /**
+     * Deprecated. Use GestureList::isEmpty() instead.
+     * @see GestureList::isEmpty()
      */
     LEAP_EXPORT bool empty() const;
 
@@ -1911,7 +2157,9 @@ class GestureList : public Interface {
  * screens only appear in the list if their positions have been registered
  * using the Leap Screen Locator.
  *
- * Get a ScreenList object by calling Controller::calibratedScreens().
+ * Get a ScreenList object by calling Controller::locatedScreens().
+ *
+ * \include Screen_Closest_1.txt
  */
 class ScreenList : public Interface {
   public:
@@ -1930,6 +2178,12 @@ class ScreenList : public Interface {
     /**
      * Reports whether the list is empty.
      * @returns True, if the list has no members.
+     */
+    LEAP_EXPORT bool isEmpty() const;
+
+    /**
+     * Deprecated. Use ScreenList::isEmpty() instead.
+     * @see ScreenList::isEmpty()
      */
     LEAP_EXPORT bool empty() const;
 
@@ -1959,6 +2213,8 @@ class ScreenList : public Interface {
      * the planes extending from the surfaces of the known screens
      * and returns the Screen with the closest intersection.
      *
+     * \include Screen_Closest_2.txt
+     *
      * If no intersections are found (i.e. the ray is directed parallel to or
      * away from all known screens), then an invalid Screen object is returned.
      *
@@ -1983,6 +2239,8 @@ class ScreenList : public Interface {
      * surfaces of the known screens and returns the Screen with the closest
      * intersection.
      *
+     * \include Screen_Closest_3.txt
+     *
      * If no intersections are found (i.e. the ray is directed parallel to or
      * away from all known screens), then an invalid Screen object is returned.
      *
@@ -2003,8 +2261,10 @@ class ScreenList : public Interface {
      *
      * The specified position is projected along each screen's normal vector
      * onto the screen's plane. The screen whose projected point is closest to
-     * the specified position is returned. Call Screen::intersect(position)
+     * the specified position is returned. Call Screen::project(position)
      * on the returned Screen object to find the projected point.
+     *
+     * \include Screen_Closest_3.txt
      *
      * @param position The position from which to check for screen projection.
      * @returns The closest Screen onto which the specified position is projected.
@@ -2024,10 +2284,8 @@ class ScreenList : public Interface {
  */
 class Frame : public Interface {
   public:
-#if !defined(SWIG)
     // For internal use only.
     Frame(FrameImplementation*);
-#endif
 
     /**
      * Constructs a Frame object.
@@ -2219,6 +2477,20 @@ class Frame : public Interface {
     LEAP_EXPORT Vector translation(const Frame& sinceFrame) const;
 
     /**
+     * The estimated probability that the overall motion between the current
+     * frame and the specified frame is intended to be a translating motion.
+     *
+     * If either this frame or sinceFrame is an invalid Frame object, then this
+     * method returns zero.
+     *
+     * @param sinceFrame The starting frame for computing the translation.
+     * @returns A value between 0 and 1 representing the estimated probability
+     * that the overall motion between the current frame and the specified frame
+     * is intended to be a translating motion.
+     */
+    LEAP_EXPORT float translationProbability(const Frame& sinceFrame) const;
+
+    /**
      * The axis of rotation derived from the overall rotational motion between
      * the current frame and the specified frame.
      *
@@ -2298,6 +2570,20 @@ class Frame : public Interface {
     LEAP_EXPORT Matrix rotationMatrix(const Frame& sinceFrame) const;
 
     /**
+     * The estimated probability that the overall motion between the current
+     * frame and the specified frame is intended to be a rotating motion.
+     *
+     * If either this frame or sinceFrame is an invalid Frame object, then this
+     * method returns zero.
+     *
+     * @param sinceFrame The starting frame for computing the relative rotation.
+     * @returns A value between 0 and 1 representing the estimated probability
+     * that the overall motion between the current frame and the specified frame
+     * is intended to be a rotating motion.
+     */
+    LEAP_EXPORT float rotationProbability(const Frame& sinceFrame) const;
+
+    /**
      * The scale factor derived from the overall motion between the current frame
      * and the specified frame.
      *
@@ -2318,6 +2604,20 @@ class Frame : public Interface {
      * sinceFrame parameter.
      */
     LEAP_EXPORT float scaleFactor(const Frame& sinceFrame) const;
+
+    /**
+     * The estimated probability that the overall motion between the current
+     * frame and the specified frame is intended to be a scaling motion.
+     *
+     * If either this frame or sinceFrame is an invalid Frame object, then this
+     * method returns zero.
+     *
+     * @param sinceFrame The starting frame for computing the relative scaling.
+     * @returns A value between 0 and 1 representing the estimated probability
+     * that the overall motion between the current frame and the specified frame
+     * is intended to be a scaling motion.
+     */
+    LEAP_EXPORT float scaleProbability(const Frame& sinceFrame) const;
 
     /**
      * Reports whether this Frame instance is valid.
@@ -2380,8 +2680,27 @@ class Frame : public Interface {
 /**
  * The Config class provides access to Leap system configuration information.
  *
- * Reserved for future use; the keys necessary to obtain configuration values
- * are not yet documented.
+ * You can get and set gesture configuration parameters using the Config object
+ * obtained from a connected Controller object. The key strings required to
+ * identify a configuration parameter include:
+ *
+ * Key string | Value type | Default value | Units
+ * -----------|------------|---------------|------
+ * Gesture.Circle.MinRadius | float | 5.0 | mm
+ * Gesture.Circle.MinArc | float | 1.5 | radians
+ * Gesture.Swipe.MinLength | float | 150 | mm
+ * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
+ * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
+ * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
+ * Gesture.KeyTap.MinDistance | float | 3.0 | mm
+ * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
+ * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
+ * Gesture.ScreenTap.MinDistance | float | 5.0 | mm
+ *
+ * @see CircleGesture
+ * @see KeyTapGesture
+ * @see ScreenTapGesture
+ * @see SwipeGesture
  */
 class Config : public Interface {
   public:
@@ -2394,15 +2713,11 @@ class Config : public Interface {
      * The Config::type() function returns an item from the ValueType enumeration.
      */
     enum ValueType {
-      TYPE_UNKNOWN, /**< The data type is unknown. */
-      TYPE_BOOLEAN, /**< A boolean value. */
-      TYPE_INT32,   /**< A 32-bit integer. */
-      TYPE_INT64,   /**< A 64-bit integer. */
-      TYPE_UINT32,  /**< A 32-bit unsigned integer. */
-      TYPE_UINT64,  /**< A 64-bit unsigned integer. */
-      TYPE_FLOAT,   /**< A floating-point number. */
-      TYPE_DOUBLE,  /**< A double precision floating-point number. */
-      TYPE_STRING   /**< A string of characters. */
+      TYPE_UNKNOWN = 0,   /**< The data type is unknown. */
+      TYPE_BOOLEAN = 1,   /**< A boolean value. */
+      TYPE_INT32   = 2,   /**< A 32-bit integer. */
+      TYPE_FLOAT   = 6,   /**< A floating-point number. */
+      TYPE_STRING  = 8    /**< A string of characters. */
     };
 
     /**
@@ -2414,63 +2729,52 @@ class Config : public Interface {
      */
     LEAP_EXPORT ValueType type(const std::string& key) const;
 
-    /**
-     * Reports whether the value is an array of homogeneous objects. The type
-     * of the objects in the array is returned using the Config::type() function.
-     */
-    LEAP_EXPORT bool isArray(const std::string& key) const;
-
     /** Gets the boolean representation for the specified key. */
     LEAP_EXPORT bool getBool(const std::string& key) const;
+
+    /** Sets the boolean representation for the specified key.
+     * @returns true on success, false on failure.
+     */
+    LEAP_EXPORT bool setBool(const std::string& key, bool value);
 
     /** Gets the 32-bit integer representation for the specified key. */
     LEAP_EXPORT int32_t getInt32(const std::string& key) const;
 
-    /** Gets the 64-bit integer representation for the specified key. */
-    LEAP_EXPORT int64_t getInt64(const std::string& key) const;
-
-    /** Gets the unsigned 32-bit integer representation for the specified key. */
-    LEAP_EXPORT uint32_t getUInt32(const std::string& key) const;
-
-    /** Gets the unsigned 64-bit integer representation for the specified key. */
-    LEAP_EXPORT uint64_t getUInt64(const std::string& key) const;
+    /** Sets the 32-bit integer representation for the specified key.
+    * @returns true on success, false on failure.
+    */
+    LEAP_EXPORT bool setInt32(const std::string& key, int32_t value);
 
     /** Gets the floating point representation for the specified key. */
     LEAP_EXPORT float getFloat(const std::string& key) const;
 
-    /** Gets the double precision representation for the specified key. */
-    LEAP_EXPORT double getDouble(const std::string& key) const;
+    /** Sets the floating point representation for the specified key.
+    * @returns true on success, false on failure.
+    */
+    LEAP_EXPORT bool setFloat(const std::string& key, float value);
 
     /** Gets the string representation for the specified key. */
     LEAP_EXPORT std::string getString(const std::string& key) const;
 
-    /** Gets the boolean array representation for the specified key. */
-    LEAP_EXPORT std::vector<bool> getBoolArray(const std::string& key) const;
+    /** Sets the string representation for the specified key.
+    * @returns true on success, false on failure.
+    */
+    LEAP_EXPORT bool setString(const std::string& key, const std::string& value);
 
-    /** Gets the 32-bit integer array representation for the specified key. */
-    LEAP_EXPORT std::vector<int32_t> getInt32Array(const std::string& key) const;
-
-    /** Gets the 64-bit integer array representation for the specified key. */
-    LEAP_EXPORT std::vector<int64_t> getInt64Array(const std::string& key) const;
-
-    /** Gets the unsigned 32-bit integer array representation for the specified key. */
-    LEAP_EXPORT std::vector<uint32_t> getUInt32Array(const std::string& key) const;
-
-    /** Gets the unsigned 64-bit integer array representation for the specified key. */
-    LEAP_EXPORT std::vector<uint64_t> getUInt64Array(const std::string& key) const;
-
-    /** Gets the floating point array representation for the specified key. */
-    LEAP_EXPORT std::vector<float> getFloatArray(const std::string& key) const;
-
-    /** Gets the double precision array representation for the specified key. */
-    LEAP_EXPORT std::vector<double> getDoubleArray(const std::string& key) const;
-
-    /** Gets the string array representation for the specified key. */
-    LEAP_EXPORT std::vector<std::string> getStringArray(const std::string& key) const;
+    /** 
+     * Saves the current state of the config.
+     *
+     * Call ``save()`` after making a set of configurtation changes. The
+     * ``save()`` function transfers the configuration changes to the Leap
+     * application.
+     *
+     * @returns true on success, false on failure.
+     */
+    LEAP_EXPORT bool save();
 };
 
 /**
- * The Controller class is your main interface to the Leap device.
+ * The Controller class is your main interface to the Leap Motion Controller.
  *
  * Create an instance of this Controller class to access frames of tracking
  * data and configuration information. Frame data can be polled at any time
@@ -2487,11 +2791,12 @@ class Config : public Interface {
  * callback function defined in your subclass of Listener.
  *
  * To access frames of tracking data as they become available:
- * #. Implement a subclass of the Listener class and override the
+ *
+ * 1. Implement a subclass of the Listener class and override the
  *    Listener::onFrame() function.
- * #. In your Listener::onFrame() function, call the Controller::frame()
+ * 2. In your Listener::onFrame() function, call the Controller::frame()
  *    function to access the newest frame of tracking data.
- * #. To start receiving frames, create a Controller object and add an instance
+ * 3. To start receiving frames, create a Controller object and add an instance
  *    of the Listener subclass to the Controller::addListener() function.
  *
  * When an instance of a Listener subclass is added to a Controller object,
@@ -2511,10 +2816,8 @@ class Config : public Interface {
  */
 class Controller : public Interface {
   public:
-#if !defined(SWIG)
     // For internal use only.
     Controller(ControllerImplementation*);
-#endif
 
     /**
      * Constructs a Controller object.
@@ -2552,6 +2855,17 @@ class Controller : public Interface {
      * @returns True, if connected; false otherwise.
      */
     LEAP_EXPORT bool isConnected() const;
+
+    /**
+     * Reports whether this application is the focused, foreground application.
+     *
+     * Only the foreground application receives tracking information from
+     * the Leap Motion Controller.
+     *
+     * @returns True, if application has focus; false otherwise.
+     */
+
+    LEAP_EXPORT bool hasFocus() const;
 
     /**
      * Adds a listener to this Controller.
@@ -2597,7 +2911,7 @@ class Controller : public Interface {
 
     /**
      * Returns a Config object, which you can use to query the Leap system for
-     * configuration information. Reserved for future use.
+     * configuration information.
      */
     LEAP_EXPORT Config config() const;
 
@@ -2625,12 +2939,20 @@ class Controller : public Interface {
      * valid as long as the relative position of the Leap device and the
      * monitor screen remain constant.
      *
+     * \include Screen_Closest_1.txt
+     *
      * @returns ScreenList A list containing the screens whose positions have
      * been registered by the user using the Screen Locator tool.
      * The list always contains at least one entry representing the default
      * monitor. If the user has not run the Screen Locator or has moved the Leap
      * device or screen since running it, the Screen object for this entry
      * only contains default values.
+     */
+    LEAP_EXPORT ScreenList locatedScreens() const;
+
+    /**
+     * Deprecated. Use Controller::locatedScreens() instead.
+     * @see Controller::locatedScreens()
      */
     LEAP_EXPORT ScreenList calibratedScreens() const;
 
@@ -2684,9 +3006,7 @@ class Listener {
     /**
      * Called once, when this Listener object is newly added to a Controller.
      *
-     *     void SampleListener::onInit(const Controller& controller) {
-     *         std::cout << "Initialized" << std::endl;
-     *     }
+     *  \include Listener_onInit.txt
      *
      * @param controller The Controller object invoking this callback function.
      */
@@ -2696,10 +3016,7 @@ class Listener {
      * Called when the Controller object connects to the Leap software, or when
      * this Listener object is added to a Controller that is already connected.
      *
-     *
-     *     void SampleListener::onConnect(const Controller& controller) {
-     *         std::cout << "Connected" << std::endl;
-     *     }
+     *  \include Listener_onConnect.txt
      *
      * @param controller The Controller object invoking this callback function.
      */
@@ -2711,10 +3028,7 @@ class Listener {
      * user shuts the Leap software down, or the Leap software encounters an
      * unrecoverable error.
      *
-     *
-     *     void SampleListener::onDisconnect(const Controller& controller) {
-     *         std::cout << "Disconnected" << std::endl;
-     *     }
+     *  \include Listener_onDisconnect.txt
      *
      * Note: When you launch a Leap-enabled application in a debugger, the
      * Leap library does not disconnect from the application. This is to allow
@@ -2728,9 +3042,7 @@ class Listener {
      * Called when this Listener object is removed from the Controller
      * or the Controller instance is destroyed.
      *
-     *    void SampleListener::onExit(const Controller& controller) {
-     *       std::cout << "Exited" << std::endl;
-     *    }
+     *  \include Listener_onExit.txt
      *
      * @param controller The Controller object invoking this callback function.
      */
@@ -2740,9 +3052,7 @@ class Listener {
      * Called when a new frame of hand and finger tracking data is available.
      * Access the new frame data using the Controller::frame() function.
      *
-     *    void SampleListener::onFrame(const Controller& controller) {
-     *       std::cout << "New Frame" << std::endl;
-     *    }
+     *  \include Listener_onFrame.txt
      *
      * Note, the Controller skips any pending onFrame events while your
      * onFrame handler executes. If your implementation takes too long to return,
@@ -2755,6 +3065,32 @@ class Listener {
      * @param controller The Controller object invoking this callback function.
      */
     LEAP_EXPORT virtual void onFrame(const Controller&) {}
+
+    /**
+     * Called when this application becomes the foreground application.
+     *
+     * Only the foreground application receives tracking data from the Leap
+     * Motion Controller. This function is only called when the controller
+     * object is in a connected state.
+     *
+     *  \include Listener_onFocusGained.txt
+     *
+     * @param controller The Controller object invoking this callback function.
+     */
+    LEAP_EXPORT virtual void onFocusGained(const Controller&) {}
+
+    /**
+     * Called when this application loses the foreground focus.
+     *
+     * Only the foreground application receives tracking data from the Leap
+     * Motion Controller. This function is only called when the controller
+     * object is in a connected state.
+     *
+     *  \include Listener_onFocusLost.txt
+     *
+     * @param controller The Controller object invoking this callback function.
+     */
+    LEAP_EXPORT virtual void onFocusLost(const Controller&) {}
 };
 
 }

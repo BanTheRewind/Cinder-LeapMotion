@@ -239,11 +239,14 @@ Hand::Hand( const Leap::Hand& h, const Leap::Frame& f )
 		}
 	}
 	
-	mRotationAngle		= (float)h.rotationAngle( f );
-	mRotationAxis		= fromLeapVector( h.rotationAxis( f ) );
-	mRotationMatrix		= fromLeapMatrix44( h.rotationMatrix( f ) );
-	mScale				= (float)h.scaleFactor( f );
-	mTranslation		= fromLeapVector( h.translation( f ) );
+	mRotationAngle			= h.rotationAngle( f );
+	mRotationAxis			= fromLeapVector( h.rotationAxis( f ) );
+	mRotationMatrix			= fromLeapMatrix44( h.rotationMatrix( f ) );
+	mRotationProbability	= h.rotationProbability( f );
+	mScale					= h.scaleFactor( f );
+	mScaleProbability		= h.scaleProbability( f );
+	mTranslation			= fromLeapVector( h.translation( f ) );
+	mTranslationProbability	= h.translationProbability( f );
 }
 
 Hand::~Hand()
@@ -302,6 +305,16 @@ Matrix44f Hand::getRotationMatrix( const Frame& f ) const
 	return fromLeapMatrix44( mHand.rotationMatrix( f.mFrame ) );
 }
 
+float Hand::getRotationProbability() const
+{
+	return mRotationProbability;
+}
+
+float Hand::getRotationProbability( const Frame& f ) const
+{
+	return (float)mHand.rotationProbability( f.mFrame );
+}
+	
 float Hand::getScale() const
 {
 	return mScale;
@@ -310,6 +323,16 @@ float Hand::getScale() const
 float Hand::getScale( const Frame& f ) const
 {
 	return (float)mHand.scaleFactor( f.mFrame );
+}
+	
+float Hand::getScaleProbability() const
+{
+	return mScaleProbability;
+}
+
+float Hand::getScaleProbability( const Frame& f ) const
+{
+	return (float)mHand.scaleProbability( f.mFrame );
 }
 	
 Vec3f Hand::getSpherePosition() const
@@ -337,6 +360,16 @@ Vec3f Hand::getTranslation( const Frame& f ) const
 	return fromLeapVector( mHand.translation( f.mFrame ) );
 }
 
+float Hand::getTranslationProbability() const
+{
+	return mTranslationProbability;
+}
+
+float Hand::getTranslationProbability( const Frame& f ) const
+{
+	return (float)mHand.translationProbability( f.mFrame );
+}
+	
 Vec3f Hand::getVelocity() const
 {
 	return fromLeapVector( mHand.palmVelocity() );

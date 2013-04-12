@@ -400,14 +400,34 @@ void GestureApp::setup()
 	mLeap->enableGesture( Gesture::Type::TYPE_SCREEN_TAP );
 	mLeap->enableGesture( Gesture::Type::TYPE_SWIPE );
 	
+	// Write gesture config to console
+	Leap::Config config = mLeap->getConfig();
+	console() << "Gesture.Circle.MinRadius: " << config.getFloat( "Gesture.Circle.MinRadius" ) << endl;
+	console() << "Gesture.Circle.MinArc: " << config.getFloat( "Gesture.Circle.MinArc" ) << endl;
+	console() << "Gesture.Swipe.MinLength: " << config.getFloat( "Gesture.Swipe.MinLength" ) << endl;
+	console() << "Gesture.Swipe.MinVelocity: " << config.getFloat( "Gesture.Swipe.MinVelocity" ) << endl;
+	console() << "Gesture.KeyTap.MinDownVelocity: " << config.getFloat( "Gesture.KeyTap.MinDownVelocity" ) << endl;
+	console() << "Gesture.KeyTap.HistorySeconds: " << config.getFloat( "Gesture.KeyTap.HistorySeconds" ) << endl;
+	console() << "Gesture.KeyTap.MinDistance: " << config.getFloat( "Gesture.KeyTap.MinDistance" ) << endl;
+	console() << "Gesture.ScreenTap.MinForwardVelocity: " << config.getFloat( "Gesture.ScreenTap.MinForwardVelocity" ) << endl;
+	console() << "Gesture.ScreenTap.HistorySeconds: " << config.getFloat( "Gesture.ScreenTap.HistorySeconds" ) << endl;
+	console() << "Gesture.ScreenTap.MinDistance: " << config.getFloat( "Gesture.ScreenTap.MinDistance" ) << endl;
+
+	// Update config to make gestures easier
+	config.setFloat( "Gesture.Circle.MinRadius", 2.5f );
+	config.setFloat( "Gesture.Circle.MinArc", 3.0f );
+	config.setFloat( "Gesture.Swipe.MinLength", 75.0f );
+	config.setFloat( "Gesture.Swipe.MinVelocity", 500.0f );
+	config.setFloat( "Gesture.KeyTap.MinDownVelocity", 25.0f );
+	
 	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
 	mParams = params::InterfaceGl( "Params", Vec2i( 200, 105 ) );
-	mParams.addParam( "Frame rate",		&mFrameRate,						"", true );
-	mParams.addParam( "Full screen",	&mFullScreen,						"key=f"		);
-	mParams.addButton( "Screen shot",	bind( &GestureApp::screenShot, this ), "key=space" );
-	mParams.addButton( "Quit",			bind( &GestureApp::quit, this ),		"key=q" );
+	mParams.addParam( "Frame rate",		&mFrameRate,							"", true	);
+	mParams.addParam( "Full screen",	&mFullScreen,							"key=f"		);
+	mParams.addButton( "Screen shot",	bind( &GestureApp::screenShot, this ), "key=space"	);
+	mParams.addButton( "Quit",			bind( &GestureApp::quit, this ),		"key=q"		);
 }
 
 // Quit

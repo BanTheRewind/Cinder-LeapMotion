@@ -50,6 +50,12 @@ public:
 	void					shutdown();
 	void					update();
 private:
+	enum
+	{
+		FREE, ROTATE, SCALE, TRANSLATE
+	} typedef Motion;
+	bool					mConstrainMotion;
+	
 	// Leap
 	uint32_t				mCallbackId;
 	LeapSdk::Frame			mFrame;
@@ -127,11 +133,37 @@ void MotionApp::onFrame( Frame frame )
 	HandMap hands = frame.getHands();
 	if ( !hands.empty() ) {
 		const Hand& hand	= hands.begin()->second;
+
+		Motion motion = FREE;
 		
-		mRotAngle	+= hand.getRotationAngle( mFrame ) * kRotSpeed;
-		mRotAxis	+= hand.getRotationAxis( mFrame ) * -1.0f; // Mirror
-		mScale		*= hand.getScale( mFrame );
-		mTranslate	+= hand.getTranslation( mFrame ) * kTranslateSpeed;
+		// When constraining to a motion, this routine sorts the probabilities
+		// for each motion and uses the highest value to select a type of motion
+		if ( mConstrainMotion ) {
+			map<float, Motion> motions;
+			vector<float> values;
+			motions[ hand.getRotationProbability( mFrame ) ]	= ROTATE;
+			motions[ hand.getScaleProbability( mFrame ) ]		= SCALE;
+			motions[ hand.getTranslationProbability( mFrame ) ]	= TRANSLATE;
+			for ( map<float, Motion>::const_iterator iter = motions.begin(); iter != motions.end(); ++iter ) {
+				values.push_back( iter->first );
+			}
+			sort( values.begin(), values.end(), []( float a, float b )
+			{
+				return a > b;
+			});
+			motion = motions[ values.at( 0 ) ];
+		}
+		
+		if ( motion == FREE || motion == ROTATE ) {
+			mRotAngle	+= hand.getRotationAngle( mFrame ) * kRotSpeed;
+			mRotAxis	+= hand.getRotationAxis( mFrame ) * -1.0f; // Mirror
+		}
+		if ( motion == FREE || motion == SCALE ) {
+			mScale		*= hand.getScale( mFrame );
+		}
+		if ( motion == FREE || motion == TRANSLATE ) {
+			mTranslate	+= hand.getTranslation( mFrame ) * kTranslateSpeed;
+		}
 	}
 	mFrame = frame;
 }
@@ -170,6 +202,9 @@ void MotionApp::setup()
 	mLight->setPosition( mCamera.getEyePoint() );
 	mLight->setDiffuse( ColorAf( 1.0f, 0.5f, 0.0f, 1.0f ) );
 	
+	// Set to false to allow free movement
+	mConstrainMotion = false;
+	
 	// Initialize modelview
 	mRotAngle	= 0.0f;
 	mRotAxis	= Vec3f::zero();
@@ -184,11 +219,12 @@ void MotionApp::setup()
 	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl( "Params", Vec2i( 200, 105 ) );
-	mParams.addParam( "Frame rate",		&mFrameRate,						"", true );
-	mParams.addParam( "Full screen",	&mFullScreen,						"key=f"		);
-	mParams.addButton( "Screen shot",	bind( &MotionApp::screenShot, this ), "key=space" );
-	mParams.addButton( "Quit",			bind( &MotionApp::quit, this ),		"key=q" );
+	mParams = params::InterfaceGl( "Params", Vec2i( 200, 120 ) );
+	mParams.addParam( "Frame rate",			&mFrameRate,							"", true	);
+	mParams.addParam( "Constrain motion",	&mConstrainMotion,						"key=m"		);
+	mParams.addParam( "Full screen",		&mFullScreen,							"key=f"		);
+	mParams.addButton( "Screen shot",		bind( &MotionApp::screenShot, this ),	"key=space" );
+	mParams.addButton( "Quit",				bind( &MotionApp::quit, this ),			"key=q"		);
 }
 
 // Quit
