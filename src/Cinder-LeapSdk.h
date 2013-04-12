@@ -197,17 +197,17 @@ public:
 	/*! The rotation derived from the change in orientation of this
 	 hand since the specified frame \a f. */
 	ci::Matrix44f			getRotationMatrix( const Frame& f ) const;
-	//! Returns the likely hood that the current motion is a rotation.
+	//! Returns the likelyhood that the current motion is a rotation.
 	float					getRotationProbability() const;
-	//! Returns the likely hood that the motion since frame \a f is a rotation.
+	//! Returns the likelyhood that the motion since frame \a f is a rotation.
 	float					getRotationProbability( const Frame& f ) const;
 	//! The scale difference since the first frame.
 	float					getScale() const;
 	//! The scale difference since the specified frame.
 	float					getScale( const Frame& f ) const;
-	//! Returns the likely hood that the current motion is a scale.
+	//! Returns the likelyhood that the current motion is a scale.
 	float					getScaleProbability() const;
-	//! Returns the likely hood that the motion since frame \a f is a scale.
+	//! Returns the likelyhood that the motion since frame \a f is a scale.
 	float					getScaleProbability( const Frame& f ) const;
 	//! Returns position vector of hand sphere in millimeters.
 	ci::Vec3f				getSpherePosition() const;
@@ -221,9 +221,9 @@ public:
 	/*! The translation derived from the change of position of this
 	 hand since the specified frame \a f. */
 	ci::Vec3f				getTranslation( const Frame& f ) const;
-	//! Returns the likely hood that the current motion is a translation.
+	//! Returns the likelyhood that the current motion is a translation.
 	float					getTranslationProbability() const;
-	//! Returns the likely hood that the motion since frame \a f is a translation.
+	//! Returns the likelyhood that the motion since frame \a f is a translation.
 	float					getTranslationProbability( const Frame& f ) const;
 	//! Returns velocity vector of hand in millimeters.
 	ci::Vec3f				getVelocity() const;
