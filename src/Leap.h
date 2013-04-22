@@ -815,15 +815,15 @@ class Hand : public Interface {
  * Key string | Value type | Default value | Units
  * -----------|------------|---------------|------
  * Gesture.Circle.MinRadius | float | 5.0 | mm
- * Gesture.Circle.MinArc | float | 1.5 | radians
+ * Gesture.Circle.MinArc | float | 1.5*pi | radians
  * Gesture.Swipe.MinLength | float | 150 | mm
  * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
  * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
  * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
- * Gesture.KeyTap.MinDistance | float | 3.0 | mm
+ * Gesture.KeyTap.MinDistance | float | 5.0 | mm
  * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
  * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
- * Gesture.ScreenTap.MinDistance | float | 5.0 | mm
+ * Gesture.ScreenTap.MinDistance | float | 3.0 | mm
  */
 class Gesture : public Interface {
   public:
@@ -1107,7 +1107,7 @@ class SwipeGesture : public Gesture
  * Key string | Value type | Default value | Units
  * -----------|------------|---------------|------
  * Gesture.Circle.MinRadius | float | 5.0 | mm
- * Gesture.Circle.MinArc | float | 1.5 | radians
+ * Gesture.Circle.MinArc | float | 1.5*pi | radians
  *
  * The following example demonstrates how to set the circle configuration
  * parameters:
@@ -1228,7 +1228,7 @@ class CircleGesture : public Gesture
  * -----------|------------|---------------|------
  * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
  * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
- * Gesture.ScreenTap.MinDistance | float | 5.0 | mm
+ * Gesture.ScreenTap.MinDistance | float | 3.0 | mm
  *
  * The following example demonstrates how to set the screen tap configuration
  * parameters:
@@ -1318,7 +1318,7 @@ class ScreenTapGesture : public Gesture
  * -----------|------------|---------------|------
  * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
  * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
- * Gesture.KeyTap.MinDistance | float | 3.0 | mm
+ * Gesture.KeyTap.MinDistance | float | 5.0 | mm
  *
  * The following example demonstrates how to set the key tap configuration
  * parameters:
@@ -2687,7 +2687,7 @@ class Frame : public Interface {
  * Key string | Value type | Default value | Units
  * -----------|------------|---------------|------
  * Gesture.Circle.MinRadius | float | 5.0 | mm
- * Gesture.Circle.MinArc | float | 1.5 | radians
+ * Gesture.Circle.MinArc | float | 1.5*pi | radians
  * Gesture.Swipe.MinLength | float | 150 | mm
  * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
  * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
@@ -2696,6 +2696,10 @@ class Frame : public Interface {
  * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
  * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
  * Gesture.ScreenTap.MinDistance | float | 5.0 | mm
+ *
+ * After setting a configuration value, you must call the Config::save method
+ * to commit the changes. The configuration value changes are not persistent;
+ * your application needs to set the values everytime it runs.
  *
  * @see CircleGesture
  * @see KeyTapGesture
@@ -2764,9 +2768,10 @@ class Config : public Interface {
     /** 
      * Saves the current state of the config.
      *
-     * Call ``save()`` after making a set of configurtation changes. The
+     * Call ``save()`` after making a set of configuration changes. The
      * ``save()`` function transfers the configuration changes to the Leap
-     * application.
+     * application. The configuration value changes are not persistent; your
+     * application needs to set the values everytime it runs.
      *
      * @returns true on success, false on failure.
      */
