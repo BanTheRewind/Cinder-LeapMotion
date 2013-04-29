@@ -46,7 +46,6 @@ class TracerApp : public ci::app::AppBasic
 {
 public:
 	void					draw();
-	void					onResize();
 	void					prepareSettings( ci::app::AppBasic::Settings* settings );
 	void					setup();
 	void					shutdown();
@@ -69,7 +68,6 @@ private:
 
 	// Params
 	float					mFrameRate;
-	bool					mFullScreen;
 	ci::params::InterfaceGl	mParams;
 
 	// Save screen shot
@@ -155,38 +153,12 @@ void TracerApp::onFrame( Frame frame )
 	mHands = frame.getHands();
 }
 
-void TracerApp::onResize()
-{
-	// Enable polygon smoothing
-	gl::enable( GL_POLYGON_SMOOTH );
-	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
-
-	// Set up FBOs
-	gl::Fbo::Format format;
-#if defined( CINDER_MSW )
-	format.setColorInternalFormat( GL_RGBA32F );
-#else
-	format.setColorInternalFormat( GL_RGBA32F_ARB );
-#endif
-	format.setMinFilter( GL_LINEAR );
-	format.setMagFilter( GL_LINEAR );
-	format.setWrap( GL_CLAMP, GL_CLAMP );
-	for ( size_t i = 0; i < 3; ++i ) {
-		mFbo[ i ]	= gl::Fbo( getWindowWidth(), getWindowHeight(), format );
-		mFbo[ i ].bindFramebuffer();
-		gl::setViewport( mFbo[ i ].getBounds() );
-		gl::clear();
-		mFbo[ i ].unbindFramebuffer();
-	}
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-}
-
 // Prepare window
 void TracerApp::prepareSettings( Settings* settings )
 {
-	settings->setWindowSize( 1024, 768 );
 	settings->setFrameRate( 60.0f );
+	settings->setResizable( false );
+	settings->setWindowSize( 1024, 768 );
 }
 
 // Take screen shot
@@ -227,15 +199,34 @@ void TracerApp::setup()
 
 	// Params
 	mFrameRate	= 0.0f;
-	mFullScreen	= true;
 	mParams = params::InterfaceGl( "Params", Vec2i( 200, 105 ) );
 	mParams.addParam( "Frame rate",		&mFrameRate,							"", true );
-	mParams.addParam( "Full screen",	&mFullScreen,							"key=f"		);
 	mParams.addButton( "Screen shot",	bind( &TracerApp::screenShot, this ),	"key=space" );
 	mParams.addButton( "Quit",			bind( &TracerApp::quit, this ),			"key=q" );
 
-	// Run resize event to set up OpenGL
-	onResize();
+	// Enable polygon smoothing
+	gl::enable( GL_POLYGON_SMOOTH );
+	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+	
+	// Set up FBOs
+	gl::Fbo::Format format;
+#if defined( CINDER_MSW )
+	format.setColorInternalFormat( GL_RGBA32F );
+#else
+	format.setColorInternalFormat( GL_RGBA32F_ARB );
+#endif
+	format.setMinFilter( GL_LINEAR );
+	format.setMagFilter( GL_LINEAR );
+	format.setWrap( GL_CLAMP, GL_CLAMP );
+	for ( size_t i = 0; i < 3; ++i ) {
+		mFbo[ i ]	= gl::Fbo( getWindowWidth(), getWindowHeight(), format );
+		mFbo[ i ].bindFramebuffer();
+		gl::setViewport( mFbo[ i ].getBounds() );
+		gl::clear();
+		mFbo[ i ].unbindFramebuffer();
+	}
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 }
 
 // Quit
@@ -250,11 +241,6 @@ void TracerApp::update()
 {
 	// Update frame rate
 	mFrameRate = getAverageFps();
-
-	// Toggle fullscreen
-	if ( mFullScreen != isFullScreen() ) {
-		setFullScreen( mFullScreen );
-	}
 
 	// Update device
 	if ( mLeap && mLeap->isConnected() ) {		

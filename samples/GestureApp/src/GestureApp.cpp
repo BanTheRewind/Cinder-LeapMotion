@@ -420,6 +420,9 @@ void GestureApp::setup()
 	config.setFloat( "Gesture.Swipe.MinVelocity", 500.0f );
 	config.setFloat( "Gesture.KeyTap.MinDownVelocity", 25.0f );
 	
+	// Allows app to run in background
+	mLeap->setPolicyFlags( PolicyFlag::POLICY_BACKGROUND_FRAMES );
+	
 	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
@@ -519,7 +522,7 @@ Vec2f GestureApp::warpPointable( const Pointable& p )
 {
 	Vec3f result = Vec3f::zero();
 	if ( mLeap ) {
-		const Screen& screen = mLeap->getClosestScreen( p );
+		const Screen& screen = mLeap->getClosestCalibratedScreen( p );
 		if ( screen.intersects( p, &result, true ) ) {
 			result		*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
 			result.y	= (float)getWindowHeight() - result.y;
@@ -533,7 +536,7 @@ Vec2f GestureApp::warpVector( const Vec3f& v )
 {
 	Vec3f result = Vec3f::zero();
 	if ( mLeap ) {
-		const ScreenMap& screens = mLeap->getScreens();
+		const ScreenMap& screens = mLeap->getCalibratedScreens();
 		if ( !screens.empty() ) {
 			const Screen& screen = screens.begin()->second;
 			result = screen.project( v, true );

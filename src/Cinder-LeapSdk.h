@@ -55,6 +55,9 @@ class Pointable;
 class Screen;
 class Tool;
 
+//! Policy flag enumerator
+typedef Leap::Controller::PolicyFlag PolicyFlag;
+	
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 //! Converts a native Leap finger into a LeapSdk one.
@@ -380,12 +383,23 @@ public:
 	void				enableGesture( Gesture::Type t );
 	
 	//! Returns calibrated screen closest to Pointable \a p.
-	const Screen&		getClosestScreen( const Pointable& p ) const;
+	const Screen&		getClosestCalibratedScreen( const Pointable& p ) const;
+	//! Returns located screen closest to Pointable \a p.
+	const Screen&		getClosestLocatedScreen( const Pointable& p ) const;
 	/*! Returns a Leap::Config object, which you can use to query the Leap 
 		system for configuration information. */
 	Leap::Config		getConfig() const;
 	//! Return map of calibrated screens.
-	const ScreenMap&	getScreens() const;
+	const ScreenMap&	getCalibratedScreens() const;
+	//! Return map of screens found using the screen locator.
+	const ScreenMap&	getLocatedScreens() const;
+	
+	//! Returns true if app is focused for this device.
+	bool				hasFocus() const;
+	//! Returns policy flag enumerator.
+	PolicyFlag			getPolicyFlags() const;
+	//! Sets policy to \a flags.
+	void				setPolicyFlags( PolicyFlag flags );
 	
 	//! Returns true if the device has exited.
 	bool				hasExited() const;
@@ -418,7 +432,8 @@ private:
 	Leap::Controller*	mController;
 	Listener			mListener;
 	std::mutex			mMutex;
-	ScreenMap			mScreens;
+	ScreenMap			mScreensCalibrated;
+	ScreenMap			mScreensLocated;
 };
 	
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -431,27 +446,15 @@ class Exception : public cinder::Exception
 //! Exception expressing inability to locate a calibrated screen near a pointable.
 class ExcNoClosestScreen : public Exception {
 public:
-	ExcNoClosestScreen() throw()
-	{
-	}
-	
-	virtual const char* what() const throw()
-	{
-		return "Unable to locate calibrated screen near pointable.";
-	}
+	ExcNoClosestScreen() throw();
+	virtual const char* what() const throw();
 };
 
 //! Exception expressing the absence of calibrated screens
 class ExcNoCalibratedScreens : public Exception {
 public:
-	ExcNoCalibratedScreens() throw()
-	{
-	}
-	
-	virtual const char* what() const throw()
-	{
-		return "No calibrated screens are available.";
-	}
+	ExcNoCalibratedScreens() throw();
+	virtual const char* what() const throw();
 };
 
 }

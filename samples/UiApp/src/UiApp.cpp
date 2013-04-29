@@ -336,7 +336,7 @@ Vec2f UiApp::warpPointable( const Pointable& p )
 {
 	Vec3f result = Vec3f::zero();
 	if ( mLeap ) {
-		const Screen& screen = mLeap->getClosestScreen( p );
+		const Screen& screen = mLeap->getClosestCalibratedScreen( p );
 		if ( screen.intersects( p, &result, true ) ) {
 			result		*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
 			result.y	= (float)getWindowHeight() - result.y;
@@ -350,7 +350,7 @@ Vec2f UiApp::warpVector( const Vec3f& v )
 {
 	Vec3f result = Vec3f::zero();
 	if ( mLeap ) {
-		const ScreenMap& screens = mLeap->getScreens();
+		const ScreenMap& screens = mLeap->getCalibratedScreens();
 		if ( !screens.empty() ) {
 			const Screen& screen = screens.begin()->second;
 			result = screen.project( v, true );

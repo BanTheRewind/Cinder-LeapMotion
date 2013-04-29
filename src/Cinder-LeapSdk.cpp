@@ -581,21 +581,37 @@ void Device::enableGesture( Gesture::Type t )
 	}
 }
 
-const Screen& Device::getClosestScreen( const Pointable& p ) const
+const Screen& Device::getClosestCalibratedScreen( const Pointable& p ) const
 {
 	const Leap::ScreenList& screens = mController->calibratedScreens();
 	if ( screens.empty() ) {
 		throw ExcNoCalibratedScreens();
 	}
 	Leap::Screen closestScreen = screens.closestScreenHit( p.mPointable );
-	for ( ScreenMap::const_iterator iter = mScreens.begin(); iter != mScreens.end(); ++iter ) {
+	for ( ScreenMap::const_iterator iter = mScreensCalibrated.begin(); iter != mScreensCalibrated.end(); ++iter ) {
 		const Screen& screen = iter->second;
 		if ( screen.mScreen.id() == closestScreen.id() ) {
 			return screen;
 		}
 	}
-	if ( mScreens.begin() != mScreens.end() ) {
-		return mScreens.begin()->second;
+	if ( mScreensCalibrated.begin() != mScreensCalibrated.end() ) {
+		return mScreensCalibrated.begin()->second;
+	}
+	throw ExcNoClosestScreen();
+}
+	
+const Screen& Device::getClosestLocatedScreen( const Pointable& p ) const
+{
+	const Leap::ScreenList& screens = mController->locatedScreens();
+	Leap::Screen closestScreen = screens.closestScreenHit( p.mPointable );
+	for ( ScreenMap::const_iterator iter = mScreensLocated.begin(); iter != mScreensCalibrated.end(); ++iter ) {
+		const Screen& screen = iter->second;
+		if ( screen.mScreen.id() == closestScreen.id() ) {
+			return screen;
+		}
+	}
+	if ( mScreensCalibrated.begin() != mScreensCalibrated.end() ) {
+		return mScreensCalibrated.begin()->second;
 	}
 	throw ExcNoClosestScreen();
 }
@@ -605,11 +621,31 @@ Leap::Config Device::getConfig() const
 	return mController->config();
 }
 	
-const ScreenMap& Device::getScreens() const
+const ScreenMap& Device::getCalibratedScreens() const
 {
-	return mScreens;
+	return mScreensCalibrated;
+}
+	
+const ScreenMap& Device::getLocatedScreens() const
+{
+	return mScreensLocated;
 }
 
+bool Device::hasFocus() const
+{
+	return mController->hasFocus();
+}
+
+PolicyFlag Device::getPolicyFlags() const
+{
+	return mController->policyFlags();
+}
+
+void Device::setPolicyFlags( PolicyFlag flags )
+{
+	mController->setPolicyFlags( flags );
+}
+	
 bool Device::hasExited() const
 {
 	return mListener.mExited;
@@ -641,13 +677,46 @@ void Device::update()
 			mSignal( mListener.mFrame );
 			mListener.mNewFrame = false;
 		}
-		const Leap::ScreenList& screens = mController->calibratedScreens();
-		mScreens.clear();
-		size_t count = screens.count();
-		for ( size_t i = 0; i < count; ++i ) {
-			mScreens[ i ] = Screen( screens[ i ] );
+		
+		{
+			const Leap::ScreenList& screens = mController->calibratedScreens();
+			mScreensCalibrated.clear();
+			size_t count = screens.count();
+			for ( size_t i = 0; i < count; ++i ) {
+				mScreensCalibrated[ i ] = fromLeapScreen( screens[ i ] );
+			}
+		}
+		
+		{
+			const Leap::ScreenList& screens = mController->locatedScreens();
+			mScreensLocated.clear();
+			size_t count = screens.count();
+			for ( size_t i = 0; i < count; ++i ) {
+				mScreensLocated[ i ] = fromLeapScreen( screens[ i ] );
+			}
 		}
 	}
 }
+	
+//////////////////////////////////////////////////////////////////////////////////////////////
 
+
+ExcNoClosestScreen::ExcNoClosestScreen() throw()
+{
+}
+
+const char* ExcNoClosestScreen::what() const throw()
+{
+	return "Unable to locate screen near pointable.";
+}
+	
+ExcNoCalibratedScreens::ExcNoCalibratedScreens() throw()
+{
+}
+
+const char* ExcNoCalibratedScreens::what() const throw()
+{
+	return "No calibrated screens are available.";
+}
+	
 }
