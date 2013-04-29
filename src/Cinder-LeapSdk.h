@@ -386,13 +386,14 @@ public:
 	const Screen&		getClosestCalibratedScreen( const Pointable& p ) const;
 	//! Returns located screen closest to Pointable \a p.
 	const Screen&		getClosestLocatedScreen( const Pointable& p ) const;
-	/*! Returns a Leap::Config object, which you can use to query the Leap 
-		system for configuration information. */
-	Leap::Config		getConfig() const;
 	//! Return map of calibrated screens.
 	const ScreenMap&	getCalibratedScreens() const;
 	//! Return map of screens found using the screen locator.
 	const ScreenMap&	getLocatedScreens() const;
+	
+	/*! Returns a Leap::Config object, which you can use to query the Leap
+	 system for configuration information. */
+	Leap::Config		getConfig() const;
 	
 	//! Returns true if app is focused for this device.
 	bool				hasFocus() const;
