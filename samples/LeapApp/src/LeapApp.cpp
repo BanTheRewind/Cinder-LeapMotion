@@ -46,14 +46,12 @@ public:
 	void					draw();
 	void					prepareSettings( ci::app::AppBasic::Settings* settings );
 	void					setup();
-	void					shutdown();
 	void					update();
 private:
 	// Leap
-	uint32_t				mCallbackId;
-	LeapSdk::HandMap		mHands;
 	LeapSdk::DeviceRef		mLeap;
-	void 					onFrame( LeapSdk::Frame frame );
+	Leap::Frame				mFrame;
+	void 					onFrame( Leap::Frame frame );
 
 	// Camera
 	ci::CameraPersp			mCamera;
@@ -92,79 +90,76 @@ void LeapApp::draw()
 	// Iterate through hands
 	float headLength = 6.0f;
 	float headRadius = 3.0f;
-	for ( HandMap::const_iterator handIter = mHands.begin(); handIter != mHands.end(); ++handIter ) {
-		const Hand& hand = handIter->second;
+	const Leap::HandList& hands = mFrame.hands();
+	for ( Leap::HandList::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
+		const Leap::Hand& hand = *handIter;
 
+		// Get hand data
+		Vec3f handDir		= LeapSdk::toVec3f( hand.direction() );
+		Vec3f palmNorm		= LeapSdk::toVec3f( hand.palmNormal() );
+		Vec3f palmPos		= LeapSdk::toVec3f( hand.palmPosition() );
+		Vec3f palmVel		= LeapSdk::toVec3f( hand.palmVelocity() );
+		Vec3f sphereCenter	= LeapSdk::toVec3f( hand.sphereCenter() );
+		float sphereRadius	= hand.sphereRadius();
+		
 		// Hand sphere
 		gl::enableWireframe();
 		gl::color( ColorAf( Colorf::gray( 0.9f ), 0.5f ) );
-		gl::drawSphere( hand.getSpherePosition(), hand.getSphereRadius(), 16 );
+		gl::drawSphere( sphereCenter, sphereRadius, 16 );
 		gl::disableWireframe();
 
 		// Hand plane
 		gl::color( ColorAf( 0.75f, 0.0f, 0.75f, 0.25f ) );
 		gl::pushMatrices();
-		gl::translate( hand.getPosition() );
-		gl::rotate( Quatf( hand.getPosition(), hand.getDirection() ) );
+		
+		gl::translate( palmPos );
+		gl::rotate( Quatf( palmPos, handDir ) );
 		for ( float i = 0.25f; i <= 1.0f; i += 0.25f ) {
-			gl::drawStrokedCircle( Vec2f::zero(), hand.getSphereRadius() * i, 16 );
+			gl::drawStrokedCircle( Vec2f::zero(), sphereRadius * i, 16 );
 		}
 		gl::popMatrices();
 
 		// Hand direction
 		gl::color( 1.0f, 0.0f, 1.0f, 0.5f );
-		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getDirection() * 30.0f, headLength, headRadius );
+		gl::drawVector( palmPos, palmPos + handDir * 30.0f, headLength, headRadius );
 
 		// Hand normal
 		gl::color( 0.0f, 0.0f, 1.0f, 0.5f );
-		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getNormal() * 30.0f, headLength, headRadius );
+		gl::drawVector( palmPos, palmPos + palmNorm * 30.0f, headLength, headRadius );
 
 		// Hand velocity
 		gl::color( 0.0f, 1.0f, 0.0f, 0.5f );
-		gl::drawVector( hand.getPosition(), hand.getPosition() + hand.getVelocity() * 0.05f, headLength, headRadius );
+		gl::drawVector( palmPos, palmPos + palmVel * 0.05f, headLength, headRadius );
 
 		// Fingers
-		const FingerMap& fingers = hand.getFingers();
-		for ( FingerMap::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); ++fingerIter ) {
-			const Finger& finger = fingerIter->second;
+		const Leap::PointableList& pointables = hand.pointables();
+		for ( Leap::PointableList::const_iterator pointIter = pointables.begin(); pointIter != pointables.end(); ++pointIter ) {
+			const Leap::Pointable& pointable = *pointIter;
 
-			// Finger
-			Vec3f position = finger.getPosition() + finger.getDirection() * finger.getLength();
+			// Get pointable data
+			Vec3f dir		= LeapSdk::toVec3f( pointable.direction() );
+			bool isTool		= pointable.isTool();
+			float length	= pointable.length();
+			Vec3f tipPos	= LeapSdk::toVec3f( pointable.tipPosition() );
+			Vec3f tipVel	= LeapSdk::toVec3f( pointable.tipVelocity() );
+			float width		= pointable.width();
+			Vec3f basePos	= tipPos + dir * -length;
+			
+			// Draw line representing pointable's length
 			gl::color( ColorAf::gray( 0.3f ) );
-			gl::drawLine( finger.getPosition(), position );
+			gl::drawLine( basePos, tipPos );
 
-			// Finger tip
-			gl::color( ColorAf::black() );
+			// Tip position
+			Colorf color = isTool ? Colorf( 1.0f, 0.0f, 0.0f ) : Colorf::black();
+			gl::color( color );
 			gl::pushMatrices();
-			gl::translate( position );
-			gl::drawStrokedCircle( Vec2f::zero(), finger.getWidth(), 16 );
+			gl::translate( tipPos );
+			gl::drawStrokedCircle( Vec2f::zero(), width, 16 );
 			gl::popMatrices();
 
 			// Finger velocity
 			gl::color( 0.0f, 1.0f, 0.0f, 0.5f );
-			gl::drawVector( position, position + finger.getVelocity() * 0.05f, headLength, headRadius );
-		}
-		
-		// Tools
-		const ToolMap& tools = hand.getTools();
-		for ( ToolMap::const_iterator toolIter = tools.begin(); toolIter != tools.end(); ++toolIter ) {
-			const Finger& tool = toolIter->second;
-			
-			// Tool
-			Vec3f position = tool.getPosition() + tool.getDirection() * tool.getLength();
-			gl::color( ColorAf( 1.0f, 0.0f, 0.0f, 0.3f ) );
-			gl::drawLine( tool.getPosition(), position );
-			
-			// Tool tip
-			gl::color( ColorAf( 1.0f, 0.0f, 0.0f, 1.0f ) );
-			gl::pushMatrices();
-			gl::translate( position );
-			gl::drawStrokedCircle( Vec2f::zero(), tool.getWidth(), 16 );
-			gl::popMatrices();
-			
-			// Tool velocity
-			gl::color( 0.0f, 1.0f, 0.0f, 0.5f );
-			gl::drawVector( position, position + tool.getVelocity() * 0.05f, headLength, headRadius );
+			gl::drawVector( tipPos, tipPos + tipVel * 0.05f, headLength, headRadius );
 		}
 	}
 	
@@ -173,9 +168,9 @@ void LeapApp::draw()
 }
 
 // Called when Leap frame data is ready
-void LeapApp::onFrame( Frame frame )
+void LeapApp::onFrame( Leap::Frame frame )
 {
-	mHands = frame.getHands();
+	mFrame = frame;
 }
 
 // Prepare window
@@ -210,8 +205,8 @@ void LeapApp::setup()
 	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
 	// Start device
-	mLeap 		= Device::create();
-	mCallbackId = mLeap->addCallback( &LeapApp::onFrame, this );
+	mLeap 	= Device::create();
+	mLeap->connectEventHandler( &LeapApp::onFrame, this );
 
 	// Params
 	mFrameRate	= 0.0f;
@@ -221,13 +216,6 @@ void LeapApp::setup()
 	mParams.addParam( "Full screen",	&mFullScreen,						"key=f"		);
 	mParams.addButton( "Screen shot",	bind( &LeapApp::screenShot, this ), "key=space" );
 	mParams.addButton( "Quit",			bind( &LeapApp::quit, this ),		"key=q" );
-}
-
-// Quit
-void LeapApp::shutdown()
-{
-	mLeap->removeCallback( mCallbackId );
-	mHands.clear();
 }
 
 // Runs update logic

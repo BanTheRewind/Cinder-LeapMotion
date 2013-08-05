@@ -1,16 +1,15 @@
 /******************************************************************************\
-* Copyright (C) 2012-2013 Leap Motion, Inc. All rights reserved.               *
-* Leap Motion proprietary and confidential. Not for distribution.              *
-* Use subject to the terms of the Leap Motion SDK Agreement available at       *
-* https://developer.leapmotion.com/sdk_agreement, or another agreement         *
-* between Leap Motion and you, your company or other organization.             *
-\******************************************************************************/
+ * Copyright (C) 2012-2013 Leap Motion, Inc. All rights reserved.               *
+ * Leap Motion proprietary and confidential. Not for distribution.              *
+ * Use subject to the terms of the Leap Motion SDK Agreement available at       *
+ * https://developer.leapmotion.com/sdk_agreement, or another agreement         *
+ * between Leap Motion and you, your company or other organization.             *
+ \******************************************************************************/
 
 #if !defined(__Leap_h__)
 #define __Leap_h__
 
 #include "LeapMath.h"
-
 #include <string>
 #include <vector>
 
@@ -47,8 +46,8 @@ typedef unsigned __int64 uint64_t;
 
 namespace Leap {
 
-// Interface for internal use only
-class LEAP_EXPORT_CLASS Interface {
+  // Interface for internal use only
+  class LEAP_EXPORT_CLASS Interface {
   public:
     struct Implementation {
       LEAP_EXPORT virtual ~Implementation() {}
@@ -64,57 +63,57 @@ class LEAP_EXPORT_CLASS Interface {
     class SharedObject* m_object;
   private:
     LEAP_EXPORT Implementation* reference() const;
-};
+  };
 
-// Forward declarations for internal use only
-class PointableImplementation;
-class FingerImplementation;
-class ToolImplementation;
-class HandImplementation;
-class GestureImplementation;
-class ScreenImplementation;
-class DeviceImplementation;
-class InteractionBoxImplementation;
-class FrameImplementation;
-class ControllerImplementation;
-template<typename T> class ListBaseImplementation;
+  // Forward declarations for internal use only
+  class PointableImplementation;
+  class FingerImplementation;
+  class ToolImplementation;
+  class HandImplementation;
+  class GestureImplementation;
+  class ScreenImplementation;
+  class DeviceImplementation;
+  class InteractionBoxImplementation;
+  class FrameImplementation;
+  class ControllerImplementation;
+  template<typename T> class ListBaseImplementation;
 
-// Forward declarations
-class PointableList;
-class FingerList;
-class ToolList;
-class HandList;
-class GestureList;
-class Hand;
-class Gesture;
-class Screen;
-class InteractionBox;
-class Frame;
-class Listener;
+  // Forward declarations
+  class PointableList;
+  class FingerList;
+  class ToolList;
+  class HandList;
+  class GestureList;
+  class Hand;
+  class Gesture;
+  class Screen;
+  class InteractionBox;
+  class Frame;
+  class Listener;
 
-/**
- * The Pointable class reports the physical characteristics of a detected finger or tool.
- *
- * Both fingers and tools are classified as Pointable objects. Use the Pointable::isFinger()
- * function to determine whether a Pointable object represents a finger. Use the
- * Pointable::isTool() function to determine whether a Pointable object represents a tool.
- * The Leap Motion software classifies a detected entity as a tool when it is thinner, straighter, and longer
- * than a typical finger.
- *
- * To provide touch emulation, the Leap Motion software associates a floating touch
- * plane that adapts to the user's finger movement and hand posture. The Leap Motion
- * interprets purposeful movements toward this plane as potential touch points.
- * The Pointable class reports
- * touch state with the touchZone and touchDistance values.
- *
- * Note that Pointable objects can be invalid, which means that they do not contain
- * valid tracking data and do not correspond to a physical entity. Invalid Pointable
- * objects can be the result of asking for a Pointable object using an ID from an
- * earlier frame when no Pointable objects with that ID exist in the current frame.
- * A Pointable object created from the Pointable constructor is also invalid.
- * Test for validity with the Pointable::isValid() function.
- */
-class Pointable : public Interface {
+  /**
+   * The Pointable class reports the physical characteristics of a detected finger or tool.
+   *
+   * Both fingers and tools are classified as Pointable objects. Use the Pointable::isFinger()
+   * function to determine whether a Pointable object represents a finger. Use the
+   * Pointable::isTool() function to determine whether a Pointable object represents a tool.
+   * The Leap Motion software classifies a detected entity as a tool when it is thinner, straighter, and longer
+   * than a typical finger.
+   *
+   * To provide touch emulation, the Leap Motion software associates a floating touch
+   * plane that adapts to the user's finger movement and hand posture. The Leap Motion
+   * interprets purposeful movements toward this plane as potential touch points.
+   * The Pointable class reports
+   * touch state with the touchZone and touchDistance values.
+   *
+   * Note that Pointable objects can be invalid, which means that they do not contain
+   * valid tracking data and do not correspond to a physical entity. Invalid Pointable
+   * objects can be the result of asking for a Pointable object using an ID from an
+   * earlier frame when no Pointable objects with that ID exist in the current frame.
+   * A Pointable object created from the Pointable constructor is also invalid.
+   * Test for validity with the Pointable::isValid() function.
+   */
+  class Pointable : public Interface {
   public:
 
     /**
@@ -153,6 +152,9 @@ class Pointable : public Interface {
      *
      * Use the ID value with the Frame::pointable() function to find this
      * Pointable object in future frames.
+     *
+     * IDs should be from 1 to 100 (inclusive). If more than 100 objects are tracked
+     * an IDs of -1 will be used until an ID in the defined range is available.
      *
      * @returns The ID assigned to this Pointable object.
      */
@@ -272,6 +274,8 @@ class Pointable : public Interface {
      * A value proportional to the distance between this Pointable object and the
      * adaptive touch plane.
      *
+     *  \image html images/Leap_Touch_Plane.png
+     *
      * The touch distance is a value in the range [-1, 1]. The value 1.0 indicates the
      * Pointable is at the far edge of the hovering zone. The value 0 indicates the
      * Pointable is just entering the touching zone. A value of -1.0 indicates the
@@ -296,6 +300,13 @@ class Pointable : public Interface {
      * with some additional smoothing and stabilization applied.
      */
     LEAP_EXPORT Vector stabilizedTipPosition() const;
+
+    /**
+     * The duration of time this Pointable has been visible to the Leap Motion Controller.
+     *
+     * @returns The duration (in seconds) that this Pointable has been tracked.
+     */
+    LEAP_EXPORT float timeVisible() const;
 
     /**
      * Returns an invalid Pointable object.
@@ -331,22 +342,29 @@ class Pointable : public Interface {
      * @returns A description of the Pointable object as a string.
      */
     LEAP_EXPORT std::string toString() const;
-};
+  };
 
-/**
- * The Finger class represents a tracked finger.
- *
- * Fingers are Pointable objects that the Leap Motion software has classified as a finger.
- * Get valid Finger objects from a Frame or a Hand object.
- *
- * Note that Finger objects can be invalid, which means that they do not contain
- * valid tracking data and do not correspond to a physical finger. Invalid Finger
- * objects can be the result of asking for a Finger object using an ID from an
- * earlier frame when no Finger objects with that ID exist in the current frame.
- * A Finger object created from the Finger constructor is also invalid.
- * Test for validity with the Finger::isValid() function.
- */
-class Finger : public Pointable {
+  /**
+   * The Finger class represents a tracked finger.
+   *
+   * Fingers are Pointable objects that the Leap Motion software has classified as a finger.
+   * Get valid Finger objects from a Frame or a Hand object.
+   *
+   * Fingers may be permanently associated to a hand. In this case the angular order of the finger IDs
+   * will be invariant. As fingers move in and out of view it is possible for the guessed ID
+   * of a finger to be incorrect. Consequently, it may be necessary for finger IDs to be
+   * exchanged. All tracked properties, such as velocity, will remain continuous in the API.
+   * However, quantities that are derived from the API output (such as a history of positions)
+   * will be discontinuous unless they have a corresponding ID exchange.
+   *
+   * Note that Finger objects can be invalid, which means that they do not contain
+   * valid tracking data and do not correspond to a physical finger. Invalid Finger
+   * objects can be the result of asking for a Finger object using an ID from an
+   * earlier frame when no Finger objects with that ID exist in the current frame.
+   * A Finger object created from the Finger constructor is also invalid.
+   * Test for validity with the Finger::isValid() function.
+   */
+  class Finger : public Pointable {
   public:
     // For internal use only.
     Finger(FingerImplementation*);
@@ -382,25 +400,28 @@ class Finger : public Pointable {
      * @returns A description of the Finger object as a string.
      */
     LEAP_EXPORT std::string toString() const;
-};
+  };
 
-/**
- * The Tool class represents a tracked tool.
- *
- * Tools are Pointable objects that the Leap Motion software has classified as a tool.
- * Tools are longer, thinner, and straighter than a typical finger.
- * Get valid Tool objects from a Frame or a Hand object.
- *
- * \image html images/Leap_Tool.png
- *
- * Note that Tool objects can be invalid, which means that they do not contain
- * valid tracking data and do not correspond to a physical tool. Invalid Tool
- * objects can be the result of asking for a Tool object using an ID from an
- * earlier frame when no Tool objects with that ID exist in the current frame.
- * A Tool object created from the Tool constructor is also invalid.
- * Test for validity with the Tool::isValid() function.
- */
-class Tool : public Pointable {
+  /**
+   * The Tool class represents a tracked tool.
+   *
+   * Tools are Pointable objects that the Leap Motion software has classified as a tool.
+   * Tools are longer, thinner, and straighter than a typical finger.
+   * Get valid Tool objects from a Frame or a Hand object.
+   *
+   * Tools may reference a hand, but unlike fingers they are not permanently associated.
+   * Instead, a tool can be transferred between hands while keeping the same ID.
+   *
+   * \image html images/Leap_Tool.png
+   *
+   * Note that Tool objects can be invalid, which means that they do not contain
+   * valid tracking data and do not correspond to a physical tool. Invalid Tool
+   * objects can be the result of asking for a Tool object using an ID from an
+   * earlier frame when no Tool objects with that ID exist in the current frame.
+   * A Tool object created from the Tool constructor is also invalid.
+   * Test for validity with the Tool::isValid() function.
+   */
+  class Tool : public Pointable {
   public:
     // For internal use only.
     Tool(ToolImplementation*);
@@ -436,23 +457,23 @@ class Tool : public Pointable {
      * @returns A description of the Tool object as a string.
      */
     LEAP_EXPORT std::string toString() const;
-};
+  };
 
-/**
- * The Hand class reports the physical characteristics of a detected hand.
- *
- * Hand tracking data includes a palm position and velocity; vectors for
- * the palm normal and direction to the fingers; properties of a sphere fit
- * to the hand; and lists of the attached fingers and tools.
- *
- * Note that Hand objects can be invalid, which means that they do not contain
- * valid tracking data and do not correspond to a physical entity. Invalid Hand
- * objects can be the result of asking for a Hand object using an ID from an
- * earlier frame when no Hand objects with that ID exist in the current frame.
- * A Hand object created from the Hand constructor is also invalid.
- * Test for validity with the Hand::isValid() function.
- */
-class Hand : public Interface {
+  /**
+   * The Hand class reports the physical characteristics of a detected hand.
+   *
+   * Hand tracking data includes a palm position and velocity; vectors for
+   * the palm normal and direction to the fingers; properties of a sphere fit
+   * to the hand; and lists of the attached fingers and tools.
+   *
+   * Note that Hand objects can be invalid, which means that they do not contain
+   * valid tracking data and do not correspond to a physical entity. Invalid Hand
+   * objects can be the result of asking for a Hand object using an ID from an
+   * earlier frame when no Hand objects with that ID exist in the current frame.
+   * A Hand object created from the Hand constructor is also invalid.
+   * Test for validity with the Hand::isValid() function.
+   */
+  class Hand : public Interface {
   public:
     // For internal use only.
     Hand(HandImplementation*);
@@ -583,6 +604,14 @@ class Hand : public Interface {
      * @returns The Vector representing the coordinates of the palm position.
      */
     LEAP_EXPORT Vector palmPosition() const;
+
+    /**
+     * The stabilized palm position of this Hand.
+     *
+     * @returns A modified palm position of this Hand object
+     * with some additional smoothing and stabilization applied.
+     */
+    LEAP_EXPORT Vector stabilizedPalmPosition() const;
 
     /**
      * The rate of change of the palm position in millimeters/second.
@@ -796,6 +825,13 @@ class Hand : public Interface {
     LEAP_EXPORT float scaleProbability(const Frame& sinceFrame) const;
 
     /**
+     * The duration of time this Hand has been visible to the Leap Motion Controller.
+     *
+     * @returns The duration (in seconds) that this Hand has been tracked.
+     */
+    LEAP_EXPORT float timeVisible() const;
+
+    /**
      * Reports whether this is a valid Hand object.
      *
      * @returns True, if this Hand object contains valid tracking data.
@@ -836,71 +872,71 @@ class Hand : public Interface {
      * @returns A description of the Hand as a string.
      */
     LEAP_EXPORT std::string toString() const;
-};
+  };
 
-/**
- * The Gesture class represents a recognized movement by the user.
- *
- * The Leap Motion device watches the activity within its field of view for certain movement
- * patterns typical of a user gesture or command. For example, a movement from side to
- * side with the hand can indicate a swipe gesture, while a finger poking forward
- * can indicate a screen tap gesture.
- *
- * When the Leap Motion software recognizes a gesture, it assigns an ID and adds a
- * Gesture object to the frame gesture list. For continuous gestures, which
- * occur over many frames, the Leap Motion software updates the gesture by adding
- * a Gesture object having the same ID and updated properties in each
- * subsequent frame.
- *
- * **Important:** Recognition for each type of gesture must be enabled using the
- * Controller::enableGesture() function; otherwise **no gestures are recognized or
- * reported**.
- *
- * Subclasses of Gesture define the properties for the specific movement patterns
- * recognized by the Leap Motion software.
- *
- * The Gesture subclasses for include:
- *
- * * CircleGesture -- A circular movement by a finger.
- * * SwipeGesture -- A straight line movement by the hand with fingers extended.
- * * ScreenTapGesture -- A forward tapping movement by a finger.
- * * KeyTapGesture -- A downward tapping movement by a finger.
- *
- * Circle and swipe gestures are continuous and these objects can have a
- * state of start, update, and stop.
- *
- * The screen tap gesture is a discrete gesture. The Leap Motion software only creates a single
- * ScreenTapGesture object for each tap and it always has a stop state.
- *
- * Get valid Gesture instances from a Frame object. You can get a list of gestures
- * with the Frame::gestures() method. You can get a list of gestures since a
- * specified frame with the `Frame::gestures(const Frame&)` method. You can also
- * use the `Frame::gesture()` method to find a gesture in the current frame using
- * an ID value obtained in a previous frame.
- *
- * Gesture objects can be invalid. For example, when you get a gesture by ID
- * using `Frame::gesture()`, and there is no gesture with that ID in the current
- * frame, then `gesture()` returns an Invalid Gesture object (rather than a null
- * value). Always check object validity in situations where a gesture might be
- * invalid.
- *
- * The following keys can be used with the Config class to configure the gesture
- * recognizer:
- *
- * Key string | Value type | Default value | Units
- * -----------|------------|---------------|------
- * Gesture.Circle.MinRadius | float | 5.0 | mm
- * Gesture.Circle.MinArc | float | 1.5*pi | radians
- * Gesture.Swipe.MinLength | float | 150 | mm
- * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
- * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
- * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
- * Gesture.KeyTap.MinDistance | float | 5.0 | mm
- * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
- * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
- * Gesture.ScreenTap.MinDistance | float | 3.0 | mm
- */
-class Gesture : public Interface {
+  /**
+   * The Gesture class represents a recognized movement by the user.
+   *
+   * The Leap Motion device watches the activity within its field of view for certain movement
+   * patterns typical of a user gesture or command. For example, a movement from side to
+   * side with the hand can indicate a swipe gesture, while a finger poking forward
+   * can indicate a screen tap gesture.
+   *
+   * When the Leap Motion software recognizes a gesture, it assigns an ID and adds a
+   * Gesture object to the frame gesture list. For continuous gestures, which
+   * occur over many frames, the Leap Motion software updates the gesture by adding
+   * a Gesture object having the same ID and updated properties in each
+   * subsequent frame.
+   *
+   * **Important:** Recognition for each type of gesture must be enabled using the
+   * Controller::enableGesture() function; otherwise **no gestures are recognized or
+   * reported**.
+   *
+   * Subclasses of Gesture define the properties for the specific movement patterns
+   * recognized by the Leap Motion software.
+   *
+   * The Gesture subclasses for include:
+   *
+   * * CircleGesture -- A circular movement by a finger.
+   * * SwipeGesture -- A straight line movement by the hand with fingers extended.
+   * * ScreenTapGesture -- A forward tapping movement by a finger.
+   * * KeyTapGesture -- A downward tapping movement by a finger.
+   *
+   * Circle and swipe gestures are continuous and these objects can have a
+   * state of start, update, and stop.
+   *
+   * The screen tap gesture is a discrete gesture. The Leap Motion software only creates a single
+   * ScreenTapGesture object for each tap and it always has a stop state.
+   *
+   * Get valid Gesture instances from a Frame object. You can get a list of gestures
+   * with the Frame::gestures() method. You can get a list of gestures since a
+   * specified frame with the `Frame::gestures(const Frame&)` method. You can also
+   * use the `Frame::gesture()` method to find a gesture in the current frame using
+   * an ID value obtained in a previous frame.
+   *
+   * Gesture objects can be invalid. For example, when you get a gesture by ID
+   * using `Frame::gesture()`, and there is no gesture with that ID in the current
+   * frame, then `gesture()` returns an Invalid Gesture object (rather than a null
+   * value). Always check object validity in situations where a gesture might be
+   * invalid.
+   *
+   * The following keys can be used with the Config class to configure the gesture
+   * recognizer:
+   *
+   * Key string | Value type | Default value | Units
+   * -----------|------------|---------------|------
+   * Gesture.Circle.MinRadius | float | 5.0 | mm
+   * Gesture.Circle.MinArc | float | 1.5*pi | radians
+   * Gesture.Swipe.MinLength | float | 150 | mm
+   * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
+   * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
+   * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
+   * Gesture.KeyTap.MinDistance | float | 5.0 | mm
+   * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
+   * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
+   * Gesture.ScreenTap.MinDistance | float | 3.0 | mm
+   */
+  class Gesture : public Interface {
   public:
     // For internal use only.
     Gesture(GestureImplementation*);
@@ -1061,36 +1097,36 @@ class Gesture : public Interface {
      * @returns The invalid Gesture instance.
      */
     LEAP_EXPORT static const Gesture& invalid();
-};
+  };
 
-/**
- * The SwipeGesture class represents a swiping motion of a finger or tool.
- *
- * \image html images/Leap_Gesture_Swipe.png
- *
- * **Important:** To use swipe gestures in your application, you must enable
- * recognition of the swipe gesture. You can enable recognition with:
- *
- * \include Gesture_Swipe_Enable.txt
- *
- * Swipe gestures are continuous.
- *
- * You can set the minimum length and velocity required for a movement
- * to be recognized as a swipe using the config attribute of a connected
- * Controller object. Use the following keys to configure swipe recognition:
- *
- * Key string | Value type | Default value | Units
- * -----------|------------|---------------|------
- * Gesture.Swipe.MinLength | float | 150 | mm
- * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
- *
- * The following example demonstrates how to set the swipe configuration
- * parameters:
- *
- * \include Gesture_Swipe_Params.txt
- */
-class SwipeGesture : public Gesture
-{
+  /**
+   * The SwipeGesture class represents a swiping motion of a finger or tool.
+   *
+   * \image html images/Leap_Gesture_Swipe.png
+   *
+   * **Important:** To use swipe gestures in your application, you must enable
+   * recognition of the swipe gesture. You can enable recognition with:
+   *
+   * \include Gesture_Swipe_Enable.txt
+   *
+   * Swipe gestures are continuous.
+   *
+   * You can set the minimum length and velocity required for a movement
+   * to be recognized as a swipe using the config attribute of a connected
+   * Controller object. Use the following keys to configure swipe recognition:
+   *
+   * Key string | Value type | Default value | Units
+   * -----------|------------|---------------|------
+   * Gesture.Swipe.MinLength | float | 150 | mm
+   * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
+   *
+   * The following example demonstrates how to set the swipe configuration
+   * parameters:
+   *
+   * \include Gesture_Swipe_Params.txt
+   */
+  class SwipeGesture : public Gesture
+  {
   public:
     /**
      * The swipe gesture type.
@@ -1152,45 +1188,45 @@ class SwipeGesture : public Gesture
      * @returns Pointable A Pointable object representing the swiping finger.
      */
     LEAP_EXPORT Pointable pointable() const;
-};
+  };
 
-/**
- * The CircleGesture classes represents a circular finger movement.
- *
- * A circle movement is recognized when the tip of a finger draws a circle
- * within the Leap Motion device field of view.
- *
- * \image html images/Leap_Gesture_Circle.png
- *
- * **Important:** To use circle gestures in your application, you must enable
- * recognition of the circle gesture. You can enable recognition with:
- *
- * \include Gesture_Circle_Enable.txt
- *
- * Circle gestures are continuous. The CircleGesture objects for the gesture have
- * three possible states:
- *
- * * State::STATE_START -- The circle gesture has just started. The movement has
- *  progressed far enough for the recognizer to classify it as a circle.
- * * State::STATE_UPDATE -- The circle gesture is continuing.
- * * State::STATE_STOP -- The circle gesture is finished.
- *
- * You can set the minimum radius and minimum arc length required for a movement
- * to be recognized as a circle using the config attribute of a connected
- * Controller object. Use the following keys to configure circle recognition:
- *
- * Key string | Value type | Default value | Units
- * -----------|------------|---------------|------
- * Gesture.Circle.MinRadius | float | 5.0 | mm
- * Gesture.Circle.MinArc | float | 1.5*pi | radians
- *
- * The following example demonstrates how to set the circle configuration
- * parameters:
- *
- * \include Gesture_Circle_Params.txt
- */
-class CircleGesture : public Gesture
-{
+  /**
+   * The CircleGesture classes represents a circular finger movement.
+   *
+   * A circle movement is recognized when the tip of a finger draws a circle
+   * within the Leap Motion device field of view.
+   *
+   * \image html images/Leap_Gesture_Circle.png
+   *
+   * **Important:** To use circle gestures in your application, you must enable
+   * recognition of the circle gesture. You can enable recognition with:
+   *
+   * \include Gesture_Circle_Enable.txt
+   *
+   * Circle gestures are continuous. The CircleGesture objects for the gesture have
+   * three possible states:
+   *
+   * * State::STATE_START -- The circle gesture has just started. The movement has
+   *  progressed far enough for the recognizer to classify it as a circle.
+   * * State::STATE_UPDATE -- The circle gesture is continuing.
+   * * State::STATE_STOP -- The circle gesture is finished.
+   *
+   * You can set the minimum radius and minimum arc length required for a movement
+   * to be recognized as a circle using the config attribute of a connected
+   * Controller object. Use the following keys to configure circle recognition:
+   *
+   * Key string | Value type | Default value | Units
+   * -----------|------------|---------------|------
+   * Gesture.Circle.MinRadius | float | 5.0 | mm
+   * Gesture.Circle.MinArc | float | 1.5*pi | radians
+   *
+   * The following example demonstrates how to set the circle configuration
+   * parameters:
+   *
+   * \include Gesture_Circle_Params.txt
+   */
+  class CircleGesture : public Gesture
+  {
   public:
     /**
      * The circle gesture type.
@@ -1267,44 +1303,44 @@ class CircleGesture : public Gesture
      * @returns Pointable A Pointable object representing the circling finger.
      */
     LEAP_EXPORT Pointable pointable() const;
-};
+  };
 
-/**
- * The ScreenTapGesture class represents a tapping gesture by a finger or tool.
- *
- * A screen tap gesture is recognized when the tip of a finger pokes forward
- * and then springs back to approximately the original postion, as if
- * tapping a vertical screen. The tapping finger must pause briefly before beginning the tap.
- *
- * \image html images/Leap_Gesture_Tap2.png
- *
- * **Important:** To use screen tap gestures in your application, you must enable
- * recognition of the screen tap gesture. You can enable recognition with:
- *
- * \include Gesture_ScreenTap_Enable.txt
- *
- * ScreenTap gestures are discrete. The ScreenTapGesture object representing a tap always
- * has the state, STATE_STOP. Only one ScreenTapGesture object is created for each
- * screen tap gesture recognized.
- *
- * You can set the minimum finger movement and velocity required for a movement
- * to be recognized as a screen tap as well as adjust the detection window for
- * evaluating the movement using the config attribute of a connected
- * Controller object. Use the following keys to configure screen tap recognition:
- *
- * Key string | Value type | Default value | Units
- * -----------|------------|---------------|------
- * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
- * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
- * Gesture.ScreenTap.MinDistance | float | 3.0 | mm
- *
- * The following example demonstrates how to set the screen tap configuration
- * parameters:
- *
- * \include Gesture_ScreenTap_Params.txt
- */
-class ScreenTapGesture : public Gesture
-{
+  /**
+   * The ScreenTapGesture class represents a tapping gesture by a finger or tool.
+   *
+   * A screen tap gesture is recognized when the tip of a finger pokes forward
+   * and then springs back to approximately the original postion, as if
+   * tapping a vertical screen. The tapping finger must pause briefly before beginning the tap.
+   *
+   * \image html images/Leap_Gesture_Tap2.png
+   *
+   * **Important:** To use screen tap gestures in your application, you must enable
+   * recognition of the screen tap gesture. You can enable recognition with:
+   *
+   * \include Gesture_ScreenTap_Enable.txt
+   *
+   * ScreenTap gestures are discrete. The ScreenTapGesture object representing a tap always
+   * has the state, STATE_STOP. Only one ScreenTapGesture object is created for each
+   * screen tap gesture recognized.
+   *
+   * You can set the minimum finger movement and velocity required for a movement
+   * to be recognized as a screen tap as well as adjust the detection window for
+   * evaluating the movement using the config attribute of a connected
+   * Controller object. Use the following keys to configure screen tap recognition:
+   *
+   * Key string | Value type | Default value | Units
+   * -----------|------------|---------------|------
+   * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
+   * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
+   * Gesture.ScreenTap.MinDistance | float | 3.0 | mm
+   *
+   * The following example demonstrates how to set the screen tap configuration
+   * parameters:
+   *
+   * \include Gesture_ScreenTap_Params.txt
+   */
+  class ScreenTapGesture : public Gesture
+  {
   public:
     /**
      * The screen tap gesture type.
@@ -1356,45 +1392,45 @@ class ScreenTapGesture : public Gesture
      * @returns Pointable A Pointable object representing the tapping finger.
      */
     LEAP_EXPORT Pointable pointable() const;
-};
+  };
 
-/**
- * The KeyTapGesture class represents a tapping gesture by a finger or tool.
- *
- * A key tap gesture is recognized when the tip of a finger rotates down toward the
- * palm and then springs back to approximately the original postion, as if
- * tapping. The tapping finger must pause briefly before beginning the tap.
- *
- * \image html images/Leap_Gesture_Tap.png
- *
- * **Important:** To use key tap gestures in your application, you must enable
- * recognition of the key tap gesture. You can enable recognition with:
- *
- * \include Gesture_KeyTap_Enable.txt
- *
- * Key tap gestures are discrete. The KeyTapGesture object representing a tap always
- * has the state, STATE_STOP. Only one KeyTapGesture object is created for each
- * key tap gesture recognized.
- *
- * You can set the minimum finger movement and velocity required for a movement
- * to be recognized as a key tap as well as adjust the detection window for
- * evaluating the movement using the config attribute of a connected
- * Controller object. Use the following configuration keys to configure key tap
- * recognition:
- *
- * Key string | Value type | Default value | Units
- * -----------|------------|---------------|------
- * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
- * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
- * Gesture.KeyTap.MinDistance | float | 5.0 | mm
- *
- * The following example demonstrates how to set the key tap configuration
- * parameters:
- *
- * \include Gesture_KeyTap_Params.txt
- */
-class KeyTapGesture : public Gesture
-{
+  /**
+   * The KeyTapGesture class represents a tapping gesture by a finger or tool.
+   *
+   * A key tap gesture is recognized when the tip of a finger rotates down toward the
+   * palm and then springs back to approximately the original postion, as if
+   * tapping. The tapping finger must pause briefly before beginning the tap.
+   *
+   * \image html images/Leap_Gesture_Tap.png
+   *
+   * **Important:** To use key tap gestures in your application, you must enable
+   * recognition of the key tap gesture. You can enable recognition with:
+   *
+   * \include Gesture_KeyTap_Enable.txt
+   *
+   * Key tap gestures are discrete. The KeyTapGesture object representing a tap always
+   * has the state, STATE_STOP. Only one KeyTapGesture object is created for each
+   * key tap gesture recognized.
+   *
+   * You can set the minimum finger movement and velocity required for a movement
+   * to be recognized as a key tap as well as adjust the detection window for
+   * evaluating the movement using the config attribute of a connected
+   * Controller object. Use the following configuration keys to configure key tap
+   * recognition:
+   *
+   * Key string | Value type | Default value | Units
+   * -----------|------------|---------------|------
+   * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
+   * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
+   * Gesture.KeyTap.MinDistance | float | 5.0 | mm
+   *
+   * The following example demonstrates how to set the key tap configuration
+   * parameters:
+   *
+   * \include Gesture_KeyTap_Params.txt
+   */
+  class KeyTapGesture : public Gesture
+  {
   public:
     /**
      * The key tap gesture type.
@@ -1447,33 +1483,33 @@ class KeyTapGesture : public Gesture
      * @returns Pointable A Pointable object representing the tapping finger.
      */
     LEAP_EXPORT Pointable pointable() const;
-};
+  };
 
-/**
- * The Screen class represents a computer monitor screen.
- *
- * The Screen class reports characteristics describing the position and
- * orientation of the monitor screen within the Leap Motion coordinate system. These
- * characteristics include the bottom-left corner position of the screen,
- * direction vectors for the horizontal and vertical axes of the screen, and
- * the screen's normal vector. The screen must be properly registered with the
- * Screen Locator for the Leap Motion software to report these characteristics accurately.
- * The Screen class also reports the size of the screen in pixels, using
- * information obtained from the operating system. (Run the Screen Locator
- * from the Leap Motion Settings dialog, on the Screen page.)
- *
- * You can get the point of intersection between the screen and a ray
- * projected from a Pointable object using the Screen::intersect() function.
- * Likewise, you can get the closest point on the screen to a point in space
- * using the Screen::project() function. Again, the screen location
- * must be registered with the Screen Locator for these functions to
- * return accurate values.
- *
- * Note that Screen objects can be invalid, which means that they do not contain
- * valid screen coordinate data and do not correspond to a physical entity.
- * Test for validity with the Screen::isValid() function.
- */
-class Screen : public Interface {
+  /**
+   * The Screen class represents a computer monitor screen.
+   *
+   * The Screen class reports characteristics describing the position and
+   * orientation of the monitor screen within the Leap Motion coordinate system. These
+   * characteristics include the bottom-left corner position of the screen,
+   * direction vectors for the horizontal and vertical axes of the screen, and
+   * the screen's normal vector. The screen must be properly registered with the
+   * Screen Locator for the Leap Motion software to report these characteristics accurately.
+   * The Screen class also reports the size of the screen in pixels, using
+   * information obtained from the operating system. (Run the Screen Locator
+   * from the Leap Motion Settings dialog, on the Screen page.)
+   *
+   * You can get the point of intersection between the screen and a ray
+   * projected from a Pointable object using the Screen::intersect() function.
+   * Likewise, you can get the closest point on the screen to a point in space
+   * using the Screen::project() function. Again, the screen location
+   * must be registered with the Screen Locator for these functions to
+   * return accurate values.
+   *
+   * Note that Screen objects can be invalid, which means that they do not contain
+   * valid screen coordinate data and do not correspond to a physical entity.
+   * Test for validity with the Screen::isValid() function.
+   */
+  class Screen : public Interface {
   public:
     // For internal use only.
     Screen(ScreenImplementation*);
@@ -1804,19 +1840,19 @@ class Screen : public Interface {
      * @returns A description of the Screen as a string.
      */
     LEAP_EXPORT std::string toString() const;
-};
+  };
 
-/**
- * The Device class represents a physically connected device.
- *
- * The Device class contains information related to a particular connected
- * device such as field of view, device id, and calibrated positions.
- *
- * Note that Device objects can be invalid, which means that they do not contain
- * valid device information and do not correspond to a physical device.
- * Test for validity with the Device::isValid() function.
- */
-class Device : public Interface {
+  /**
+   * The Device class represents a physically connected device.
+   *
+   * The Device class contains information related to a particular connected
+   * device such as field of view, device id, and calibrated positions.
+   *
+   * Note that Device objects can be invalid, which means that they do not contain
+   * valid device information and do not correspond to a physical device.
+   * Test for validity with the Device::isValid() function.
+   */
+  class Device : public Interface {
   public:
     // For internal use only.
     Device(DeviceImplementation*);
@@ -1925,17 +1961,18 @@ class Device : public Interface {
      * @returns A description of the Device as a string.
      */
     LEAP_EXPORT std::string toString() const;
-};
+  };
 
-// For internal use only.
-template<typename L, typename T>
-class ConstListIterator {
+  // For internal use only.
+  template<typename L, typename T>
+  class ConstListIterator {
   public:
     ConstListIterator<L,T>(const L& list, int index) : m_list(list), m_index(index) {}
 
     const T operator*() const { return m_list[m_index]; }
     const ConstListIterator<L,T>& operator++() { ++m_index; return *this; }
     bool operator!=(const ConstListIterator<L,T>& rhs) const { return m_index != rhs.m_index; }
+    bool operator==(const ConstListIterator<L,T>& rhs) const { return m_index == rhs.m_index; }
 
     typedef std::ptrdiff_t difference_type;
     typedef T value_type;
@@ -1946,16 +1983,16 @@ class ConstListIterator {
   private:
     const L& m_list;
     int m_index;
-};
+  };
 
-/**
- * The PointableList class represents a list of Pointable objects.
- *
- * Pointable objects include entities that can be pointed, such as fingers and tools.
- *
- * Get a PointableList object by calling Frame::pointables().
- */
-class PointableList : public Interface {
+  /**
+   * The PointableList class represents a list of Pointable objects.
+   *
+   * Pointable objects include entities that can be pointed, such as fingers and tools.
+   *
+   * Get a PointableList object by calling Frame::pointables().
+   */
+  class PointableList : public Interface {
   public:
     // For internal use only.
     PointableList(const ListBaseImplementation<Pointable>&);
@@ -2037,19 +2074,19 @@ class PointableList : public Interface {
     /** A C++ iterator type for PointableList objects. */
     typedef ConstListIterator<PointableList, Pointable> const_iterator;
 
-     /** The C++ iterator set to the beginning of this PointableList. */
+    /** The C++ iterator set to the beginning of this PointableList. */
     LEAP_EXPORT const_iterator begin() const;
 
     /** The C++ iterator set to the end of this PointableList. */
     LEAP_EXPORT const_iterator end() const;
-};
+  };
 
-/**
- * The FingerList class represents a list of Finger objects.
- *
- * Get a FingerList object by calling Frame::fingers().
- */
-class FingerList : public Interface {
+  /**
+   * The FingerList class represents a list of Finger objects.
+   *
+   * Get a FingerList object by calling Frame::fingers().
+   */
+  class FingerList : public Interface {
   public:
     // For internal use only.
     FingerList(const ListBaseImplementation<Finger>&);
@@ -2121,14 +2158,14 @@ class FingerList : public Interface {
 
     /** The C++ iterator set to the end of this FingerList. */
     LEAP_EXPORT const_iterator end() const;
-};
+  };
 
-/**
- * The ToolList class represents a list of Tool objects.
- *
- * Get a ToolList object by calling Frame::tools().
- */
-class ToolList : public Interface {
+  /**
+   * The ToolList class represents a list of Tool objects.
+   *
+   * Get a ToolList object by calling Frame::tools().
+   */
+  class ToolList : public Interface {
   public:
     // For internal use only.
     ToolList(const ListBaseImplementation<Tool>&);
@@ -2200,14 +2237,14 @@ class ToolList : public Interface {
 
     /** The C++ iterator set to the end of this ToolList. */
     LEAP_EXPORT const_iterator end() const;
-};
+  };
 
-/**
- * The HandList class represents a list of Hand objects.
- *
- * Get a HandList object by calling Frame::hands().
- */
-class HandList : public Interface {
+  /**
+   * The HandList class represents a list of Hand objects.
+   *
+   * Get a HandList object by calling Frame::hands().
+   */
+  class HandList : public Interface {
   public:
     // For internal use only.
     HandList(const ListBaseImplementation<Hand>&);
@@ -2279,14 +2316,14 @@ class HandList : public Interface {
 
     /** The C++ iterator set to the end of this HandList. */
     LEAP_EXPORT const_iterator end() const;
-};
+  };
 
-/**
- * The GestureList class represents a list of Gesture objects.
- *
- * Get a GestureList object from a Frame object.
- */
-class GestureList : public Interface {
+  /**
+   * The GestureList class represents a list of Gesture objects.
+   *
+   * Get a GestureList object from a Frame object.
+   */
+  class GestureList : public Interface {
   public:
     // For internal use only.
     GestureList(const ListBaseImplementation<Gesture>&);
@@ -2334,23 +2371,23 @@ class GestureList : public Interface {
 
     /** The C++ iterator set to the end of this GestureList. */
     LEAP_EXPORT const_iterator end() const;
-};
+  };
 
-/**
- * The ScreenList class represents a list of Screen objects.
- *
- * The list always contains at least one entry representing the default
- * screen. If the user has not registered the location of this default
- * screen, then the coordinates, directions, and other values reported by
- * the functions in its Screen object will not be accurate. Other monitor
- * screens only appear in the list if their positions have been registered
- * using the Leap Motion Screen Locator.
- *
- * Get a ScreenList object by calling Controller::locatedScreens().
- *
- * \include Screen_Closest_1.txt
- */
-class ScreenList : public Interface {
+  /**
+   * The ScreenList class represents a list of Screen objects.
+   *
+   * The list always contains at least one entry representing the default
+   * screen. If the user has not registered the location of this default
+   * screen, then the coordinates, directions, and other values reported by
+   * the functions in its Screen object will not be accurate. Other monitor
+   * screens only appear in the list if their positions have been registered
+   * using the Leap Motion Screen Locator.
+   *
+   * Get a ScreenList object by calling Controller::locatedScreens().
+   *
+   * \include Screen_Closest_1.txt
+   */
+  class ScreenList : public Interface {
   public:
     // For internal use only.
     ScreenList(const ListBaseImplementation<Screen>&);
@@ -2459,14 +2496,14 @@ class ScreenList : public Interface {
      * @returns The closest Screen onto which the specified position is projected.
      */
     LEAP_EXPORT Screen closestScreen(const Vector& position) const;
-};
+  };
 
-/**
- * The DeviceList class represents a list of Device objects.
- *
- * Get a DeviceList object by calling Controller::devices().
- */
-class DeviceList : public Interface {
+  /**
+   * The DeviceList class represents a list of Device objects.
+   *
+   * Get a DeviceList object by calling Controller::devices().
+   */
+  class DeviceList : public Interface {
   public:
     // For internal use only.
     DeviceList(const ListBaseImplementation<Device>&);
@@ -2508,23 +2545,25 @@ class DeviceList : public Interface {
 
     /** The C++ iterator set to the end of this DeviceList. */
     LEAP_EXPORT const_iterator end() const;
-};
+  };
 
-/**
- * The InteractionBox class represents a box-shaped region completely
- * within the field of view of the Leap Motion controller.
- *
- * The interaction box is an axis-aligned rectangular prism and provides normalized
- * coordinates for hands, fingers, and tools within this box. The InteractionBox class
- * can make it easier to map positions in the Leap Motion coordinate system to 2D or
- * 3D coordinate systems used for application drawing.
- *
- * \image html images/Leap_InteractionBox.png
- *
- * The InteractionBox region is defined by a center and dimensions along the x, y,
- * and z axes.
- */
-class InteractionBox : public Interface {
+  /**
+   * The InteractionBox class represents a box-shaped region completely
+   * within the field of view of the Leap Motion controller.
+   *
+   * The interaction box is an axis-aligned rectangular prism and provides normalized
+   * coordinates for hands, fingers, and tools within this box. The InteractionBox class
+   * can make it easier to map positions in the Leap Motion coordinate system to 2D or
+   * 3D coordinate systems used for application drawing.
+   *
+   * \image html images/Leap_InteractionBox.png
+   *
+   * The InteractionBox region is defined by a center and dimensions along the x, y,
+   * and z axes.
+   *
+   * Get an InteractionBox object from a Frame object.
+   */
+  class InteractionBox : public Interface {
   public:
     // For internal use only.
     InteractionBox(InteractionBoxImplementation*);
@@ -2603,7 +2642,7 @@ class InteractionBox : public Interface {
      */
     LEAP_EXPORT static const InteractionBox& invalid();
 
-     /**
+    /**
      * Compare InteractionBox object equality.
      * Two InteractionBox objects are equal if and only if both InteractionBox objects represent the
      * exact same InteractionBox and both InteractionBoxes are valid.
@@ -2626,19 +2665,19 @@ class InteractionBox : public Interface {
      * @returns A description of the InteractionBox as a string.
      */
     LEAP_EXPORT std::string toString() const;
-};
+  };
 
-/**
- * The Frame class represents a set of hand and finger tracking data detected
- * in a single frame.
- *
- * The Leap Motion software detects hands, fingers and tools within the tracking area, reporting
- * their positions, orientations and motions in frames at the Leap Motion frame rate.
- *
- * Access Frame objects through an instance of the Controller class. Implement a
- * Listener subclass to receive a callback event when a new Frame is available.
- */
-class Frame : public Interface {
+  /**
+   * The Frame class represents a set of hand and finger tracking data detected
+   * in a single frame.
+   *
+   * The Leap Motion software detects hands, fingers and tools within the tracking area, reporting
+   * their positions, orientations and motions in frames at the Leap Motion frame rate.
+   *
+   * Access Frame objects through an instance of the Controller class. Implement a
+   * Listener subclass to receive a callback event when a new Frame is available.
+   */
+  class Frame : public Interface {
   public:
     // For internal use only.
     Frame(FrameImplementation*);
@@ -2984,6 +3023,15 @@ class Frame : public Interface {
     LEAP_EXPORT InteractionBox interactionBox() const;
 
     /**
+     * The current framerate (in frames per second) of the Leap Motion Controller. This
+     * value may fluctuate depending on available computing resources, activity within
+     * the device field of view, software tracking settings, and other factors.
+     *
+     * @returns An estimate of frames per second of the Leap Motion Controller.
+     */
+    LEAP_EXPORT float currentFramesPerSecond() const;
+
+    /**
      * Reports whether this Frame instance is valid.
      *
      * A valid Frame is one generated by the Leap::Controller object that contains
@@ -3037,38 +3085,38 @@ class Frame : public Interface {
      * @returns A description of the Frame as a string.
      */
     LEAP_EXPORT std::string toString() const;
-};
+  };
 
-/**
- * The Config class provides access to Leap Motion system configuration information.
- *
- * You can get and set gesture configuration parameters using the Config object
- * obtained from a connected Controller object. The key strings required to
- * identify a configuration parameter include:
- *
- * Key string | Value type | Default value | Units
- * -----------|------------|---------------|------
- * Gesture.Circle.MinRadius | float | 5.0 | mm
- * Gesture.Circle.MinArc | float | 1.5*pi | radians
- * Gesture.Swipe.MinLength | float | 150 | mm
- * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
- * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
- * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
- * Gesture.KeyTap.MinDistance | float | 3.0 | mm
- * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
- * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
- * Gesture.ScreenTap.MinDistance | float | 5.0 | mm
- *
- * After setting a configuration value, you must call the Config::save method
- * to commit the changes. The configuration value changes are not persistent;
- * your application needs to set the values everytime it runs.
- *
- * @see CircleGesture
- * @see KeyTapGesture
- * @see ScreenTapGesture
- * @see SwipeGesture
- */
-class Config : public Interface {
+  /**
+   * The Config class provides access to Leap Motion system configuration information.
+   *
+   * You can get and set gesture configuration parameters using the Config object
+   * obtained from a connected Controller object. The key strings required to
+   * identify a configuration parameter include:
+   *
+   * Key string | Value type | Default value | Units
+   * -----------|------------|---------------|------
+   * Gesture.Circle.MinRadius | float | 5.0 | mm
+   * Gesture.Circle.MinArc | float | 1.5*pi | radians
+   * Gesture.Swipe.MinLength | float | 150 | mm
+   * Gesture.Swipe.MinVelocity | float | 1000 | mm/s
+   * Gesture.KeyTap.MinDownVelocity | float | 50 | mm/s
+   * Gesture.KeyTap.HistorySeconds | float | 0.1 | s
+   * Gesture.KeyTap.MinDistance | float | 3.0 | mm
+   * Gesture.ScreenTap.MinForwardVelocity  | float | 50 | mm/s
+   * Gesture.ScreenTap.HistorySeconds | float | 0.1 | s
+   * Gesture.ScreenTap.MinDistance | float | 5.0 | mm
+   *
+   * After setting a configuration value, you must call the Config::save method
+   * to commit the changes. The configuration value changes are not persistent;
+   * your application needs to set the values everytime it runs.
+   *
+   * @see CircleGesture
+   * @see KeyTapGesture
+   * @see ScreenTapGesture
+   * @see SwipeGesture
+   */
+  class Config : public Interface {
   public:
     /** Constructs a Config object. */
     LEAP_EXPORT Config();
@@ -3107,24 +3155,24 @@ class Config : public Interface {
     LEAP_EXPORT int32_t getInt32(const std::string& key) const;
 
     /** Sets the 32-bit integer representation for the specified key.
-    * @returns true on success, false on failure.
-    */
+     * @returns true on success, false on failure.
+     */
     LEAP_EXPORT bool setInt32(const std::string& key, int32_t value);
 
     /** Gets the floating point representation for the specified key. */
     LEAP_EXPORT float getFloat(const std::string& key) const;
 
     /** Sets the floating point representation for the specified key.
-    * @returns true on success, false on failure.
-    */
+     * @returns true on success, false on failure.
+     */
     LEAP_EXPORT bool setFloat(const std::string& key, float value);
 
     /** Gets the string representation for the specified key. */
     LEAP_EXPORT std::string getString(const std::string& key) const;
 
     /** Sets the string representation for the specified key.
-    * @returns true on success, false on failure.
-    */
+     * @returns true on success, false on failure.
+     */
     LEAP_EXPORT bool setString(const std::string& key, const std::string& value);
 
     /**
@@ -3138,51 +3186,51 @@ class Config : public Interface {
      * @returns true on success, false on failure.
      */
     LEAP_EXPORT bool save();
-};
+  };
 
-/**
- * The Controller class is your main interface to the Leap Motion Controller.
- *
- * Create an instance of this Controller class to access frames of tracking
- * data and configuration information. Frame data can be polled at any time
- * using the Controller::frame() function. Call frame() or frame(0) to get the
- * most recent frame. Set the history parameter to a positive integer to access
- * previous frames. A controller stores up to 60 frames in its frame history.
- *
- * Polling is an appropriate strategy for applications which already have an
- * intrinsic update loop, such as a game. You can also add an instance of a
- * subclass of Leap::Listener to the controller to handle events as they occur.
- * The Controller dispatches events to the listener upon initialization and exiting,
- * on connection changes, when the application gains and loses the OS input focus,
- * and when a new frame of tracking data is available.
- * When these events occur, the controller object invokes the appropriate
- * callback function defined in your subclass of Listener.
- *
- * To access frames of tracking data as they become available:
- *
- * 1. Implement a subclass of the Listener class and override the
- *    Listener::onFrame() function.
- * 2. In your Listener::onFrame() function, call the Controller::frame()
- *    function to access the newest frame of tracking data.
- * 3. To start receiving frames, create a Controller object and add an instance
- *    of the Listener subclass to the Controller::addListener() function.
- *
- * When an instance of a Listener subclass is added to a Controller object,
- * it calls the Listener::onInit() function when the listener is ready for use.
- * When a connection is established between the controller and the Leap Motion software,
- * the controller calls the Listener::onConnect() function. At this point, your
- * application will start receiving frames of data. The controller calls the
- * Listener::onFrame() function each time a new frame is available. If the
- * controller loses its connection with the Leap Motion software or device for any
- * reason, it calls the Listener::onDisconnect() function. If the listener is
- * removed from the controller or the controller is destroyed, it calls the
- * Listener::onExit() function. At that point, unless the listener is added to
- * another controller again, it will no longer receive frames of tracking data.
- *
- * The Controller object is multithreaded and calls the Listener functions on
- * its own thread, not on an application thread.
- */
-class Controller : public Interface {
+  /**
+   * The Controller class is your main interface to the Leap Motion Controller.
+   *
+   * Create an instance of this Controller class to access frames of tracking
+   * data and configuration information. Frame data can be polled at any time
+   * using the Controller::frame() function. Call frame() or frame(0) to get the
+   * most recent frame. Set the history parameter to a positive integer to access
+   * previous frames. A controller stores up to 60 frames in its frame history.
+   *
+   * Polling is an appropriate strategy for applications which already have an
+   * intrinsic update loop, such as a game. You can also add an instance of a
+   * subclass of Leap::Listener to the controller to handle events as they occur.
+   * The Controller dispatches events to the listener upon initialization and exiting,
+   * on connection changes, when the application gains and loses the OS input focus,
+   * and when a new frame of tracking data is available.
+   * When these events occur, the controller object invokes the appropriate
+   * callback function defined in your subclass of Listener.
+   *
+   * To access frames of tracking data as they become available:
+   *
+   * 1. Implement a subclass of the Listener class and override the
+   *    Listener::onFrame() function.
+   * 2. In your Listener::onFrame() function, call the Controller::frame()
+   *    function to access the newest frame of tracking data.
+   * 3. To start receiving frames, create a Controller object and add an instance
+   *    of the Listener subclass to the Controller::addListener() function.
+   *
+   * When an instance of a Listener subclass is added to a Controller object,
+   * it calls the Listener::onInit() function when the listener is ready for use.
+   * When a connection is established between the controller and the Leap Motion software,
+   * the controller calls the Listener::onConnect() function. At this point, your
+   * application will start receiving frames of data. The controller calls the
+   * Listener::onFrame() function each time a new frame is available. If the
+   * controller loses its connection with the Leap Motion software or device for any
+   * reason, it calls the Listener::onDisconnect() function. If the listener is
+   * removed from the controller or the controller is destroyed, it calls the
+   * Listener::onExit() function. At that point, unless the listener is added to
+   * another controller again, it will no longer receive frames of tracking data.
+   *
+   * The Controller object is multithreaded and calls the Listener functions on
+   * its own thread, not on an application thread.
+   */
+  class Controller : public Interface {
   public:
     // For internal use only.
     Controller(ControllerImplementation*);
@@ -3422,21 +3470,21 @@ class Controller : public Interface {
      * @see Controller::enableGesture()
      */
     LEAP_EXPORT bool isGestureEnabled(Gesture::Type type) const;
-};
+  };
 
-/**
- * The Listener class defines a set of callback functions that you can
- * override in a subclass to respond to events dispatched by the Controller object.
- *
- * To handle Leap Motion events, create an instance of a Listener subclass and assign
- * it to the Controller instance. The Controller calls the relevant Listener
- * callback function when an event occurs, passing in a reference to itself.
- * You do not have to implement callbacks for events you do not want to handle.
- *
- * The Controller object calls these Listener functions from a thread created
- * by the Leap Motion library, not the thread used to create or set the Listener instance.
- */
-class Listener {
+  /**
+   * The Listener class defines a set of callback functions that you can
+   * override in a subclass to respond to events dispatched by the Controller object.
+   *
+   * To handle Leap Motion events, create an instance of a Listener subclass and assign
+   * it to the Controller instance. The Controller calls the relevant Listener
+   * callback function when an event occurs, passing in a reference to itself.
+   * You do not have to implement callbacks for events you do not want to handle.
+   *
+   * The Controller object calls these Listener functions from a thread created
+   * by the Leap Motion library, not the thread used to create or set the Listener instance.
+   */
+  class Listener {
   public:
     /** Constructs a Listener object. */
     LEAP_EXPORT Listener() {}
@@ -3532,7 +3580,7 @@ class Listener {
      * @param controller The Controller object invoking this callback function.
      */
     LEAP_EXPORT virtual void onFocusLost(const Controller&) {}
-};
+  };
 
 }
 

@@ -44,30 +44,30 @@ static const float RAD_TO_DEG  = 57.295779513f;
  * \image html images/Leap_Axes.png
  */
 struct Vector {
-  /** 
-   * Creates a new Vector with all components set to zero. 
+  /**
+   * Creates a new Vector with all components set to zero.
    */
   Vector() :
     x(0), y(0), z(0) {}
 
-  /** 
-   * Creates a new Vector with the specified component values. 
+  /**
+   * Creates a new Vector with the specified component values.
    *
    * \include Vector_Constructor_1.txt
    */
   Vector(float _x, float _y, float _z) :
     x(_x), y(_y), z(_z) {}
 
-  /** 
-   * Copies the specified Vector. 
+  /**
+   * Copies the specified Vector.
    *
    * \include Vector_Constructor_2.txt
    */
   Vector(const Vector& vector) :
     x(vector.x), y(vector.y), z(vector.z) {}
 
-  /** 
-   * The zero vector: (0, 0, 0) 
+  /**
+   * The zero vector: (0, 0, 0)
    *
    * \include Vector_Zero.txt
    */
@@ -76,8 +76,8 @@ struct Vector {
     return s_zero;
   }
 
-  /** 
-   * The x-axis unit vector: (1, 0, 0) 
+  /**
+   * The x-axis unit vector: (1, 0, 0)
    *
    * \include Vector_XAxis.txt
    */
@@ -85,8 +85,8 @@ struct Vector {
     static Vector s_xAxis(1, 0, 0);
     return s_xAxis;
   }
-  /** 
-   * The y-axis unit vector: (0, 1, 0) 
+  /**
+   * The y-axis unit vector: (0, 1, 0)
    *
    * \include Vector_YAxis.txt
    */
@@ -94,8 +94,8 @@ struct Vector {
     static Vector s_yAxis(0, 1, 0);
     return s_yAxis;
   }
-  /** 
-   * The z-axis unit vector: (0, 0, 1) 
+  /**
+   * The z-axis unit vector: (0, 0, 1)
    *
    * \include Vector_ZAxis.txt
    */
@@ -104,8 +104,8 @@ struct Vector {
     return s_zAxis;
   }
 
-  /** 
-   * The unit vector pointing left along the negative x-axis: (-1, 0, 0) 
+  /**
+   * The unit vector pointing left along the negative x-axis: (-1, 0, 0)
    *
    * \include Vector_Left.txt
    */
@@ -113,16 +113,16 @@ struct Vector {
     static Vector s_left(-1, 0, 0);
     return s_left;
   }
-  /** 
-   * The unit vector pointing right along the positive x-axis: (1, 0, 0) 
+  /**
+   * The unit vector pointing right along the positive x-axis: (1, 0, 0)
    *
    * \include Vector_Right.txt
    */
   static const Vector& right() {
     return xAxis();
   }
-  /** 
-   * The unit vector pointing down along the negative y-axis: (0, -1, 0) 
+  /**
+   * The unit vector pointing down along the negative y-axis: (0, -1, 0)
    *
    * \include Vector_Down.txt
    */
@@ -130,16 +130,16 @@ struct Vector {
     static Vector s_down(0, -1, 0);
     return s_down;
   }
-  /** 
-   * The unit vector pointing up along the positive y-axis: (0, 1, 0) 
+  /**
+   * The unit vector pointing up along the positive y-axis: (0, 1, 0)
    *
    * \include Vector_Up.txt
    */
   static const Vector& up() {
     return yAxis();
   }
-  /** 
-   * The unit vector pointing forward along the negative z-axis: (0, 0, -1) 
+  /**
+   * The unit vector pointing forward along the negative z-axis: (0, 0, -1)
    *
    * \include Vector_Forward.txt
    */
@@ -147,8 +147,8 @@ struct Vector {
     static Vector s_forward(0, 0, -1);
     return s_forward;
   }
-  /** 
-   * The unit vector pointing backward along the positive z-axis: (0, 0, 1) 
+  /**
+   * The unit vector pointing backward along the positive z-axis: (0, 0, 1)
    *
    * \include Vector_Backward.txt
    */
@@ -352,8 +352,8 @@ struct Vector {
     return Vector(-x, -y, -z);
   }
 
-  /** 
-   * Add vectors component-wise. 
+  /**
+   * Add vectors component-wise.
    *
    * \include Vector_Plus.txt
    */
@@ -361,8 +361,8 @@ struct Vector {
     return Vector(x + other.x, y + other.y, z + other.z);
   }
 
-  /** 
-   * Subtract vectors component-wise. 
+  /**
+   * Subtract vectors component-wise.
    *
    * \include Vector_Minus.txt
    */
@@ -370,8 +370,8 @@ struct Vector {
     return Vector(x - other.x, y - other.y, z - other.z);
   }
 
-  /** 
-   * Multiply vector by a scalar. 
+  /**
+   * Multiply vector by a scalar.
    *
    * \include Vector_Times.txt
    */
@@ -379,8 +379,8 @@ struct Vector {
     return Vector(x * scalar, y * scalar, z * scalar);
   }
 
-  /** 
-   * Divide vector by a scalar. 
+  /**
+   * Divide vector by a scalar.
    *
    * \include Vector_Divide.txt
    */
@@ -442,16 +442,16 @@ struct Vector {
     return out << vector.toString();
   }
 
-  /** 
-   * Compare Vector equality component-wise. 
+  /**
+   * Compare Vector equality component-wise.
    *
    * \include Vector_Equals.txt
    */
   bool operator==(const Vector& other) const {
     return x == other.x && y == other.y && z == other.z;
   }
-  /** 
-   * Compare Vector inequality component-wise. 
+  /**
+   * Compare Vector inequality component-wise.
    *
    * \include Vector_NotEqual.txt
    */
@@ -483,8 +483,8 @@ struct Vector {
     return index < 3 ? (&x)[index] : 0.0f;
   }
 
-  /** 
-   * Cast the vector to a float array. 
+  /**
+   * Cast the vector to a float array.
    *
    * \include Vector_ToFloatPointer.txt
    */

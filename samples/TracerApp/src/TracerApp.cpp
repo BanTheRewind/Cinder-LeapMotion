@@ -48,16 +48,14 @@ public:
 	void					draw();
 	void					prepareSettings( ci::app::AppBasic::Settings* settings );
 	void					setup();
-	void					shutdown();
 	void					update();
 private:
 	RibbonMap				mRibbons;
 
 	// Leap
-	uint32_t				mCallbackId;
-	LeapSdk::HandMap		mHands;
+	Leap::Frame				mFrame;
 	LeapSdk::DeviceRef		mLeap;
-	void 					onFrame( LeapSdk::Frame frame );
+	void 					onFrame( Leap::Frame frame );
 
 	// Trails
 	ci::gl::Fbo				mFbo[ 3 ];
@@ -148,9 +146,9 @@ void TracerApp::draw()
 }
 
 // Called when Leap frame data is ready
-void TracerApp::onFrame( Frame frame )
+void TracerApp::onFrame( Leap::Frame frame )
 {
-	mHands = frame.getHands();
+	mFrame = frame;
 }
 
 // Prepare window
@@ -181,7 +179,7 @@ void TracerApp::setup()
 	
 	// Start device
 	mLeap		= Device::create();
-	mCallbackId = mLeap->addCallback( &TracerApp::onFrame, this );
+	mLeap->connectEventHandler( &TracerApp::onFrame, this );
 
 	// Load shaders
 	try {
@@ -229,13 +227,6 @@ void TracerApp::setup()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 }
 
-// Quit
-void TracerApp::shutdown()
-{
-	mLeap->removeCallback( mCallbackId );
-	mHands.clear();
-}
-
 // Runs update logic
 void TracerApp::update()
 {
@@ -248,14 +239,15 @@ void TracerApp::update()
 	}
 	
 	// Process hand data
-	for ( HandMap::const_iterator handIter = mHands.begin(); handIter != mHands.end(); ++handIter ) {
-		const Hand& hand = handIter->second;
+	const Leap::HandList& hands = mFrame.hands();
+	for ( Leap::HandList::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
+		const Leap::Hand& hand = *handIter;
 		
-		const FingerMap& fingers = hand.getFingers();
-		for ( FingerMap::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); ++fingerIter ) {
-			const Finger& finger = fingerIter->second;
+		const Leap::PointableList& pointables = hand.pointables();
+		for ( Leap::PointableList::const_iterator pointIter = pointables.begin(); pointIter != pointables.end(); ++pointIter ) {
+			const Leap::Pointable& pointable = *pointIter;
 
-			int32_t id = fingerIter->first;
+			int32_t id = pointable.id();
 			if ( mRibbons.find( id ) == mRibbons.end() ) {
 				Vec3f v = randVec3f() * 0.01f;
 				v.x = math<float>::abs( v.x );
@@ -265,9 +257,9 @@ void TracerApp::update()
 				Ribbon ribbon( id, color );
 				mRibbons[ id ] = ribbon;
 			}
-			float width = math<float>::abs( finger.getVelocity().y ) * 0.0025f;
+			float width = math<float>::abs( pointable.tipVelocity().y ) * 0.0025f;
 			width		= math<float>::max( width, 5.0f );
-			mRibbons[ id ].addPoint( finger.getPosition(), width );
+			mRibbons[ id ].addPoint( LeapSdk::toVec3f( pointable.tipPosition() ), width );
 		}
 	}
 

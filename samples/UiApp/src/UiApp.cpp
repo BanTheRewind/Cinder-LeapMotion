@@ -46,16 +46,14 @@ public:
 	void					prepareSettings( ci::app::AppBasic::Settings* settings );
 	void					resize();
 	void					setup();
-	void					shutdown();
 	void					update();
 private:
 	// Leap
-	uint32_t				mCallbackId;
-	LeapSdk::HandMap		mHands;
+	Leap::Frame				mFrame;
 	LeapSdk::DeviceRef		mLeap;
-	void 					onFrame( LeapSdk::Frame frame );
-	ci::Vec2f				warpPointable( const LeapSdk::Pointable& p );
-	ci::Vec2f				warpVector( const ci::Vec3f& v );
+	void 					onFrame( Leap::Frame frame );
+	ci::Vec2f				warpPointable( const Leap::Pointable& p );
+	ci::Vec2f				warpVector( const Leap::Vector& v );
 
 	// Cursor
 	enum
@@ -156,9 +154,9 @@ void UiApp::draw()
 }
 
 // Called when Leap frame data is ready
-void UiApp::onFrame( Frame frame )
+void UiApp::onFrame( Leap::Frame frame )
 {
-	mHands = frame.getHands();
+	mFrame = frame;
 }
 
 // Prepare window
@@ -206,7 +204,7 @@ void UiApp::setup()
 		
 	// Start device
 	mLeap 		= Device::create();
-	mCallbackId = mLeap->addCallback( &UiApp::onFrame, this );
+	mLeap->connectEventHandler( &UiApp::onFrame, this );
 	
 	// Load cursor textures
 	for ( size_t i = 0; i < 3; ++i ) {
@@ -262,13 +260,6 @@ void UiApp::setup()
 	resize();
 }
 
-// Quit
-void UiApp::shutdown()
-{
-	mLeap->removeCallback( mCallbackId );
-	mHands.clear();
-}
-
 // Runs update logic
 void UiApp::update()
 {
@@ -286,19 +277,20 @@ void UiApp::update()
 	}
 	
 	// Interact with first hand
-	if ( mHands.empty() ) {
+	const Leap::HandList& hands = mFrame.hands();
+	if ( hands.empty() ) {
 		mCursorType		= CursorType::NONE;
 	} else {
-		const Hand& hand = mHands.begin()->second;
+		const Leap::Hand& hand = *hands.begin();
 		
 		// Update cursor position
-		mCursorPositionTarget	= warpVector( hand.getPosition() );
+		mCursorPositionTarget	= warpVector( hand.palmPosition() );
 		if ( mCursorType == CursorType::NONE ) {
 			mCursorPosition = mCursorPositionTarget;
 		}
 		
 		// Choose cursor type based on number of exposed fingers
-		switch ( hand.getFingers().size() ) {
+		switch ( hand.fingers().count() ) {
 			case 0:
 				mCursorType	= CursorType::GRAB;
 				
@@ -313,7 +305,7 @@ void UiApp::update()
 				mCursorType	= CursorType::TOUCH;
 				
 				// Buttons
-				mFingerTipPosition = warpPointable( hand.getFingers().begin()->second );
+				mFingerTipPosition = warpPointable( *hand.fingers().begin() );
 				for ( size_t i = 0; i < 3; ++i ) {
 					mButtonState[ i ] = false;
 					if ( mButton[ 0 ].getBounds().contains( mFingerTipPosition - mButtonPosition[ i ] ) ) {
@@ -332,32 +324,30 @@ void UiApp::update()
 }
 
 // Maps pointable's ray to the screen in pixels
-Vec2f UiApp::warpPointable( const Pointable& p )
+Vec2f UiApp::warpPointable( const Leap::Pointable& p )
 {
-	Vec3f result = Vec3f::zero();
+	Vec3f result	= Vec3f::zero();
 	if ( mLeap ) {
-		const Screen& screen = mLeap->getClosestCalibratedScreen( p );
-		if ( screen.intersects( p, &result, true ) ) {
-			result		*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
-			result.y	= (float)getWindowHeight() - result.y;
-		}
+		const Leap::Screen& screen = mLeap->getController()->calibratedScreens().closestScreenHit( p );
+		
+		result		= LeapSdk::toVec3f( screen.intersect( p, true, 1.0f ) );
 	}
+	result			*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
+	result.y		= (float)getWindowHeight() - result.y;
 	return result.xy();
 }
 
 // Maps Leap vector to the screen in pixels
-Vec2f UiApp::warpVector( const Vec3f& v )
+Vec2f UiApp::warpVector( const Leap::Vector& v )
 {
-	Vec3f result = Vec3f::zero();
+	Vec3f result	= Vec3f::zero();
 	if ( mLeap ) {
-		const ScreenMap& screens = mLeap->getCalibratedScreens();
-		if ( !screens.empty() ) {
-			const Screen& screen = screens.begin()->second;
-			result = screen.project( v, true );
-		}
+		const Leap::Screen& screen = mLeap->getController()->calibratedScreens().closestScreen( v );
+		
+		result		= LeapSdk::toVec3f( screen.project( v, true ) );
 	}
-	result *= Vec3f( getWindowSize(), 0.0f );
-	result.y = (float)getWindowHeight() - result.y;
+	result			*= Vec3f( getWindowSize(), 0.0f );
+	result.y		= (float)getWindowHeight() - result.y;
 	return result.xy();
 }
 

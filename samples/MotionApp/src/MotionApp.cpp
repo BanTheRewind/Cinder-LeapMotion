@@ -47,7 +47,6 @@ public:
 	void					draw();
 	void					prepareSettings( ci::app::AppBasic::Settings* settings );
 	void					setup();
-	void					shutdown();
 	void					update();
 private:
 	enum
@@ -57,10 +56,9 @@ private:
 	bool					mConstrainMotion;
 	
 	// Leap
-	uint32_t				mCallbackId;
-	LeapSdk::Frame			mFrame;
+	Leap::Frame				mFrame;
 	LeapSdk::DeviceRef		mLeap;
-	void 					onFrame( LeapSdk::Frame frame );
+	void 					onFrame( Leap::Frame frame );
 
 	// Lighting
 	ci::gl::Light			*mLight;
@@ -128,11 +126,11 @@ void MotionApp::draw()
 }
 
 // Called when Leap frame data is ready
-void MotionApp::onFrame( Frame frame )
+void MotionApp::onFrame( Leap::Frame frame )
 {
-	HandMap hands = frame.getHands();
-	if ( !hands.empty() ) {
-		const Hand& hand	= hands.begin()->second;
+	const Leap::HandList& hands = frame.hands();
+	for ( Leap::HandList::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
+		const Leap::Hand& hand = *handIter;
 
 		Motion motion = FREE;
 		
@@ -141,9 +139,9 @@ void MotionApp::onFrame( Frame frame )
 		if ( mConstrainMotion ) {
 			map<float, Motion> motions;
 			vector<float> values;
-			motions[ hand.getRotationProbability( mFrame ) ]	= ROTATE;
-			motions[ hand.getScaleProbability( mFrame ) ]		= SCALE;
-			motions[ hand.getTranslationProbability( mFrame ) ]	= TRANSLATE;
+			motions[ hand.rotationProbability( mFrame ) ]		= ROTATE;
+			motions[ hand.scaleProbability( mFrame ) ]			= SCALE;
+			motions[ hand.translationProbability( mFrame ) ]	= TRANSLATE;
 			for ( map<float, Motion>::const_iterator iter = motions.begin(); iter != motions.end(); ++iter ) {
 				values.push_back( iter->first );
 			}
@@ -155,14 +153,14 @@ void MotionApp::onFrame( Frame frame )
 		}
 		
 		if ( motion == FREE || motion == ROTATE ) {
-			mRotAngle	+= hand.getRotationAngle( mFrame ) * kRotSpeed;
-			mRotAxis	+= hand.getRotationAxis( mFrame ) * -1.0f; // Mirror
+			mRotAngle	+= hand.rotationAngle( mFrame ) * kRotSpeed;
+			mRotAxis	+= LeapSdk::toVec3f( hand.rotationAxis( mFrame ) ) * -1.0f; // Mirror
 		}
 		if ( motion == FREE || motion == SCALE ) {
-			mScale		*= hand.getScale( mFrame );
+			mScale		*= hand.scaleFactor( mFrame );
 		}
 		if ( motion == FREE || motion == TRANSLATE ) {
-			mTranslate	+= hand.getTranslation( mFrame ) * kTranslateSpeed;
+			mTranslate	+= LeapSdk::toVec3f( hand.translation( mFrame ) ) * kTranslateSpeed;
 		}
 	}
 	mFrame = frame;
@@ -214,7 +212,7 @@ void MotionApp::setup()
 	
 	// Start device
 	mLeap 		= Device::create();
-	mCallbackId = mLeap->addCallback( &MotionApp::onFrame, this );
+	mLeap->connectEventHandler( &MotionApp::onFrame, this );
 
 	// Params
 	mFrameRate	= 0.0f;
@@ -225,13 +223,6 @@ void MotionApp::setup()
 	mParams.addParam( "Full screen",		&mFullScreen,							"key=f"		);
 	mParams.addButton( "Screen shot",		bind( &MotionApp::screenShot, this ),	"key=space" );
 	mParams.addButton( "Quit",				bind( &MotionApp::quit, this ),			"key=q"		);
-}
-
-// Quit
-void MotionApp::shutdown()
-{
-	delete mLight;
-	mLeap->removeCallback( mCallbackId );
 }
 
 // Runs update logic
