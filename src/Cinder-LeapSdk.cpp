@@ -165,7 +165,6 @@ Device::Device()
 
 Device::~Device()
 {
-	mEventHandler = 0;
 }
 
 Leap::Controller* Device::getController() const
