@@ -121,7 +121,7 @@ public:
 	
 	//! Sets frame event callback to \a eventHandler.
 	void				connectEventHandler( const std::function<void( Leap::Frame )>& eventHandler );
-private:
+protected:
 	Device();
 
 	std::function<void ( Leap::Frame )>	mEventHandler;
