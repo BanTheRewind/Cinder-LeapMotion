@@ -59,6 +59,8 @@ ci::Vec3f		toVec3f( const Leap::Vector& v );
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef	 ci::signals::signal<void()>    EventSignalLeap;
+
 //! Receives and manages Leap controller data.
 class Listener : public Leap::Listener
 {
@@ -71,7 +73,14 @@ protected:
 	virtual void	onFocusGained( const Leap::Controller& controller );
 	virtual void	onFocusLost( const Leap::Controller& controller );
 	virtual void	onInit( const Leap::Controller& controller );
-	
+
+    EventSignalLeap mSignalLeapConnect;
+    EventSignalLeap mSignalLeapDisconnect;
+    EventSignalLeap mSignalLeapExit;
+    EventSignalLeap mSignalLeapFocusGained;
+    EventSignalLeap mSignalLeapFocusLost;
+    EventSignalLeap mSignalLeapInit;
+
 	volatile bool	mConnected;
 	volatile bool	mExited;
 	volatile bool	mFocused;
@@ -101,6 +110,19 @@ public:
 	
 	//! Returns LEAP controller associated with this device's listener.
 	Leap::Controller*	getController() const;
+    
+    //! Returns onConnect signal for use in connecting user defined callbacks
+    EventSignalLeap&     getSignalLeapConnect() { return mListener.mSignalLeapConnect; }
+    //! Returns onDisconnect signal for use in connecting user defined callbacks
+    EventSignalLeap&     getSignalLeapDisconnect() { return mListener.mSignalLeapDisconnect; }
+    //! Returns onExit signal for use in connecting user defined callbacks
+    EventSignalLeap&     getSignalLeapExit() { return mListener.mSignalLeapExit; }
+    //! Returns onFocusGained signal for use in connecting user defined callbacks
+    EventSignalLeap&     getSignalLeapFocusGained() { return mListener.mSignalLeapFocusGained; }
+    //! Returns onFocusLost signal for use in connecting user defined callbacks
+    EventSignalLeap&     getSignalLeapFocusLost() { return mListener.mSignalLeapFocusLost; }
+    //! Returns onInit signal for use in connecting user defined callbacks
+    EventSignalLeap&     getSignalLeapInit() { return mListener.mSignalLeapInit; }
 
 	//! Returns true if app is focused for this device.
 	bool				hasFocus() const;

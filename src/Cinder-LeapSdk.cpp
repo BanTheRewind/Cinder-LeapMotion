@@ -89,7 +89,7 @@ Vec3f toVec3f( const Leap::Vector& v )
 	return Vec3f( v.x, v.y, v.z );
 }
 	
-Leap::Vector toLeapVedctor( const Vec3f& v )
+Leap::Vector toLeapVector( const Vec3f& v )
 {
 	return Leap::Vector( v.x, v.y, v.z );
 }
@@ -109,30 +109,35 @@ void Listener::onConnect( const Leap::Controller& controller )
 {
 	lock_guard<mutex> lock( *mMutex );
 	mConnected = true;
+    mSignalLeapConnect();
 }
 
 void Listener::onDisconnect( const Leap::Controller& controller ) 
 {
 	lock_guard<mutex> lock( *mMutex );
 	mConnected = false;
+    mSignalLeapDisconnect();
 }
 	
 void Listener::onExit( const Leap::Controller& controller )
 {
 	lock_guard<mutex> lock( *mMutex );
 	mExited = true;
+    mSignalLeapExit();
 }
 
 void Listener::onFocusGained( const Leap::Controller& controller )
 {
 	lock_guard<mutex> lock( *mMutex );
 	mFocused = true;
+    mSignalLeapFocusGained();
 }
 
 void Listener::onFocusLost( const Leap::Controller& controller )
 {
 	lock_guard<mutex> lock( *mMutex );
 	mFocused = false;
+    mSignalLeapFocusLost();
 }
 	
 void Listener::onFrame( const Leap::Controller& controller ) 
@@ -148,6 +153,7 @@ void Listener::onInit( const Leap::Controller& controller )
 {
 	lock_guard<mutex> lock( *mMutex );
 	mInitialized = true;
+    mSignalLeapInit();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
