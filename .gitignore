@@ -1,6 +1,7 @@
 .DS_Store
 *.xcuserdatad
 *.xccheckout
+xcshareddata
 xcuserdata
 bin
 build
