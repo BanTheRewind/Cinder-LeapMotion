@@ -42,46 +42,46 @@
 class UiApp : public ci::app::AppBasic
 {
 public:
-	void					draw();
-	void					prepareSettings( ci::app::AppBasic::Settings* settings );
-	void					resize();
-	void					setup();
-	void					update();
+	void						draw();
+	void						prepareSettings( ci::app::AppBasic::Settings* settings );
+	void						resize();
+	void						setup();
+	void						update();
 private:
 	// Leap
-	Leap::Frame				mFrame;
-	LeapMotion::DeviceRef	mDevice;
-	void 					onFrame( Leap::Frame frame );
-	ci::Vec2f				warpPointable( const Leap::Pointable& p );
-	ci::Vec2f				warpVector( const Leap::Vector& v );
+	Leap::Frame					mFrame;
+	LeapMotion::DeviceRef		mDevice;
+	void 						onFrame( Leap::Frame frame );
+	ci::Vec2f					warpPointable( const Leap::Pointable& p );
+	ci::Vec2f					warpVector( const Leap::Vector& v );
 
 	// Cursor
 	enum
 	{
 		GRAB, HAND, TOUCH, NONE
 	} typedef CursorType;
-	ci::Vec2f				mCursorPosition;
-	ci::Vec2f				mCursorPositionTarget;
-	CursorType				mCursorType;
-	ci::Vec2f				mFingerTipPosition;
-	ci::gl::Texture			mTexture[ 3 ];
+	ci::Vec2f					mCursorPosition;
+	ci::Vec2f					mCursorPositionTarget;
+	CursorType					mCursorType;
+	ci::Vec2f					mFingerTipPosition;
+	ci::gl::Texture				mTexture[ 3 ];
 	
 	// UI
-	ci::gl::Texture			mButton[ 2 ];
-	ci::Vec2f				mButtonPosition[ 3 ];
-	bool					mButtonState[ 3 ];
-	ci::gl::Texture			mSlider;
-	ci::Vec2f				mSliderPosition;
-	ci::gl::Texture			mTrack;
-	ci::Vec2f				mTrackPosition;
+	ci::gl::Texture				mButton[ 2 ];
+	ci::Vec2f					mButtonPosition[ 3 ];
+	bool						mButtonState[ 3 ];
+	ci::gl::Texture				mSlider;
+	ci::Vec2f					mSliderPosition;
+	ci::gl::Texture				mTrack;
+	ci::Vec2f					mTrackPosition;
 	
 	// Params
-	float					mFrameRate;
-	bool					mFullScreen;
-	ci::params::InterfaceGl	mParams;
+	float						mFrameRate;
+	bool						mFullScreen;
+	ci::params::InterfaceGlRef	mParams;
 
 	// Save screen shot
-	void					screenShot();
+	void						screenShot();
 };
 
 #include "cinder/ImageIo.h"
@@ -150,7 +150,7 @@ void UiApp::draw()
 	}
 	
 	// Draw the interface
-	mParams.draw();
+	mParams->draw();
 }
 
 // Called when Leap frame data is ready
@@ -250,11 +250,11 @@ void UiApp::setup()
 	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl( "Params", Vec2i( 200, 105 ) );
-	mParams.addParam( "Frame rate",		&mFrameRate,						"", true );
-	mParams.addParam( "Full screen",	&mFullScreen,						"key=f"		);
-	mParams.addButton( "Screen shot",	bind( &UiApp::screenShot, this ),	"key=space" );
-	mParams.addButton( "Quit",			bind( &UiApp::quit, this ),			"key=q" );
+	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams->addParam( "Frame rate",	&mFrameRate,						"", true );
+	mParams->addParam( "Full screen",	&mFullScreen,						"key=f" );
+	mParams->addButton( "Screen shot",	bind( &UiApp::screenShot, this ),	"key=space" );
+	mParams->addButton( "Quit",			bind( &UiApp::quit, this ),			"key=q" );
 	
 	// Run resize to initialize layout
 	resize();
