@@ -36,7 +36,10 @@
 
 #include "Cinder-LeapSdk.h"
 
+#include "cinder/app/App.h"
+
 using namespace ci;
+using namespace ci::app;
 using namespace std;
 
 namespace LeapSdk {
@@ -161,6 +164,8 @@ Device::Device()
 {
 	mListener.mMutex	= &mMutex;
 	mController			= new Leap::Controller( mListener );
+
+	App::get()->getSignalUpdate().connect( bind( &Device::update, this ) );
 }
 
 Device::~Device()
@@ -199,6 +204,9 @@ void Device::connectEventHandler( const function<void( Leap::Frame )>& eventHand
 
 void Device::update()
 {
+	
+	console() << mListener.mConnected << ", " << mListener.mInitialized << ", " << mListener.mNewFrame << endl;
+
 	lock_guard<mutex> lock( mMutex );
 	if ( mListener.mConnected && mListener.mInitialized && mListener.mNewFrame ) {
 		mEventHandler( mListener.mFrame );

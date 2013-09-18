@@ -228,11 +228,6 @@ void LeapApp::update()
 	if ( mFullScreen != isFullScreen() ) {
 		setFullScreen( mFullScreen );
 	}
-
-	// Update device
-	if ( mLeap && mLeap->isConnected() ) {		
-		mLeap->update();
-	}
 }
 
 // Run application

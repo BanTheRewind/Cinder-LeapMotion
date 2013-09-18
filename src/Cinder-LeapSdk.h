@@ -96,9 +96,6 @@ public:
 	static DeviceRef	create();
 	~Device();
 	
-	//! Must be called to trigger frame events.
-	void				update();
-	
 	//! Returns LEAP controller associated with this device's listener.
 	Leap::Controller*	getController() const;
 
@@ -121,10 +118,12 @@ public:
 	
 	//! Sets frame event callback to \a eventHandler.
 	void				connectEventHandler( const std::function<void( Leap::Frame )>& eventHandler );
-private:
+protected:
 	Device();
 
 	std::function<void ( Leap::Frame )>	mEventHandler;
+	
+	void				update();
 	
 	Leap::Controller*	mController;
 	Leap::Device		mDevice;
