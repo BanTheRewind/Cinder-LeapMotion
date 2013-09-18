@@ -92,7 +92,7 @@ Vec3f toVec3f( const Leap::Vector& v )
 	return Vec3f( v.x, v.y, v.z );
 }
 	
-Leap::Vector toLeapVedctor( const Vec3f& v )
+Leap::Vector toLeapVector( const Vec3f& v )
 {
 	return Leap::Vector( v.x, v.y, v.z );
 }

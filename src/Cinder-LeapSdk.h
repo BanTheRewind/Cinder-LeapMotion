@@ -95,18 +95,18 @@ public:
 	//! Creates and returns device instance.
 	static DeviceRef	create();
 	~Device();
-	
+
 	//! Returns LEAP controller associated with this device's listener.
 	Leap::Controller*	getController() const;
 
 	//! Returns true if app is focused for this device.
-	bool				hasFocus() const;
+	virtual bool		hasFocus() const;
 	//! Returns true if the device has exited.
-	bool				hasExited() const;
+	virtual bool		hasExited() const;
 	//! Returns true if the device is connected.
-	bool				isConnected() const;
+	virtual bool		isConnected() const;
 	//! Returns true if LEAP application is initialized.
-	bool				isInitialized() const;
+	virtual bool		isInitialized() const;
 
 	/*! Sets frame event handler. \a eventHandler has the signature \a void(Frame). 
 		\a obj is the instance receiving the event. */
@@ -123,8 +123,8 @@ protected:
 
 	std::function<void ( Leap::Frame )>	mEventHandler;
 	
-	void				update();
-	
+	virtual void		update();
+
 	Leap::Controller*	mController;
 	Leap::Device		mDevice;
 	Listener			mListener;
