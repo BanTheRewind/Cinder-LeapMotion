@@ -34,12 +34,15 @@
 * 
 */
 
-#include "Cinder-LeapSdk.h"
+#include "Cinder-LeapMotion.h"
+
+#include "cinder/app/App.h"
 
 using namespace ci;
+using namespace ci::app;
 using namespace std;
 
-namespace LeapSdk {
+namespace LeapMotion {
 
 Matrix33f toMatrix33f( const Leap::Matrix& m )
 {
@@ -161,6 +164,8 @@ Device::Device()
 {
 	mListener.mMutex	= &mMutex;
 	mController			= new Leap::Controller( mListener );
+
+	App::get()->getSignalUpdate().connect( bind( &Device::update, this ) );
 }
 
 Device::~Device()

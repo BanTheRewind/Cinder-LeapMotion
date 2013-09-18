@@ -38,7 +38,7 @@
 #include "cinder/Camera.h"
 #include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
-#include "Cinder-LeapSdk.h"
+#include "Cinder-LeapMotion.h"
 
 class LeapApp : public ci::app::AppBasic
 {
@@ -49,7 +49,7 @@ public:
 	void					update();
 private:
 	// Leap
-	LeapSdk::DeviceRef		mLeap;
+	LeapMotion::DeviceRef		mDevice;
 	Leap::Frame				mFrame;
 	void 					onFrame( Leap::Frame frame );
 
@@ -71,7 +71,7 @@ private:
 // Imports
 using namespace ci;
 using namespace ci::app;
-using namespace LeapSdk;
+using namespace LeapMotion;
 using namespace std;
 
 // Render
@@ -95,11 +95,11 @@ void LeapApp::draw()
 		const Leap::Hand& hand = *handIter;
 
 		// Get hand data
-		Vec3f handDir		= LeapSdk::toVec3f( hand.direction() );
-		Vec3f palmNorm		= LeapSdk::toVec3f( hand.palmNormal() );
-		Vec3f palmPos		= LeapSdk::toVec3f( hand.palmPosition() );
-		Vec3f palmVel		= LeapSdk::toVec3f( hand.palmVelocity() );
-		Vec3f sphereCenter	= LeapSdk::toVec3f( hand.sphereCenter() );
+		Vec3f handDir		= LeapMotion::toVec3f( hand.direction() );
+		Vec3f palmNorm		= LeapMotion::toVec3f( hand.palmNormal() );
+		Vec3f palmPos		= LeapMotion::toVec3f( hand.palmPosition() );
+		Vec3f palmVel		= LeapMotion::toVec3f( hand.palmVelocity() );
+		Vec3f sphereCenter	= LeapMotion::toVec3f( hand.sphereCenter() );
 		float sphereRadius	= hand.sphereRadius();
 		
 		// Hand sphere
@@ -137,11 +137,11 @@ void LeapApp::draw()
 			const Leap::Pointable& pointable = *pointIter;
 
 			// Get pointable data
-			Vec3f dir		= LeapSdk::toVec3f( pointable.direction() );
+			Vec3f dir		= LeapMotion::toVec3f( pointable.direction() );
 			bool isTool		= pointable.isTool();
 			float length	= pointable.length();
-			Vec3f tipPos	= LeapSdk::toVec3f( pointable.tipPosition() );
-			Vec3f tipVel	= LeapSdk::toVec3f( pointable.tipVelocity() );
+			Vec3f tipPos	= LeapMotion::toVec3f( pointable.tipPosition() );
+			Vec3f tipVel	= LeapMotion::toVec3f( pointable.tipVelocity() );
 			float width		= pointable.width();
 			Vec3f basePos	= tipPos + dir * -length;
 			
@@ -205,8 +205,8 @@ void LeapApp::setup()
 	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
 	// Start device
-	mLeap 	= Device::create();
-	mLeap->connectEventHandler( &LeapApp::onFrame, this );
+	mDevice 	= Device::create();
+	mDevice->connectEventHandler( &LeapApp::onFrame, this );
 
 	// Params
 	mFrameRate	= 0.0f;
@@ -227,11 +227,6 @@ void LeapApp::update()
 	// Toggle fullscreen
 	if ( mFullScreen != isFullScreen() ) {
 		setFullScreen( mFullScreen );
-	}
-
-	// Update device
-	if ( mLeap && mLeap->isConnected() ) {		
-		mLeap->update();
 	}
 }
 

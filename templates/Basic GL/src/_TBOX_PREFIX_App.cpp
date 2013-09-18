@@ -3,20 +3,17 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Texture.h"
 
-#include "Cinder-LeapSdk.h"
+#include "Cinder-LeapMotion.h"
 
 class _TBOX_PREFIX_App : public ci::app::AppNative 
 {
  public:
 	void 					draw();
 	void 					setup();
-	void 					shutdown();
-	void 					update();
  private:	
-	uint32_t				mCallbackId;
-	LeapSdk::HandMap		mHands;
-	LeapSdk::DeviceRef		mLeap;
-	void 					onFrame( LeapSdk::Frame frame );
+	LeapMotion::Frame		mFrame;
+	LeapMotion::DeviceRef	mLeap;
+	void 					onFrame( Leap::Frame frame );
 
 	ci::CameraPersp			mCamera;
 };
@@ -33,28 +30,29 @@ void _TBOX_PREFIX_App::draw()
 	gl::setMatrices( mCamera );
 	
 	// Iterate through hands
-	for ( LeapSdk::HandMap::const_iterator handIter = mHands.begin(); handIter != mHands.end(); ++handIter ) {
-		const LeapSdk::Hand& hand = handIter->second;
+	const Leap::HandList& hands = mFrame.hands();
+	for ( Leap::HandList::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
 
-		// Fingers
-		const LeapSdk::FingerMap& fingers = hand.getFingers();
-		for( LeapSdk::FingerMap::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); ++fingerIter ) {
-			const LeapSdk::Finger& finger = fingerIter->second;
+		// Pointables
+		const Leap::PointableList& pointables = hand.pointables();
+		for ( Leap::PointableList::const_iterator pointIter = pointables.begin(); pointIter != pointables.end(); ++pointIter ) {
+			const Leap::Pointable& pointable = *pointIter;
 
-			// Finger tip
-			gl::drawColorCube( finger.getPosition(), Vec3f( 20, 20, 20 ) );
-
-			// Finger orientation
-			Vec3f tipPosition = finger.getPosition() + finger.getDirection() * finger.getLength();
+			Vec3f dir		= LeapMotion::toVec3f( pointable.direction() );
+			float length	= pointable.length();
+			Vec3f tipPos	= LeapMotion::toVec3f( pointable.tipPosition() );
+			Vec3f basePos	= tipPos + dir * length;
+			
+			gl::drawColorCube( tipPos, Vec3f( 20, 20, 20 ) );
 			gl::color( ColorAf::gray( 0.8f ) );
-			gl::drawLine( finger.getPosition(), tipPosition );
+			gl::drawLine( basePos, tipPos );
 		}
 	}
 }
 
-void _TBOX_PREFIX_App::onFrame( LeapSdk::Frame frame )
+void _TBOX_PREFIX_App::onFrame( Leap::Frame frame )
 {
-	mHands = frame.getHands();
+	mFrame = frame;
 }
 
 void _TBOX_PREFIX_App::setup()
@@ -69,21 +67,8 @@ void _TBOX_PREFIX_App::setup()
 	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
 	// Start device
-	mLeap 		= LeapSdk::Device::create();
-	mCallbackId = mLeap->addCallback( &_TBOX_PREFIX_App::onFrame, this );
-}
-
-void _TBOX_PREFIX_App::shutdown()
-{
-	mLeap->removeCallback( mCallbackId );
-	mHands.clear();
-}
-
-void _TBOX_PREFIX_App::update()
-{	 
-	if ( mLeap && mLeap->isConnected() ) {		
-		mLeap->update();
-	}
+	mLeap = LeapMotion::Device::create();
+	mLeap->connectEventHandler( &_TBOX_PREFIX_App::onFrame, this );
 }
 
 CINDER_APP_NATIVE( _TBOX_PREFIX_App, RendererGl )

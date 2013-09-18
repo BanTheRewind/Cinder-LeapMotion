@@ -42,7 +42,7 @@
 #include "cinder/Vector.h"
 #include <functional>
 
-namespace LeapSdk {
+namespace LeapMotion {
 
 //! Converts a native Leap 3x3 matrix into a Cinder one.
 ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );

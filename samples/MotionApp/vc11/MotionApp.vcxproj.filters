@@ -12,7 +12,7 @@
     <Filter Include="blocks">
       <UniqueIdentifier>{45d24446-3e56-4215-a1fa-96eb967451d4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="blocks\Cinder-LeapSdk">
+    <Filter Include="blocks\Cinder-LeapMotion">
       <UniqueIdentifier>{b4c6b03c-4f71-4a06-a861-abda64840ef2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -20,8 +20,8 @@
     <ClCompile Include="..\src\MotionApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\Cinder-LeapSdk.cpp">
-      <Filter>blocks\Cinder-LeapSdk</Filter>
+    <ClCompile Include="..\..\..\src\Cinder-LeapMotion.cpp">
+      <Filter>blocks\Cinder-LeapMotion</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -35,14 +35,14 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\Cinder-LeapSdk.h">
-      <Filter>blocks\Cinder-LeapSdk</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\Leap.h">
-      <Filter>blocks\Cinder-LeapSdk</Filter>
+      <Filter>blocks\Cinder-LeapMotion</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\LeapMath.h">
-      <Filter>blocks\Cinder-LeapSdk</Filter>
+      <Filter>blocks\Cinder-LeapMotion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\Cinder-LeapMotion.h">
+      <Filter>blocks\Cinder-LeapMotion</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -37,7 +37,7 @@
 #include "cinder/app/AppBasic.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/params/Params.h"
-#include "Cinder-LeapSdk.h"
+#include "Cinder-LeapMotion.h"
 
 class UiApp : public ci::app::AppBasic
 {
@@ -50,7 +50,7 @@ public:
 private:
 	// Leap
 	Leap::Frame				mFrame;
-	LeapSdk::DeviceRef		mLeap;
+	LeapMotion::DeviceRef	mDevice;
 	void 					onFrame( Leap::Frame frame );
 	ci::Vec2f				warpPointable( const Leap::Pointable& p );
 	ci::Vec2f				warpVector( const Leap::Vector& v );
@@ -91,7 +91,7 @@ private:
 // Imports
 using namespace ci;
 using namespace ci::app;
-using namespace LeapSdk;
+using namespace LeapMotion;
 using namespace std;
 
 // Render
@@ -203,8 +203,8 @@ void UiApp::setup()
 	glShadeModel( GL_FLAT );
 		
 	// Start device
-	mLeap 		= Device::create();
-	mLeap->connectEventHandler( &UiApp::onFrame, this );
+	mDevice 		= Device::create();
+	mDevice->connectEventHandler( &UiApp::onFrame, this );
 	
 	// Load cursor textures
 	for ( size_t i = 0; i < 3; ++i ) {
@@ -271,14 +271,9 @@ void UiApp::update()
 		setFullScreen( mFullScreen );
 	}
 
-	// Update device
-	if ( mLeap && mLeap->isConnected() ) {		
-		mLeap->update();
-	}
-	
 	// Interact with first hand
 	const Leap::HandList& hands = mFrame.hands();
-	if ( hands.empty() ) {
+	if ( hands.isEmpty() ) {
 		mCursorType		= CursorType::NONE;
 	} else {
 		const Leap::Hand& hand = *hands.begin();
@@ -327,10 +322,10 @@ void UiApp::update()
 Vec2f UiApp::warpPointable( const Leap::Pointable& p )
 {
 	Vec3f result	= Vec3f::zero();
-	if ( mLeap ) {
-		const Leap::Screen& screen = mLeap->getController()->calibratedScreens().closestScreenHit( p );
+	if ( mDevice ) {
+		const Leap::Screen& screen = mDevice->getController()->locatedScreens().closestScreenHit( p );
 		
-		result		= LeapSdk::toVec3f( screen.intersect( p, true, 1.0f ) );
+		result		= LeapMotion::toVec3f( screen.intersect( p, true, 1.0f ) );
 	}
 	result			*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
 	result.y		= (float)getWindowHeight() - result.y;
@@ -341,10 +336,10 @@ Vec2f UiApp::warpPointable( const Leap::Pointable& p )
 Vec2f UiApp::warpVector( const Leap::Vector& v )
 {
 	Vec3f result	= Vec3f::zero();
-	if ( mLeap ) {
-		const Leap::Screen& screen = mLeap->getController()->calibratedScreens().closestScreen( v );
+	if ( mDevice ) {
+		const Leap::Screen& screen = mDevice->getController()->locatedScreens().closestScreen( v );
 		
-		result		= LeapSdk::toVec3f( screen.project( v, true ) );
+		result		= LeapMotion::toVec3f( screen.project( v, true ) );
 	}
 	result			*= Vec3f( getWindowSize(), 0.0f );
 	result.y		= (float)getWindowHeight() - result.y;

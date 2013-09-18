@@ -38,7 +38,7 @@
 #include "cinder/gl/Texture.h"
 #include "cinder/params/Params.h"
 
-#include "Cinder-LeapSdk.h"
+#include "Cinder-LeapMotion.h"
 
 class GestureApp : public ci::app::AppBasic
 {
@@ -51,7 +51,7 @@ public:
 private:
 	// Leap
 	Leap::Frame				mFrame;
-	LeapSdk::DeviceRef		mLeap;
+	LeapMotion::DeviceRef	mDevice;
 	void 					onFrame( Leap::Frame frame );
 	ci::Vec2f				warpPointable( const Leap::Pointable& p );
 	ci::Vec2f				warpVector( const Leap::Vector& v );
@@ -117,7 +117,7 @@ private:
 // Imports
 using namespace ci;
 using namespace ci::app;
-using namespace LeapSdk;
+using namespace LeapMotion;
 using namespace std;
 
 // Render
@@ -382,11 +382,11 @@ void GestureApp::setup()
 	}
 	
 	// Start device
-	mLeap 		= Device::create();
-	mLeap->connectEventHandler( &GestureApp::onFrame, this );
+	mDevice = Device::create();
+	mDevice->connectEventHandler( &GestureApp::onFrame, this );
 
 	// Enable all gesture types
-	Leap::Controller* controller = mLeap->getController();
+	Leap::Controller* controller = mDevice->getController();
 	controller->enableGesture( Leap::Gesture::Type::TYPE_CIRCLE );
 	controller->enableGesture( Leap::Gesture::Type::TYPE_KEY_TAP );
 	controller->enableGesture( Leap::Gesture::Type::TYPE_SCREEN_TAP );
@@ -436,11 +436,6 @@ void GestureApp::update()
 		setFullScreen( mFullScreen );
 	}
 
-	// Update device
-	if ( mLeap && mLeap->isConnected() ) {		
-		mLeap->update();
-	}
-	
 	const Leap::GestureList& gestures = mFrame.gestures();
 	for ( Leap::GestureList::const_iterator iter = gestures.begin(); iter != gestures.end(); ++iter ) {
 		const Leap::Gesture& gesture	= *iter;
@@ -508,10 +503,10 @@ void GestureApp::update()
 Vec2f GestureApp::warpPointable( const Leap::Pointable& p )
 {
 	Vec3f result	= Vec3f::zero();
-	if ( mLeap ) {
-		const Leap::Screen& screen = mLeap->getController()->calibratedScreens().closestScreenHit( p );
+	if ( mDevice ) {
+		const Leap::Screen& screen = mDevice->getController()->locatedScreens().closestScreenHit( p );
 		
-		result		= LeapSdk::toVec3f( screen.intersect( p, true, 1.0f ) );
+		result		= LeapMotion::toVec3f( screen.intersect( p, true, 1.0f ) );
 	}
 	result			*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
 	result.y		= (float)getWindowHeight() - result.y;
@@ -522,10 +517,10 @@ Vec2f GestureApp::warpPointable( const Leap::Pointable& p )
 Vec2f GestureApp::warpVector( const Leap::Vector& v )
 {
 	Vec3f result	= Vec3f::zero();
-	if ( mLeap ) {
-		const Leap::Screen& screen = mLeap->getController()->calibratedScreens().closestScreen( v );
+	if ( mDevice ) {
+		const Leap::Screen& screen = mDevice->getController()->locatedScreens().closestScreen( v );
 		
-		result		= LeapSdk::toVec3f( screen.project( v, true ) );
+		result		= LeapMotion::toVec3f( screen.project( v, true ) );
 	}
 	result			*= Vec3f( getWindowSize(), 0.0f );
 	result.y		= (float)getWindowHeight() - result.y;

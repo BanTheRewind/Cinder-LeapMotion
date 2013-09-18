@@ -39,7 +39,7 @@
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/params/Params.h"
-#include "Cinder-LeapSdk.h"
+#include "Cinder-LeapMotion.h"
 #include "Ribbon.h"
 
 class TracerApp : public ci::app::AppBasic
@@ -54,7 +54,7 @@ private:
 
 	// Leap
 	Leap::Frame				mFrame;
-	LeapSdk::DeviceRef		mLeap;
+	LeapMotion::DeviceRef	mDevice;
 	void 					onFrame( Leap::Frame frame );
 
 	// Trails
@@ -80,7 +80,7 @@ private:
 // Imports
 using namespace ci;
 using namespace ci::app;
-using namespace LeapSdk;
+using namespace LeapMotion;
 using namespace std;
 
 // Render
@@ -178,8 +178,8 @@ void TracerApp::setup()
 	mCamera.lookAt( Vec3f( 0.0f, 93.75f, 250.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
 	// Start device
-	mLeap		= Device::create();
-	mLeap->connectEventHandler( &TracerApp::onFrame, this );
+	mDevice = Device::create();
+	mDevice->connectEventHandler( &TracerApp::onFrame, this );
 
 	// Load shaders
 	try {
@@ -233,11 +233,6 @@ void TracerApp::update()
 	// Update frame rate
 	mFrameRate = getAverageFps();
 
-	// Update device
-	if ( mLeap && mLeap->isConnected() ) {		
-		mLeap->update();
-	}
-	
 	// Process hand data
 	const Leap::HandList& hands = mFrame.hands();
 	for ( Leap::HandList::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
@@ -259,7 +254,7 @@ void TracerApp::update()
 			}
 			float width = math<float>::abs( pointable.tipVelocity().y ) * 0.0025f;
 			width		= math<float>::max( width, 5.0f );
-			mRibbons[ id ].addPoint( LeapSdk::toVec3f( pointable.tipPosition() ), width );
+			mRibbons[ id ].addPoint( LeapMotion::toVec3f( pointable.tipPosition() ), width );
 		}
 	}
 

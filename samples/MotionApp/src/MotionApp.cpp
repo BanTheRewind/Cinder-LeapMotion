@@ -39,7 +39,7 @@
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Light.h"
 #include "cinder/params/Params.h"
-#include "Cinder-LeapSdk.h"
+#include "Cinder-LeapMotion.h"
 
 class MotionApp : public ci::app::AppBasic
 {
@@ -57,7 +57,7 @@ private:
 	
 	// Leap
 	Leap::Frame				mFrame;
-	LeapSdk::DeviceRef		mLeap;
+	LeapMotion::DeviceRef	mDevice;
 	void 					onFrame( Leap::Frame frame );
 
 	// Lighting
@@ -88,7 +88,7 @@ private:
 // Imports
 using namespace ci;
 using namespace ci::app;
-using namespace LeapSdk;
+using namespace LeapMotion;
 using namespace std;
 
 static const float	kRestitution	= 0.021f;
@@ -154,13 +154,13 @@ void MotionApp::onFrame( Leap::Frame frame )
 		
 		if ( motion == FREE || motion == ROTATE ) {
 			mRotAngle	+= hand.rotationAngle( mFrame ) * kRotSpeed;
-			mRotAxis	+= LeapSdk::toVec3f( hand.rotationAxis( mFrame ) ) * -1.0f; // Mirror
+			mRotAxis	+= LeapMotion::toVec3f( hand.rotationAxis( mFrame ) ) * -1.0f; // Mirror
 		}
 		if ( motion == FREE || motion == SCALE ) {
 			mScale		*= hand.scaleFactor( mFrame );
 		}
 		if ( motion == FREE || motion == TRANSLATE ) {
-			mTranslate	+= LeapSdk::toVec3f( hand.translation( mFrame ) ) * kTranslateSpeed;
+			mTranslate	+= LeapMotion::toVec3f( hand.translation( mFrame ) ) * kTranslateSpeed;
 		}
 	}
 	mFrame = frame;
@@ -211,8 +211,8 @@ void MotionApp::setup()
 	mTransform.setToIdentity();
 	
 	// Start device
-	mLeap 		= Device::create();
-	mLeap->connectEventHandler( &MotionApp::onFrame, this );
+	mDevice = Device::create();
+	mDevice->connectEventHandler( &MotionApp::onFrame, this );
 
 	// Params
 	mFrameRate	= 0.0f;
@@ -236,16 +236,13 @@ void MotionApp::update()
 		setFullScreen( mFullScreen );
 	}
 
-	// Update device
-	if ( mLeap && mLeap->isConnected() ) {		
-		mLeap->update();
-	}
-	
+	// Smooth animation
 	mRotAngle	= lerp( mRotAngle, 0.0f, kRestitution );
 	mRotAxis	= mRotAxis.lerp( kRestitution, Vec3f::zero() );
 	mScale		= lerp( mScale, 1.0f, kRestitution );
 	mTranslate	= mTranslate.lerp( kRestitution, Vec3f::zero() );
 	
+	// Update transform
 	mTransform.setToIdentity();
 	mTransform.translate( mTranslate );
 	mTransform.rotate( mRotAxis * mRotAngle );
