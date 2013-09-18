@@ -1,4 +1,6 @@
 .DS_Store
+*.xcuserdatad
+*.xccheckout
 xcuserdata
 bin
 build
@@ -10,3 +12,7 @@ Release
 *.sdf
 *.suo
 *.user
+*.exe
+*.map
+*.pdb
+*.ilk

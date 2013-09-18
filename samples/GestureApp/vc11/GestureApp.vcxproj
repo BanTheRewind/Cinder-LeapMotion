@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\Cinder-LeapSdk.cpp" />
+    <ClCompile Include="..\..\..\src\Cinder-LeapMotion.cpp" />
     <ClCompile Include="..\src\GestureApp.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -21,7 +21,7 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\Cinder-LeapSdk.h" />
+    <ClInclude Include="..\..\..\src\Cinder-LeapMotion.h" />
     <ClInclude Include="..\..\..\src\Leap.h" />
     <ClInclude Include="..\..\..\src\LeapMath.h" />
   </ItemGroup>

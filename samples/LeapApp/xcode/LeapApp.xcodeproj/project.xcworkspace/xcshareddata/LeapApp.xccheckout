@@ -2,8 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>1C134E73-CC9F-46E4-8093-5B7B35E2761C</string>
+	<string>C29872CD-F185-4BBD-9FD7-E791F63397F5</string>
 	<key>IDESourceControlProjectName</key>
 	<string>LeapApp</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>

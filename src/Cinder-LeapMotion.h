@@ -42,7 +42,7 @@
 #include "cinder/Vector.h"
 #include <functional>
 
-namespace LeapSdk {
+namespace LeapMotion {
 
 //! Converts a native Leap 3x3 matrix into a Cinder one.
 ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );
@@ -95,7 +95,7 @@ public:
 	//! Creates and returns device instance.
 	static DeviceRef	create();
 	~Device();
-
+	
 	//! Returns LEAP controller associated with this device's listener.
 	Leap::Controller*	getController() const;
 
@@ -122,7 +122,7 @@ protected:
 	Device();
 
 	std::function<void ( Leap::Frame )>	mEventHandler;
-	
+
 	virtual void		update();
 
 	Leap::Controller*	mController;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <cinder>
-<template name="Leap SDK: Basic GL" parent="org.libcinder.apptemplates.basicopengl">
+<template name="Leap Motion: Basic GL" parent="org.libcinder.apptemplates.basicopengl">
 	<requires>leapmotion.bantherewind.com</requires>
 	<supports os="macosx" />
 	<supports os="msw" compiler="vc10" />

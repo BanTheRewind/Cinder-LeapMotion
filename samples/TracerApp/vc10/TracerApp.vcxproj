@@ -111,7 +111,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\Cinder-LeapSdk.cpp" />
+    <ClCompile Include="..\..\..\src\Cinder-LeapMotion.cpp" />
     <ClCompile Include="..\src\Ribbon.cpp" />
     <ClCompile Include="..\src\TracerApp.cpp" />
   </ItemGroup>
@@ -125,7 +125,7 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\src\Cinder-LeapSdk.h" />
+    <ClInclude Include="..\..\..\src\Cinder-LeapMotion.h" />
     <ClInclude Include="..\..\..\src\Leap.h" />
     <ClInclude Include="..\..\..\src\LeapMath.h" />
     <ClInclude Include="..\include\Resources.h" />

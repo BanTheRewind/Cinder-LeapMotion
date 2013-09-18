@@ -17,7 +17,6 @@
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		AE15E04016F39D3D00238DC0 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AE15E03F16F39D3D00238DC0 /* QuickTime.framework */; };
 		AE1BA86D1667F13800E8CDFD /* UiApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1BA86C1667F13800E8CDFD /* UiApp.cpp */; };
-		AE1BA8721667F14D00E8CDFD /* Cinder-LeapSdk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE1BA86F1667F14D00E8CDFD /* Cinder-LeapSdk.cpp */; };
 		AE1BA8741667F1BD00E8CDFD /* CinderApp.icns in Resources */ = {isa = PBXBuildFile; fileRef = AE1BA8731667F1BD00E8CDFD /* CinderApp.icns */; };
 		AE362B64166801590094CD37 /* libLeap.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = AE362B63166801590094CD37 /* libLeap.dylib */; };
 		AE362B65166801950094CD37 /* libLeap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = AE362B63166801590094CD37 /* libLeap.dylib */; };
@@ -28,6 +27,7 @@
 		AEB7ACFC16B0B29C00F627E3 /* button_on.png in Resources */ = {isa = PBXBuildFile; fileRef = AEB7ACF816B0B29C00F627E3 /* button_on.png */; };
 		AEB7ACFD16B0B29C00F627E3 /* slider.png in Resources */ = {isa = PBXBuildFile; fileRef = AEB7ACF916B0B29C00F627E3 /* slider.png */; };
 		AEB7ACFE16B0B29C00F627E3 /* track.png in Resources */ = {isa = PBXBuildFile; fileRef = AEB7ACFA16B0B29C00F627E3 /* track.png */; };
+		AEFC15B017EA2C12000B184F /* Cinder-LeapMotion.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AEFC15AE17EA2C12000B184F /* Cinder-LeapMotion.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -58,8 +58,6 @@
 		8D1107320486CEB800E47090 /* UiApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UiApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE15E03F16F39D3D00238DC0 /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = System/Library/Frameworks/QuickTime.framework; sourceTree = SDKROOT; };
 		AE1BA86C1667F13800E8CDFD /* UiApp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = UiApp.cpp; path = ../src/UiApp.cpp; sourceTree = "<group>"; };
-		AE1BA86F1667F14D00E8CDFD /* Cinder-LeapSdk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "Cinder-LeapSdk.cpp"; path = "../../../src/Cinder-LeapSdk.cpp"; sourceTree = "<group>"; };
-		AE1BA8701667F14D00E8CDFD /* Cinder-LeapSdk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "Cinder-LeapSdk.h"; path = "../../../src/Cinder-LeapSdk.h"; sourceTree = "<group>"; };
 		AE1BA8711667F14D00E8CDFD /* Leap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Leap.h; path = ../../../src/Leap.h; sourceTree = "<group>"; };
 		AE1BA8731667F1BD00E8CDFD /* CinderApp.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = CinderApp.icns; sourceTree = "<group>"; };
 		AE362B63166801590094CD37 /* libLeap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libLeap.dylib; path = ../../../lib/macosx/libLeap.dylib; sourceTree = "<group>"; };
@@ -72,6 +70,8 @@
 		AEB7ACF916B0B29C00F627E3 /* slider.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = slider.png; path = ../resources/slider.png; sourceTree = "<group>"; };
 		AEB7ACFA16B0B29C00F627E3 /* track.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = track.png; path = ../resources/track.png; sourceTree = "<group>"; };
 		AEC8E2AC16A7595A002B7DAD /* LeapMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LeapMath.h; path = ../../../src/LeapMath.h; sourceTree = "<group>"; };
+		AEFC15AE17EA2C12000B184F /* Cinder-LeapMotion.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "Cinder-LeapMotion.cpp"; path = "../../../src/Cinder-LeapMotion.cpp"; sourceTree = "<group>"; };
+		AEFC15AF17EA2C12000B184F /* Cinder-LeapMotion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "Cinder-LeapMotion.h"; path = "../../../src/Cinder-LeapMotion.h"; sourceTree = "<group>"; };
 		CC680A809AF041E8BE4D8AE5 /* UiApp_Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UiApp_Prefix.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -99,7 +99,7 @@
 		01B97315FEAEA392516A2CEA /* Blocks */ = {
 			isa = PBXGroup;
 			children = (
-				AE1BA86E1667F13D00E8CDFD /* Cinder-LeapSdk */,
+				AE1BA86E1667F13D00E8CDFD /* Cinder-LeapMotion */,
 			);
 			name = Blocks;
 			sourceTree = "<group>";
@@ -193,15 +193,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		AE1BA86E1667F13D00E8CDFD /* Cinder-LeapSdk */ = {
+		AE1BA86E1667F13D00E8CDFD /* Cinder-LeapMotion */ = {
 			isa = PBXGroup;
 			children = (
-				AE1BA86F1667F14D00E8CDFD /* Cinder-LeapSdk.cpp */,
-				AE1BA8701667F14D00E8CDFD /* Cinder-LeapSdk.h */,
+				AEFC15AE17EA2C12000B184F /* Cinder-LeapMotion.cpp */,
+				AEFC15AF17EA2C12000B184F /* Cinder-LeapMotion.h */,
 				AE1BA8711667F14D00E8CDFD /* Leap.h */,
 				AEC8E2AC16A7595A002B7DAD /* LeapMath.h */,
 			);
-			name = "Cinder-LeapSdk";
+			name = "Cinder-LeapMotion";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -276,8 +276,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AEFC15B017EA2C12000B184F /* Cinder-LeapMotion.cpp in Sources */,
 				AE1BA86D1667F13800E8CDFD /* UiApp.cpp in Sources */,
-				AE1BA8721667F14D00E8CDFD /* Cinder-LeapSdk.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

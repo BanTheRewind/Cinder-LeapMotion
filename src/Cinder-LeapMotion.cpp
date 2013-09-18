@@ -34,7 +34,7 @@
 * 
 */
 
-#include "Cinder-LeapSdk.h"
+#include "Cinder-LeapMotion.h"
 
 #include "cinder/app/App.h"
 
@@ -42,7 +42,7 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-namespace LeapSdk {
+namespace LeapMotion {
 
 Matrix33f toMatrix33f( const Leap::Matrix& m )
 {
@@ -204,9 +204,6 @@ void Device::connectEventHandler( const function<void( Leap::Frame )>& eventHand
 
 void Device::update()
 {
-	
-	console() << mListener.mConnected << ", " << mListener.mInitialized << ", " << mListener.mNewFrame << endl;
-
 	lock_guard<mutex> lock( mMutex );
 	if ( mListener.mConnected && mListener.mInitialized && mListener.mNewFrame ) {
 		mEventHandler( mListener.mFrame );
