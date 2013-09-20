@@ -11,7 +11,7 @@ class _TBOX_PREFIX_App : public ci::app::AppNative
 	void 					draw();
 	void 					setup();
  private:	
-	LeapMotion::Frame		mFrame;
+	Leap::Frame		        mFrame;
 	LeapMotion::DeviceRef	mLeap;
 	void 					onFrame( Leap::Frame frame );
 
@@ -32,6 +32,7 @@ void _TBOX_PREFIX_App::draw()
 	// Iterate through hands
 	const Leap::HandList& hands = mFrame.hands();
 	for ( Leap::HandList::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
+        const Leap::Hand& hand = *handIter;
 
 		// Pointables
 		const Leap::PointableList& pointables = hand.pointables();
