@@ -1,7 +1,42 @@
+/*
+* 
+* Copyright (c) 2013, Ban the Rewind
+* All rights reserved.
+* 
+* Redistribution and use in source and binary forms, with or 
+* without modification, are permitted provided that the following 
+* conditions are met:
+* 
+* Redistributions of source code must retain the above copyright 
+* notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above copyright 
+* notice, this list of conditions and the following disclaimer in 
+* the documentation and/or other materials provided with the 
+* distribution.
+* 
+* Neither the name of the Ban the Rewind nor the names of its 
+* contributors may be used to endorse or promote products 
+* derived from this software without specific prior written 
+* permission.
+* 
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+* COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+* BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+* STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+* ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+*/
+
 #include "cinder/app/AppNative.h"
 #include "cinder/Camera.h"
 #include "cinder/gl/gl.h"
-#include "cinder/gl/Texture.h"
 
 #include "Cinder-LeapMotion.h"
 
@@ -13,7 +48,6 @@ class _TBOX_PREFIX_App : public ci::app::AppNative
  private:	
 	LeapMotion::Frame		mFrame;
 	LeapMotion::DeviceRef	mLeap;
-	void 					onFrame( Leap::Frame frame );
 
 	ci::CameraPersp			mCamera;
 };
@@ -24,20 +58,13 @@ using namespace std;
 
 void _TBOX_PREFIX_App::draw() 
 {
-	// Clear window
 	gl::setViewport( getWindowBounds() );
 	gl::clear( Colorf::black() );
 	gl::setMatrices( mCamera );
 	
-	// Iterate through hands
 	const Leap::HandList& hands = mFrame.hands();
-	for ( Leap::HandList::const_iterator handIter = hands.begin(); handIter != hands.end(); ++handIter ) {
-
-		// Pointables
-		const Leap::PointableList& pointables = hand.pointables();
-		for ( Leap::PointableList::const_iterator pointIter = pointables.begin(); pointIter != pointables.end(); ++pointIter ) {
-			const Leap::Pointable& pointable = *pointIter;
-
+	for ( const Leap::Hand& hand : hands ) {
+		for ( const Leap::Pointable& pointable : hand.pointables() ) {
 			Vec3f dir		= LeapMotion::toVec3f( pointable.direction() );
 			float length	= pointable.length();
 			Vec3f tipPos	= LeapMotion::toVec3f( pointable.tipPosition() );
@@ -50,25 +77,19 @@ void _TBOX_PREFIX_App::draw()
 	}
 }
 
-void _TBOX_PREFIX_App::onFrame( Leap::Frame frame )
-{
-	mFrame = frame;
-}
-
 void _TBOX_PREFIX_App::setup()
 {	 
-	// Set up OpenGL
-	gl::enableAlphaBlending();
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
 	
-	// Set up camera
 	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
 	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
-	// Start device
 	mLeap = LeapMotion::Device::create();
-	mLeap->connectEventHandler( &_TBOX_PREFIX_App::onFrame, this );
+	mLeap->connectEventHandler( [ & ]( Leap::Frame frame )
+	{
+		mFrame = frame;
+	} );
 }
 
 CINDER_APP_NATIVE( _TBOX_PREFIX_App, RendererGl )
