@@ -46,7 +46,7 @@ class _TBOX_PREFIX_App : public ci::app::AppNative
 	void 					draw();
 	void 					setup();
  private:	
-	LeapMotion::Frame		mFrame;
+	Leap::Frame				mFrame;
 	LeapMotion::DeviceRef	mLeap;
 
 	ci::CameraPersp			mCamera;
