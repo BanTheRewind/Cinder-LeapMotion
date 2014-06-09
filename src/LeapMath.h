@@ -1012,7 +1012,7 @@ struct Matrix
   }
 
   /**
-   * The rotation and scale factors for the x-axis.
+   * The basis vector for the x-axis.
    *
    * \include Matrix_xBasis.txt
    *
@@ -1020,7 +1020,7 @@ struct Matrix
    */
   Vector xBasis;
   /**
-   * The rotation and scale factors for the y-axis.
+   * The basis vector for the y-axis.
    *
    * \include Matrix_yBasis.txt
    *
@@ -1028,7 +1028,7 @@ struct Matrix
    */
   Vector yBasis;
   /**
-   * The rotation and scale factors for the z-axis.
+   * The basis vector for the z-axis.
    *
    * \include Matrix_zBasis.txt
    *

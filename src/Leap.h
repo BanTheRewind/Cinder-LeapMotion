@@ -145,6 +145,12 @@ namespace Leap {
        * @since 1.0
        */
       ZONE_TOUCHING   = 2,
+#ifdef SWIGCSHARP
+      // deprecated
+      ZONENONE        = ZONE_NONE,
+      ZONEHOVERING    = ZONE_HOVERING,
+      ZONETOUCHING    = ZONE_TOUCHING,
+#endif
     };
 
     // For internal use only.
@@ -297,8 +303,10 @@ namespace Leap {
      * Whether or not this Pointable is in an extended posture.
      *
      * A finger is considered extended if it is extended straight from the hand as if
-     * pointing. A finger is not extended when it is bent down and curled towards the 
+     * pointing. A finger is not extended when it is bent down and curled towards the
      * palm.  Tools are always extended.
+     *
+     * \include Finger_isExtended.txt
      *
      * @returns True, if the pointable is extended.
      * @since 2.0
@@ -460,6 +468,8 @@ namespace Leap {
    * Bones are ordered from base to tip, indexed from 0 to 3.  Additionally, the
    * bone's Type enum may be used to index a specific bone anatomically.
    *
+   * \include Bone_iteration.txt
+   *
    * The thumb does not have a base metacarpal bone and therefore contains a valid,
    * zero length bone at that location.
    *
@@ -468,7 +478,7 @@ namespace Leap {
    * objects can be the result of asking for a Bone object from an invalid finger,
    * indexing a bone out of range, or constructing a new bone.
    * Test for validity with the Bone::isValid() function.
-   * @since 1.0
+   * @since 2.0
    */
   class Bone : public Interface {
   public:
@@ -492,13 +502,20 @@ namespace Leap {
      /**
      * Constructs an invalid Bone object.
      *
+     * \include Bone_invalid.txt
+     *
      * Get valid Bone objects from a Finger object.
-     * @since 1.0
+     *
+     * @since 2.0
      */
     LEAP_EXPORT Bone();
 
     /**
-     * The base point the bone is anchored to.
+     * The base of the bone, closest to the wrist.
+     *
+     * In anatomical terms, this is the proximal end of the bone.
+
+     * \include Bone_prevJoint.txt
      *
      * @returns The Vector containing the coordinates of the previous joint position.
      * @since 2.0
@@ -506,7 +523,11 @@ namespace Leap {
     LEAP_EXPORT Vector prevJoint() const;
 
     /**
-     * The end point of the bone towards the tip direction.
+     * The end of the bone, closest to the finger tip.
+     *
+     * In anatomical terms, this is the distal end of the bone.
+     *
+     * \include Bone_nextJoint.txt
      *
      * @returns The Vector containing the coordinates of the next joint position.
      * @since 2.0
@@ -514,7 +535,9 @@ namespace Leap {
     LEAP_EXPORT Vector nextJoint() const;
 
     /**
-     * The midpoint in the center of the bone.
+     * The midpoint of the bone.
+     *
+     * \include Bone_center.txt
      *
      * @returns The midpoint in the center of the bone.
      * @since 2.0
@@ -524,6 +547,8 @@ namespace Leap {
     /**
      * The normalized direction of the bone from base to tip.
      *
+     * \include Bone_direction.txt
+     *
      * @returns The normalized direction of the bone from base to tip.
      * @since 2.0
      */
@@ -532,21 +557,27 @@ namespace Leap {
     /**
      * The estimated length of the bone in millimeters.
      *
+     * \include Bone_length.txt
+     *
      * @returns The length of the bone in millimeters.
      * @since 2.0
      */
-    LEAP_EXPORT double length() const;
+    LEAP_EXPORT float length() const;
 
     /**
-     * The estimated width of the flesh around the bone in millimeters.
+     * The average width of the flesh around the bone in millimeters.
+     *
+     * \include Bone_width.txt
      *
      * @returns The width of the flesh around the bone in millimeters.
      * @since 2.0
      */
-    LEAP_EXPORT double width() const;
+    LEAP_EXPORT float width() const;
 
     /**
      * The name of this bone.
+     *
+     * \include Bone_type.txt
      *
      * @returns The anatomical type of this bone as a member of the Bone::Type
      * enumeration.
@@ -555,15 +586,32 @@ namespace Leap {
     LEAP_EXPORT Type type() const;
 
     /**
-     * The orientation of the bone as a basis matrix.
+     * The orthonormal basis vectors for this Bone as a Matrix.
      *
-     * The basis is defined as follows:
-     *   xAxis: Clockwise rotation axis of the bone
-     *   yAxis: Positive above the bone
-     *   zAxis: Positive along the bone towards the wrist
+     * Basis vectors specify the orientation of a bone.
      *
-     * Note: Since the left hand is a mirror of the right hand, left handed
-     * bones will contain a left-handed basis.
+     * * xBasis. Perpendicular to the longitudinal axis of the
+     *   bone; exits the sides of the finger.
+     * * yBasis or up vector. Perpendicular to the longitudinal
+     *   axis of the bone; exits the top and bottom of the finger. More positive
+     *   in the upward direction.
+     * * zBasis. Aligned with the longitudinal axis of the bone.
+     *   More positive toward the base of the finger.
+     *
+     * The bases provided for the right hand use the right-hand rule; those for
+     * the left hand use the left-hand rule. Thus, the positive direction of the
+     * x-basis is to the right for the right hand and to the left for the left
+     * hand. You can change from right-hand to left-hand rule by multiplying the
+     * basis vectors by -1.
+     *
+     * You can use the basis vectors for such purposes as measuring complex
+     * finger poses and skeletal animation.
+     *
+     * Note that converting the basis vectors directly into a quaternion
+     * representation is not mathematically valid. If you use quaternions,
+     * create them from the derived rotation matrix not directly from the bases.
+     *
+     * \include Bone_basis.txt
      *
      * @returns The basis of the bone as a matrix.
      * @since 2.0
@@ -572,6 +620,8 @@ namespace Leap {
 
     /**
      * Reports whether this is a valid Bone object.
+     *
+     * \include Bone_isValid.txt
      *
      * @returns True, if this Bone object contains valid tracking data.
      * @since 2.0
@@ -582,10 +632,12 @@ namespace Leap {
      * Returns an invalid Bone object.
      *
      * You can use the instance returned by this function in comparisons testing
-     * whether a given Finger instance is valid or invalid. (You can also use the
+     * whether a given Bone instance is valid or invalid. (You can also use the
      * Bone::isValid() function.)
      *
-     * @returns The invalid Finger instance.
+     * \include Bone_invalid.txt
+     *
+     * @returns The invalid Bone instance.
      * @since 2.0
      */
     LEAP_EXPORT static const Bone& invalid();
@@ -617,6 +669,8 @@ namespace Leap {
 
     /**
      * A string containing a brief, human readable description of the Bone object.
+     *
+     * \include Bone_toString.txt
      *
      * @returns A description of the Bone object as a string.
      * @since 2.0
@@ -668,7 +722,7 @@ namespace Leap {
     /**
      * Enumerates the names of the fingers.
      *
-     * Members of this enumeration are returned by Finger::type() to identify a 
+     * Members of this enumeration are returned by Finger::type() to identify a
      * Finger object.
      * @since 2.0
      */
@@ -711,6 +765,8 @@ namespace Leap {
     /**
      * The bone at a given bone index on this finger.
      *
+     * \include Bone_iteration.txt
+     *
      * @param boneIx An index value from the Bone::Type enumeration identifying the
      * bone of interest.
      * @returns The Bone that has the specified bone type.
@@ -720,6 +776,8 @@ namespace Leap {
 
     /**
      * The name of this finger.
+     *
+     * \include Finger_type.txt
      *
      * @returns The anatomical type of this finger as a member of the Finger::Type
      * enumeration.
@@ -743,6 +801,8 @@ namespace Leap {
 
     /**
      * A string containing a brief, human readable description of the Finger object.
+     *
+     * \include Finger_toString.txt
      *
      * @returns A description of the Finger object as a string.
      * @since 1.0
@@ -1069,6 +1129,8 @@ namespace Leap {
     /**
      * The estimated width of the palm when the hand is in a flat position.
      *
+     * \include Hand_palmWidth.txt
+     *
      * @returns The width of the palm in millimeters
      * @since 2.0
      */
@@ -1101,6 +1163,8 @@ namespace Leap {
      *
      * Note: Since the left hand is a mirror of the right hand, the
      * basis matrix will be left-handed for left hands.
+     *
+     * \include Hand_basis.txt
      *
      * @returns The basis of the hand as a matrix.
      * @since 2.0
@@ -1141,6 +1205,8 @@ namespace Leap {
      * hand pose is recognized. Pinching can be done between the thumb
      * and any other finger of the same hand.
      *
+     * \include Hand_pinchStrength.txt
+     *
      * @returns A float value in the [0..1] range representing the holding strength
      * of the pinch pose.
      * @since 2.0
@@ -1152,6 +1218,8 @@ namespace Leap {
      *
      * The strength is zero for an open hand, and blends to 1.0 when a grabbing hand
      * pose is recognized.
+     *
+     * \include Hand_grabStrength.txt
      *
      * @returns A float value in the [0..1] range representing the holding strength
      * of the pose.
@@ -1359,14 +1427,19 @@ namespace Leap {
 
     /**
      * How confident we are with a given hand pose.
-     *     
+     *
      * The confidence level ranges between 0.0 and 1.0 inclusive.
+     *
+     * \include Hand_confidence.txt
+     *
      * @since 2.0
      */
     LEAP_EXPORT float confidence() const;
 
     /**
      * Identifies whether this Hand is a left hand.
+     *
+     * \include Hand_isLeft.txt
      *
      * @returns True if the hand is identified as a left hand.
      * @since 2.0
@@ -1375,6 +1448,8 @@ namespace Leap {
 
     /**
      * Identifies whether this Hand is a right hand.
+     *
+     * \include Hand_isRight.txt
      *
      * @returns True if the hand is identified as a right hand.
      * @since 2.0
@@ -1557,7 +1632,15 @@ namespace Leap {
        * A downward tapping movement by a finger.
        * @since 1.0
        */
-      TYPE_KEY_TAP    = 6
+      TYPE_KEY_TAP    = 6,
+#ifdef SWIGCSHARP
+      // deprecated
+      TYPEINVALID     = TYPE_INVALID,
+      TYPESWIPE       = TYPE_SWIPE,
+      TYPECIRCLE      = TYPE_CIRCLE,
+      TYPESCREENTAP   = TYPE_SCREEN_TAP,
+      TYPEKEYTAP      = TYPE_KEY_TAP,
+#endif
     };
 
     /**
@@ -1585,6 +1668,13 @@ namespace Leap {
        * @since 1.0
        */
       STATE_STOP    = 3,
+#ifdef SWIGCSHARP
+      // deprecated
+      STATEINVALID  = STATE_INVALID,
+      STATESTART    = STATE_START,
+      STATEUPDATE   = STATE_UPDATE,
+      STATESTOP     = STATE_STOP,
+#endif
     };
 
     /**
@@ -1783,8 +1873,8 @@ namespace Leap {
    *
    * \image html images/Leap_Gesture_Swipe.png
    *
-   * SwipeGesture objects are generated for each visible finger or tool on the 
-   * swiping hand. Swipe gestures are continuous; a gesture object with the same 
+   * SwipeGesture objects are generated for each visible finger or tool on the
+   * swiping hand. Swipe gestures are continuous; a gesture object with the same
    * ID value will appear in each frame while the gesture continues.
    *
    * **Important:** To use swipe gestures in your application, you must enable
@@ -2461,8 +2551,8 @@ namespace Leap {
     LEAP_EXPORT bool isStreaming() const;
 
     /**
-     * The device type.  
-     * 
+     * The device type.
+     *
      * Use the device type value in the (rare) circumstances that you
      * have an application feature which relies on a particular type of device.
      * Current types of device include the original Leap Motion peripheral,
@@ -2812,6 +2902,8 @@ namespace Leap {
      * Returns a new list containing those fingers in the current list that are
      * extended.
      *
+     * \include FingerList_extended.txt
+     *
      * @returns The list of extended fingers from the current list.
      * @since 2.0
      */
@@ -2821,7 +2913,9 @@ namespace Leap {
      * Returns a list containing fingers from the current list of a given finger type by
      * modifying the existing list.
      *
-     * @returns The list of matching fingers from the current list.
+     * \include FingerList_fingerType.txt
+     *
+    * @returns The list of matching fingers from the current list.
      * @since 2.0
      */
     LEAP_EXPORT FingerList& fingerType(Finger::Type type);
@@ -4066,7 +4160,15 @@ namespace Leap {
        * A string of characters.
        * @since 1.0
        */
-      TYPE_STRING  = 8
+      TYPE_STRING  = 8,
+#ifdef SWIGCSHARP
+      // deprecated
+      TYPEUNKNOWN  = TYPE_UNKNOWN,
+      TYPEBOOLEAN  = TYPE_BOOLEAN,
+      TYPEINT32    = TYPE_INT32,
+      TYPEFLOAT    = TYPE_FLOAT,
+      TYPESTRING   = TYPE_STRING,
+#endif
     };
 
     /**
@@ -4298,7 +4400,7 @@ namespace Leap {
 
     /**
      * Reports whether your application has a connection to the Leap Motion
-     * daemon/service. Can be true even if the Leap Motion hardware is not available. 
+     * daemon/service. Can be true even if the Leap Motion hardware is not available.
      * @since 1.2
      */
     LEAP_EXPORT bool isServiceConnected() const;
@@ -4338,7 +4440,12 @@ namespace Leap {
        * Receive background frames.
        * @since 1.0
        */
-      POLICY_BACKGROUND_FRAMES = (1 << 0)
+      POLICY_BACKGROUND_FRAMES = (1 << 0),
+#ifdef SWIGCSHARP
+      // deprecated
+      POLICYDEFAULT = POLICY_DEFAULT,
+      POLICYBACKGROUNDFRAMES = POLICY_BACKGROUND_FRAMES,
+#endif
     };
 
     /**
