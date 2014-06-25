@@ -69,6 +69,7 @@ namespace Leap {
   // Forward declarations for internal use only
   class PointableImplementation;
   class BoneImplementation;
+  class ArmImplementation;
   class FingerImplementation;
   class ToolImplementation;
   class HandImplementation;
@@ -457,6 +458,170 @@ namespace Leap {
     }
   private:
     LEAP_EXPORT const char* toCString() const;
+
+  };
+
+  /**
+   * The Arm class represents the forearm.
+   *
+   */
+  class Arm : public Interface {
+  public:
+    // For internal use only.
+    Arm(ArmImplementation*);
+
+    /**
+    * Constructs an invalid Arm object.
+    *
+    * Get valid Arm objects from a Hand object.
+    *
+    * \include Arm_get.txt
+    *
+    * @since 2.0.3
+    */
+    LEAP_EXPORT Arm();
+
+    /**
+    * The average width of the arm.
+    *
+    * \include Arm_width.txt
+    *
+    * @since 2.0.3
+    */
+    LEAP_EXPORT float width() const;
+
+    /**
+    * The normalized direction in which the arm is pointing (from elbow to wrist).
+    *
+    * \include Arm_direction.txt
+    *
+    * @since 2.0.3
+    */
+    LEAP_EXPORT Vector direction() const;
+
+    /**
+     * The orthonormal basis vectors for the Arm bone as a Matrix.
+     *
+     * Basis vectors specify the orientation of a bone.
+     *
+     * * xBasis. Perpendicular to the longitudinal axis of the
+     *   bone; exits the arm laterally through the sides of the wrist.
+     * * yBasis or up vector. Perpendicular to the longitudinal
+     *   axis of the bone; exits the top and bottom of the arm. More positive
+     *   in the upward direction.
+     * * zBasis. Aligned with the longitudinal axis of the arm bone.
+     *   More positive toward the wrist.
+     *
+     * \include Arm_basis.txt
+     *
+     * The bases provided for the right arm use the right-hand rule; those for
+     * the left arm use the left-hand rule. Thus, the positive direction of the
+     * x-basis is to the right for the right arm and to the left for the left
+     * arm. You can change from right-hand to left-hand rule by multiplying the
+     * basis vectors by -1.
+     *
+     * Note that converting the basis vectors directly into a quaternion
+     * representation is not mathematically valid. If you use quaternions,
+     * create them from the derived rotation matrix not directly from the bases.
+     *
+     * @returns The basis of the arm bone as a matrix.
+     * @since 2.0.3
+     */
+    LEAP_EXPORT Matrix basis() const;
+
+    /**
+    * The position of the elbow.
+    *
+    * \include Arm_elbowPosition.txt
+    *
+    * If not in view, the elbow position is estimated based on typical human
+    * anatomical proportions.
+    *
+    * @since 2.0.3
+    */
+    LEAP_EXPORT Vector elbowPosition() const;
+
+    /**
+    * The position of the wrist.
+    *
+    * \include Arm_wristPosition.txt
+    *
+    * Note that the wrist position is not colocated with the end of any bone in
+    * the hand. There is a gap of a few centemeters since the carpal bones are 
+    * not included in the skeleton model.
+    *
+    * @since 2.0.3
+    */
+    LEAP_EXPORT Vector wristPosition() const;
+
+    /**
+    * Reports whether this is a valid Arm object.
+    *
+    * \include Arm_isValid.txt
+    *
+    * @returns True, if this Arm object contains valid tracking data.
+    * @since 2.0.3
+    */
+    LEAP_EXPORT bool isValid() const;
+
+    /**
+     * Returns an invalid Arm object.
+     *
+     * \include Arm_invalid.txt
+     *
+     * @returns The invalid Arm instance.
+     * @since 2.0.3
+     */
+    LEAP_EXPORT static const Arm& invalid();
+
+    /**
+    * Compare Arm object equality.
+    *
+    * \include Arm_operator_equals.txt
+    *
+    * Two Arm objects are equal if and only if both Arm objects represent the
+    * exact same physical arm in the same frame and both Arm objects are valid.
+    * @since 2.0.3
+    */
+    LEAP_EXPORT bool operator==(const Arm&) const;
+
+    /**
+    * Compare Arm object inequality.
+    *
+    * \include Arm_operator_not_equals.txt
+    *
+    * Two Arm objects are equal if and only if both Arm objects represent the
+    * exact same physical arm in the same frame and both Arm objects are valid.
+    * @since 2.0.3
+    */
+    LEAP_EXPORT bool operator!=(const Arm&) const;
+
+    /**
+    * Writes a brief, human readable description of the Arm object to an output stream.
+    *
+    * \include Arm_stream.txt
+    *
+    * @since 2.0.3
+    */
+    LEAP_EXPORT friend std::ostream& operator<<(std::ostream&, const Arm&);
+
+    /**
+    * A string containing a brief, human readable description of the Arm object.
+    *
+    * \include Arm_toString.txt
+    *
+    * @returns A description of the Arm object as a string.
+    * @since 2.0.3
+    */
+    std::string toString() const {
+      const char* cstr = toCString();
+      std::string str(cstr);
+      deleteCString(cstr);
+      return str;
+    }
+  private:
+    LEAP_EXPORT const char* toCString() const;
+
   };
 
   /**
@@ -1170,6 +1335,28 @@ namespace Leap {
      * @since 2.0
      */
     LEAP_EXPORT Matrix basis() const;
+
+    /**
+     * The arm to which this hand is attached.
+     *
+     * If the arm is not completely in view, Arm attributes are estimated based on
+     * the attributes of entities that are ain view combined with typical human anatomy.
+     *
+     * \include Arm_get.txt
+     *
+     * @returns The Arm object for this hand.
+     * @since 2.0.3
+     */
+    LEAP_EXPORT Arm arm() const;
+
+    /**
+     * The position of the wrist of this hand.
+     *
+     * @returns A vector containing the coordinates of the wrist position in millimeters.
+     * @since 2.0.3
+     */
+    LEAP_EXPORT Vector wristPosition() const;
+
 
     /**
      * The center of a sphere fit to the curvature of this hand.
