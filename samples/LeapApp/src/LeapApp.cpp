@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2013, Ban the Rewind
+* Copyright (c) 2014, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -43,51 +43,41 @@
 class LeapApp : public ci::app::AppBasic
 {
 public:
-	void					draw();
-	void					prepareSettings( ci::app::AppBasic::Settings* settings );
-	void					setup();
-	void					update();
+	void						draw();
+	void						prepareSettings( ci::app::AppBasic::Settings* settings );
+	void						setup();
+	void						update();
 private:
-	// Leap
 	LeapMotion::DeviceRef		mDevice;
-	Leap::Frame				mFrame;
-	void 					onFrame( Leap::Frame frame );
+	Leap::Frame					mFrame;
+	void 						onFrame( Leap::Frame frame );
 
-	// Camera
-	ci::CameraPersp			mCamera;
+	ci::CameraPersp				mCamera;
 
-	// Params
-	float					mFrameRate;
-	bool					mFullScreen;
-	ci::params::InterfaceGl	mParams;
-
-	// Save screen shot
-	void					screenShot();
+	float						mFrameRate;
+	bool						mFullScreen;
+	ci::params::InterfaceGlRef	mParams;
+	void						screenShot();
 };
 
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
-// Imports
 using namespace ci;
 using namespace ci::app;
 using namespace LeapMotion;
 using namespace std;
 
-// Render
 void LeapApp::draw()
 {
-	// Clear window
 	gl::setViewport( getWindowBounds() );
 	gl::clear( Colorf::white() );
 	gl::setMatrices( mCamera );
 
-	// Enable depth
 	gl::enableAlphaBlending();
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
 	
-	// Iterate through hands
 	float headLength = 6.0f;
 	float headRadius = 3.0f;
 	const Leap::HandList& hands = mFrame.hands();
@@ -111,7 +101,6 @@ void LeapApp::draw()
 		// Hand plane
 		gl::color( ColorAf( 0.75f, 0.0f, 0.75f, 0.25f ) );
 		gl::pushMatrices();
-		
 		gl::translate( palmPos );
 		gl::rotate( Quatf( palmPos, handDir ) );
 		for ( float i = 0.25f; i <= 1.0f; i += 0.25f ) {
@@ -163,24 +152,20 @@ void LeapApp::draw()
 		}
 	}
 	
-	// Draw the interface
-	mParams.draw();
+	mParams->draw();
 }
 
-// Called when Leap frame data is ready
 void LeapApp::onFrame( Leap::Frame frame )
 {
 	mFrame = frame;
 }
 
-// Prepare window
-void LeapApp::prepareSettings( Settings *settings )
+void LeapApp::prepareSettings( Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
 	settings->setFrameRate( 60.0f );
 }
 
-// Take screen shot
 void LeapApp::screenShot()
 {
 #if defined( CINDER_MSW )
@@ -191,44 +176,35 @@ void LeapApp::screenShot()
 	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
-// Set up
 void LeapApp::setup()
 {
-	// Set up OpenGL
 	gl::enable( GL_LINE_SMOOTH );
 	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ); 
 	gl::enable( GL_POLYGON_SMOOTH );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
-	// Set up camera
-	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
-	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
+	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 1.0f, 1000.0f );
+	mCamera.lookAt( Vec3f( 0.0f, 250.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
-	// Start device
-	mDevice 	= Device::create();
+	mDevice = Device::create();
 	mDevice->connectEventHandler( &LeapApp::onFrame, this );
 
-	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl( "Params", Vec2i( 200, 105 ) );
-	mParams.addParam( "Frame rate",		&mFrameRate,						"", true );
-	mParams.addParam( "Full screen",	&mFullScreen,						"key=f"		);
-	mParams.addButton( "Screen shot",	bind( &LeapApp::screenShot, this ), "key=space" );
-	mParams.addButton( "Quit",			bind( &LeapApp::quit, this ),		"key=q" );
+	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams->addParam( "Frame rate",	&mFrameRate,						"", true );
+	mParams->addParam( "Full screen",	&mFullScreen,						"key=f" );
+	mParams->addButton( "Screen shot",	bind( &LeapApp::screenShot, this ),	"key=space" );
+	mParams->addButton( "Quit",			bind( &LeapApp::quit, this ),		"key=q" );
 }
 
-// Runs update logic
 void LeapApp::update()
 {
-	// Update frame rate
 	mFrameRate = getAverageFps();
 
-	// Toggle fullscreen
 	if ( mFullScreen != isFullScreen() ) {
 		setFullScreen( mFullScreen );
 	}
 }
 
-// Run application
 CINDER_APP_BASIC( LeapApp, RendererGl )

@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2013, Ban the Rewind
+* Copyright (c) 2014, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -44,48 +44,41 @@
 class MotionApp : public ci::app::AppBasic
 {
 public:
-	void					draw();
-	void					prepareSettings( ci::app::AppBasic::Settings* settings );
-	void					setup();
-	void					update();
+	void						draw();
+	void						prepareSettings( ci::app::AppBasic::Settings* settings );
+	void						setup();
+	void						shutdown();
+	void						update();
 private:
 	enum
 	{
 		FREE, ROTATE, SCALE, TRANSLATE
 	} typedef Motion;
-	bool					mConstrainMotion;
+	bool						mConstrainMotion;
 	
-	// Leap
-	Leap::Frame				mFrame;
-	LeapMotion::DeviceRef	mDevice;
-	void 					onFrame( Leap::Frame frame );
-
-	// Lighting
-	ci::gl::Light			*mLight;
+	Leap::Frame					mFrame;
+	LeapMotion::DeviceRef		mDevice;
+	void						onFrame( Leap::Frame frame );
 	
-	// Motion matrices
-	float					mRotAngle;
-	ci::Vec3f				mRotAxis;
-	float					mScale;
-	ci::Vec3f				mTranslate;
-	ci::Matrix44f			mTransform;
+	ci::gl::Light*				mLight;
 	
-	// Camera
-	ci::CameraPersp			mCamera;
+	float						mRotAngle;
+	ci::Vec3f					mRotAxis;
+	float						mScale;
+	ci::Matrix44f				mTransform;
+	ci::Vec3f					mTranslate;
+	
+	ci::CameraPersp				mCamera;
 
-	// Params
-	float					mFrameRate;
-	bool					mFullScreen;
-	ci::params::InterfaceGl	mParams;
-
-	// Save screen shot
-	void					screenShot();
+	float						mFrameRate;
+	bool						mFullScreen;
+	ci::params::InterfaceGlRef	mParams;
+	void						screenShot();
 };
 
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
-// Imports
 using namespace ci;
 using namespace ci::app;
 using namespace LeapMotion;
@@ -95,20 +88,16 @@ static const float	kRestitution	= 0.021f;
 static const float	kRotSpeed		= 0.033f;
 static const float	kTranslateSpeed	= 0.0033f;
 
-// Render
 void MotionApp::draw()
 {
-	// Clear window
 	gl::setViewport( getWindowBounds() );
 	gl::clear( Colorf::white() );
 	gl::setMatrices( mCamera );
 
-	// Enable depth
 	gl::enableAlphaBlending();
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
 	
-	// Draw cube representing transform
 	gl::enable( GL_LIGHTING );
 	mLight->enable();
 	
@@ -121,11 +110,9 @@ void MotionApp::draw()
 	mLight->disable();
 	gl::disable( GL_LIGHTING );
 	
-	// Draw the interface
-	mParams.draw();
+	mParams->draw();
 }
 
-// Called when Leap frame data is ready
 void MotionApp::onFrame( Leap::Frame frame )
 {
 	const Leap::HandList& hands = frame.hands();
@@ -166,14 +153,12 @@ void MotionApp::onFrame( Leap::Frame frame )
 	mFrame = frame;
 }
 
-// Prepare window
-void MotionApp::prepareSettings( Settings *settings )
+void MotionApp::prepareSettings( Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
 	settings->setFrameRate( 60.0f );
 }
 
-// Take screen shot
 void MotionApp::screenShot()
 {
 #if defined( CINDER_MSW )
@@ -184,26 +169,20 @@ void MotionApp::screenShot()
 	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
-// Set up
 void MotionApp::setup()
 {
-	// Set up OpenGL
 	gl::enable( GL_POLYGON_SMOOTH );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 	
-	// Set up camera
 	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 45.0f, 0.01f, 10.0f );
 	mCamera.lookAt( Vec3f( 0.0f, 0.0f, 3.0f ), Vec3f::zero() );
 	
-	// Light
 	mLight = new gl::Light( gl::Light::DIRECTIONAL, 0 );
 	mLight->setPosition( mCamera.getEyePoint() );
 	mLight->setDiffuse( ColorAf( 1.0f, 0.5f, 0.0f, 1.0f ) );
 	
-	// Set to false to allow free movement
 	mConstrainMotion = false;
 	
-	// Initialize modelview
 	mRotAngle	= 0.0f;
 	mRotAxis	= Vec3f::zero();
 	mScale		= 1.0f;
@@ -217,21 +196,26 @@ void MotionApp::setup()
 	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl( "Params", Vec2i( 200, 120 ) );
-	mParams.addParam( "Frame rate",			&mFrameRate,							"", true	);
-	mParams.addParam( "Constrain motion",	&mConstrainMotion,						"key=m"		);
-	mParams.addParam( "Full screen",		&mFullScreen,							"key=f"		);
-	mParams.addButton( "Screen shot",		bind( &MotionApp::screenShot, this ),	"key=space" );
-	mParams.addButton( "Quit",				bind( &MotionApp::quit, this ),			"key=q"		);
+	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 120 ) );
+	mParams->addParam( "Frame rate",		&mFrameRate,				"", true );
+	mParams->addParam( "Constrain motion",	&mConstrainMotion,			"key=m" );
+	mParams->addParam( "Full screen",		&mFullScreen,				"key=f" );
+	mParams->addButton( "Screen shot",		[ & ]() { screenShot(); },	"key=space" );
+	mParams->addButton( "Quit",				[ & ]() { quit(); },		"key=q" );
 }
 
-// Runs update logic
+void MotionApp::shutdown()
+{
+	if ( mLight != 0 ) {
+		delete mLight;
+		mLight = 0;
+	}
+}
+
 void MotionApp::update()
 {
-	// Update frame rate
 	mFrameRate = getAverageFps();
 
-	// Toggle fullscreen
 	if ( mFullScreen != isFullScreen() ) {
 		setFullScreen( mFullScreen );
 	}
@@ -242,7 +226,7 @@ void MotionApp::update()
 	mScale		= lerp( mScale, 1.0f, kRestitution );
 	mTranslate	= mTranslate.lerp( kRestitution, Vec3f::zero() );
 	
-	// Update transform
+	// Update cube transform
 	mTransform.setToIdentity();
 	mTransform.translate( mTranslate );
 	mTransform.rotate( mRotAxis * mRotAngle );
@@ -251,5 +235,4 @@ void MotionApp::update()
 	mTransform.scale( Vec3f::one() * mScale );
 }
 
-// Run application
 CINDER_APP_BASIC( MotionApp, RendererGl )

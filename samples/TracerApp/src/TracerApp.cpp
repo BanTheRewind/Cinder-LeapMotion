@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2013, Ban the Rewind
+* Copyright (c) 2014, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -45,31 +45,24 @@
 class TracerApp : public ci::app::AppBasic
 {
 public:
-	void					draw();
-	void					prepareSettings( ci::app::AppBasic::Settings* settings );
-	void					setup();
-	void					update();
+	void						draw();
+	void						prepareSettings( ci::app::AppBasic::Settings* settings );
+	void						setup();
+	void						update();
 private:
-	RibbonMap				mRibbons;
+	RibbonMap					mRibbons;
 
-	// Leap
-	Leap::Frame				mFrame;
-	LeapMotion::DeviceRef	mDevice;
-	void 					onFrame( Leap::Frame frame );
+	Leap::Frame					mFrame;
+	LeapMotion::DeviceRef		mDevice;
+	
+	ci::gl::Fbo					mFbo[ 3 ];
+	ci::gl::GlslProg			mShader[ 2 ];
 
-	// Trails
-	ci::gl::Fbo				mFbo[ 3 ];
-	ci::gl::GlslProg		mShader[ 2 ];
+	ci::CameraPersp				mCamera;
 
-	// Camera
-	ci::CameraPersp			mCamera;
-
-	// Params
-	float					mFrameRate;
-	ci::params::InterfaceGl	mParams;
-
-	// Save screen shot
-	void					screenShot();
+	float						mFrameRate;
+	ci::params::InterfaceGlRef	mParams;
+	void						screenShot();
 };
 
 #include "cinder/ImageIo.h"
@@ -83,7 +76,6 @@ using namespace ci::app;
 using namespace LeapMotion;
 using namespace std;
 
-// Render
 void TracerApp::draw()
 {
 	// Add to accumulation buffer
@@ -108,8 +100,7 @@ void TracerApp::draw()
 	gl::enable( GL_TEXTURE_2D );
 	gl::enableAlphaBlending();
 	gl::color( ColorAf::white() );
-	Vec2f pixel	= Vec2f::one() / Vec2f( mFbo[ 0 ].getSize() );
-	pixel		*= 3.0f;
+	Vec2f pixel	= ( Vec2f::one() / Vec2f( mFbo[ 0 ].getSize() ) ) * 3.0f;
 	for ( size_t i = 0; i < 2; ++i ) {
 		mFbo[ i + 1 ].bindFramebuffer();
 		gl::clear();
@@ -141,17 +132,9 @@ void TracerApp::draw()
 	gl::disableAlphaBlending();
 	gl::disable( GL_TEXTURE_2D );
 
-	// Draw the interface
-	mParams.draw();
+	mParams->draw();
 }
 
-// Called when Leap frame data is ready
-void TracerApp::onFrame( Leap::Frame frame )
-{
-	mFrame = frame;
-}
-
-// Prepare window
 void TracerApp::prepareSettings( Settings* settings )
 {
 	settings->setFrameRate( 60.0f );
@@ -159,7 +142,6 @@ void TracerApp::prepareSettings( Settings* settings )
 	settings->setWindowSize( 1024, 768 );
 }
 
-// Take screen shot
 void TracerApp::screenShot()
 {
 #if defined( CINDER_MSW )
@@ -170,18 +152,18 @@ void TracerApp::screenShot()
 	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
-// Set up
 void TracerApp::setup()
 {
-	// Set up camera
-	mCamera		= CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
+	mCamera	= CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
 	mCamera.lookAt( Vec3f( 0.0f, 93.75f, 250.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
 	
-	// Start device
 	mDevice = Device::create();
-	mDevice->connectEventHandler( &TracerApp::onFrame, this );
+	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
+{
+	mFrame = frame;
+}
+ );
 
-	// Load shaders
 	try {
 		mShader[ 0 ]	= gl::GlslProg( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_X_FRAG ) );
 	} catch ( gl::GlslProgCompileExc ex ) {
@@ -195,22 +177,19 @@ void TracerApp::setup()
 		quit();
 	}
 
-	// Params
 	mFrameRate	= 0.0f;
-	mParams = params::InterfaceGl( "Params", Vec2i( 200, 105 ) );
-	mParams.addParam( "Frame rate",		&mFrameRate,							"", true );
-	mParams.addButton( "Screen shot",	bind( &TracerApp::screenShot, this ),	"key=space" );
-	mParams.addButton( "Quit",			bind( &TracerApp::quit, this ),			"key=q" );
+	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
+	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
+	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
 
-	// Enable polygon smoothing
 	gl::enable( GL_POLYGON_SMOOTH );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 	
-	// Set up FBOs
 	gl::Fbo::Format format;
-#if defined( CINDER_MSW )
+#if defined( GL_RGBA32F )
 	format.setColorInternalFormat( GL_RGBA32F );
-#else
+#else if defined( GL_RGBA32F_ARB )
 	format.setColorInternalFormat( GL_RGBA32F_ARB );
 #endif
 	format.setMinFilter( GL_LINEAR );
@@ -227,10 +206,8 @@ void TracerApp::setup()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 }
 
-// Runs update logic
 void TracerApp::update()
 {
-	// Update frame rate
 	mFrameRate = getAverageFps();
 
 	// Process hand data
@@ -264,5 +241,4 @@ void TracerApp::update()
 	}
 }
 
-// Run application
 CINDER_APP_BASIC( TracerApp, RendererGl )

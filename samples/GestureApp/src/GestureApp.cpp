@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2013, Ban the Rewind
+* Copyright (c) 2014, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -49,14 +49,11 @@ public:
 	void					setup();
 	void					update();
 private:
-	// Leap
 	Leap::Frame				mFrame;
 	LeapMotion::DeviceRef	mDevice;
-	void 					onFrame( Leap::Frame frame );
 	ci::Vec2f				warpPointable( const Leap::Pointable& p );
 	ci::Vec2f				warpVector( const Leap::Vector& v );
 	
-	// UI
 	float					mBackgroundBrightness;
 	ci::Colorf				mBackgroundColor;
 	int32_t					mCircleResolution;
@@ -81,7 +78,6 @@ private:
 	ci::Rectf				mSwipeRect;
 	float					mSwipeStep;
 	
-	// A key to press
 	struct Key
 	{
 		Key( const ci::Rectf& bounds = ci::Rectf() )
@@ -93,7 +89,6 @@ private:
 	};
 	std::vector<Key>		mKeys;
 
-	// Rendering
 	void					drawDottedCircle( const ci::Vec2f& center, float radius,
 											 float dotRadius, int32_t resolution,
 											 float progress = 1.0f );
@@ -102,28 +97,22 @@ private:
 	void					drawPointables();
 	void					drawUi();
 	
-	// Params
-	float					mFrameRate;
-	bool					mFullScreen;
-	ci::params::InterfaceGl	mParams;
-	
-	// Save screen shot
-	void					screenShot();
+	float						mFrameRate;
+	bool						mFullScreen;
+	ci::params::InterfaceGlRef	mParams;
+	void						screenShot();
 };
 
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
-// Imports
 using namespace ci;
 using namespace ci::app;
 using namespace LeapMotion;
 using namespace std;
 
-// Render
 void GestureApp::draw()
 {
-	// Clear window
 	gl::setViewport( getWindowBounds() );
 	gl::clear( mBackgroundColor + Colorf::gray( mBackgroundBrightness ) );
 	gl::setMatricesWindow( getWindowSize() );
@@ -140,11 +129,9 @@ void GestureApp::draw()
 	
 	gl::popMatrices();
 	
-	// Draw the interface
-	mParams.draw();
+	mParams->draw();
 }
 
-// Draw dotted circle
 void GestureApp::drawDottedCircle( const Vec2f& center, float radius, float dotRadius,
 								  int32_t resolution, float progress )
 {
@@ -161,8 +148,7 @@ void GestureApp::drawDottedCircle( const Vec2f& center, float radius, float dotR
 	}
 }
 
-// Draw dotted rectangle
-void GestureApp::drawDottedRect( const Vec2f& center, const Vec2f &size )
+void GestureApp::drawDottedRect( const Vec2f& center, const Vec2f& size )
 {
 	Rectf rect( center - size, center + size );
 	Vec2f pos = rect.getUpperLeft();
@@ -184,66 +170,51 @@ void GestureApp::drawDottedRect( const Vec2f& center, const Vec2f &size )
 	}
 }
 
-// Draw active gestures with dotted lines
 void GestureApp::drawGestures()
 {
 	gl::color( ColorAf::white() );
 	
-	// Iterate through gestures
 	const Leap::GestureList& gestures = mFrame.gestures();
 	for ( Leap::GestureList::const_iterator iter = gestures.begin(); iter != gestures.end(); ++iter ) {
 		const Leap::Gesture& gesture	= *iter;
 		Leap::Gesture::Type type		= gesture.type();
 		if ( type == Leap::Gesture::Type::TYPE_CIRCLE ) {
-			
-			// Cast to circle gesture and read data
 			const Leap::CircleGesture& gesture = (Leap::CircleGesture)*iter;
 						
 			Vec2f pos	= warpVector( gesture.center() );
 			float progress	= gesture.progress();
-			float radius	= gesture.radius() * 2.0f; // Don't ask, it works
+			float radius	= gesture.radius() * 2.0f;
 			
 			drawDottedCircle( pos, radius, mDotRadius, mCircleResolution, progress );
-			
 		} else if ( type == Leap::Gesture::Type::TYPE_KEY_TAP ) {
-			
-			// Cast to circle gesture and read data
 			const Leap::KeyTapGesture& gesture = (Leap::KeyTapGesture)*iter;
 			Vec2f center = warpVector( gesture.position() );
 			
-			// Draw square where key press happened
 			Vec2f size( 30.0f, 30.0f );
 			drawDottedRect( center, size );
-			
 		} else if ( type == Leap::Gesture::Type::TYPE_SCREEN_TAP ) {
 			
-			// Draw big square on center of screen
 			Vec2f center = getWindowCenter();
 			Vec2f size( 300.0f, 300.0f );
 			drawDottedRect( center, size );
 		} else if ( type == Leap::Gesture::Type::TYPE_SWIPE ) {
-			
-			// Cast to swipe gesture and read data
 			const Leap::SwipeGesture& gesture = (Leap::SwipeGesture)*iter;
 			ci::Vec2f a	= warpVector( gesture.startPosition() );
 			ci::Vec2f b	= warpVector( gesture.position() );
 			
-			// Set draw direction
 			float spacing = mDotRadius * 3.0f;
 			float direction = 1.0f;
 			if ( b.x < a.x ) {
 				direction *= -1.0f;
 				swap( a, b );
 			}
-			
-			// Draw swipe line
+
 			Vec2f pos = a;
 			while ( pos.x <= b.x ) {
 				pos.x += spacing;
 				gl::drawSolidCircle( pos, mDotRadius, 32 );
 			}
 			
-			// Draw arrow head
 			if ( direction > 0.0f ) {
 				pos		= b;
 				spacing	*= -1.0f;
@@ -262,7 +233,6 @@ void GestureApp::drawGestures()
 	}
 }
 
-// Draw pointables calibrated to the screen
 void GestureApp::drawPointables()
 {
 	gl::color( ColorAf::white() );
@@ -279,10 +249,9 @@ void GestureApp::drawPointables()
 	}
 }
 
-// Draw interface
 void GestureApp::drawUi()
 {
-	// Draw dial
+	// Dial
 	gl::color( ColorAf( Colorf::white(), 0.2f + mDialBrightness ) );
 	gl::drawSolidCircle( mDialPosition, mDialRadius, mCircleResolution * 2 );
 	gl::color( mBackgroundColor );
@@ -291,7 +260,7 @@ void GestureApp::drawUi()
 	pos *= mDialRadius - mDotSpacing;
 	gl::drawSolidCircle( mDialPosition + pos, mDotRadius, mCircleResolution );
 	
-	// Draw swipe
+	// Wwipe
 	float x = mSwipeRect.x1 + mSwipePos * mSwipeRect.getWidth();
 	Rectf a( mSwipeRect.x1, mSwipeRect.y1, x, mSwipeRect.y2 );
 	Rectf b( x, mSwipeRect.y1, mSwipeRect.x2, mSwipeRect.y2 );
@@ -300,21 +269,15 @@ void GestureApp::drawUi()
 	gl::color( ColorAf( Colorf::white(), 0.2f + mSwipeBrightness ) );
 	gl::drawSolidRect( b );
 	
-	// Draw keys
+	// Keys
 	for ( vector<Key>::iterator iter = mKeys.begin(); iter != mKeys.end(); ++iter ) {
 		gl::color( ColorAf( Colorf::white(), 0.2f + iter->mBrightness ) );
 		gl::drawSolidRect( iter->mBounds );
 	}
 }
 
-// Called when Leap frame data is ready
-void GestureApp::onFrame( Leap::Frame frame )
-{
-	mFrame = frame;
-}
-
 // Prepare window
-void GestureApp::prepareSettings( Settings *settings )
+void GestureApp::prepareSettings( Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
 	settings->setFrameRate( 60.0f );
@@ -340,11 +303,9 @@ void GestureApp::screenShot()
 // Set up
 void GestureApp::setup()
 {
-	// Set up OpenGL
 	gl::enable( GL_POLYGON_SMOOTH );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 	
-	// UI
 	mBackgroundBrightness	= 0.0f;
 	mBackgroundColor		= Colorf( 0.0f, 0.1f, 0.2f );
 	mCircleResolution		= 32;
@@ -368,7 +329,6 @@ void GestureApp::setup()
 	mSwipeRect				= Rectf( 310.0f, 100.0f, 595.0f, 360.0f );
 	mSwipeStep				= 0.033f;
 	
-	// Sets master offset
 	resize();
 	
 	// Lay out keys
@@ -381,11 +341,13 @@ void GestureApp::setup()
 		}
 	}
 	
-	// Start device
 	mDevice = Device::create();
-	mDevice->connectEventHandler( &GestureApp::onFrame, this );
+	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
+	{
+		mFrame = frame;
+	} );
 
-	// Enable all gesture types
+	// Enable gesture types
 	Leap::Controller* controller = mDevice->getController();
 	controller->enableGesture( Leap::Gesture::Type::TYPE_CIRCLE );
 	controller->enableGesture( Leap::Gesture::Type::TYPE_KEY_TAP );
@@ -406,32 +368,28 @@ void GestureApp::setup()
 	console() << "Gesture.ScreenTap.MinDistance: " << config.getFloat( "Gesture.ScreenTap.MinDistance" ) << endl;
 
 	// Update config to make gestures easier
-	config.setFloat( "Gesture.Circle.MinRadius", 2.5f );
-	config.setFloat( "Gesture.Circle.MinArc", 3.0f );
-	config.setFloat( "Gesture.Swipe.MinLength", 75.0f );
-	config.setFloat( "Gesture.Swipe.MinVelocity", 500.0f );
-	config.setFloat( "Gesture.KeyTap.MinDownVelocity", 25.0f );
+	config.setFloat( "Gesture.Circle.MinRadius",		2.5f );
+	config.setFloat( "Gesture.Circle.MinArc",			3.0f );
+	config.setFloat( "Gesture.Swipe.MinLength",			75.0f );
+	config.setFloat( "Gesture.Swipe.MinVelocity",		500.0f );
+	config.setFloat( "Gesture.KeyTap.MinDownVelocity",	25.0f );
 	
 	// Allows app to run in background
 	controller->setPolicyFlags( Leap::Controller::PolicyFlag::POLICY_BACKGROUND_FRAMES );
 	
-	// Params
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl( "Params", Vec2i( 200, 105 ) );
-	mParams.addParam( "Frame rate",		&mFrameRate,							"", true	);
-	mParams.addParam( "Full screen",	&mFullScreen,							"key=f"		);
-	mParams.addButton( "Screen shot",	bind( &GestureApp::screenShot, this ), "key=space"	);
-	mParams.addButton( "Quit",			bind( &GestureApp::quit, this ),		"key=q"		);
+	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
+	mParams->addParam( "Full screen",	&mFullScreen,				"key=f" );
+	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
+	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
 }
 
-// Runs update logic
 void GestureApp::update()
 {
-	// Update frame rate
 	mFrameRate = getAverageFps();
 
-	// Toggle fullscreen
 	if ( mFullScreen != isFullScreen() ) {
 		setFullScreen( mFullScreen );
 	}
@@ -441,42 +399,28 @@ void GestureApp::update()
 		const Leap::Gesture& gesture	= *iter;
 		Leap::Gesture::Type type		= gesture.type();
 		if ( type == Leap::Gesture::Type::TYPE_CIRCLE ) {
-			
-			// Cast to circle gesture
 			const Leap::CircleGesture& gesture = (Leap::CircleGesture)*iter;
 			
-			// Control dial
 			mDialBrightness	= 1.0f;
 			mDialValueDest	= gesture.progress();
-			
 		} else if ( type == Leap::Gesture::Type::TYPE_KEY_TAP ) {
-			
-			// Cast to circle gesture and read data
 			const Leap::KeyTapGesture& gesture = (Leap::KeyTapGesture)*iter;
 			Vec2f center	= warpVector( gesture.position() );
 			center			-= mOffset;
 			
-			// Press key
 			for ( vector<Key>::iterator keyIter = mKeys.begin(); keyIter != mKeys.end(); ++keyIter ) {
 				if ( keyIter->mBounds.contains( center ) ) {
 					keyIter->mBrightness = 1.0f;
 					break;
 				}
-			}
-			
+			}			
 		} else if ( type == Leap::Gesture::Type::TYPE_SCREEN_TAP ) {
-			
-			// Turn background white for screen tap
 			mBackgroundBrightness = 1.0f;
-			
 		} else if ( type == Leap::Gesture::Type::TYPE_SWIPE ) {
-			
-			// Cast to swipe gesture and read data
 			const Leap::SwipeGesture& swipeGesture = (Leap::SwipeGesture)gesture;
 			ci::Vec2f a	= warpVector( swipeGesture.startPosition() );
 			ci::Vec2f b	= warpVector( swipeGesture.position() );
 			
-			// Update swipe position
 			mSwipeBrightness	= 1.0f;
 			if ( gesture.state() == Leap::Gesture::State::STATE_STOP ) {
 				mSwipePosDest	= b.x < a.x ? 0.0f : 1.0f;
@@ -488,7 +432,6 @@ void GestureApp::update()
 		}
 	}
 	
-	// UI animation
 	mDialValue				= lerp( mDialValue, mDialValueDest, mDialSpeed );
 	mSwipePos				= lerp( mSwipePos, mSwipePosDest, mSwipePosSpeed );
 	mBackgroundBrightness	*= mFadeSpeed;
@@ -499,7 +442,6 @@ void GestureApp::update()
 	}
 }
 
-// Maps pointable's ray to the screen in pixels
 Vec2f GestureApp::warpPointable( const Leap::Pointable& p )
 {
 	Vec3f result	= Vec3f::zero();
@@ -513,7 +455,6 @@ Vec2f GestureApp::warpPointable( const Leap::Pointable& p )
 	return result.xy();
 }
 
-// Maps Leap vector to the screen in pixels
 Vec2f GestureApp::warpVector( const Leap::Vector& v )
 {
 	Vec3f result	= Vec3f::zero();
@@ -527,5 +468,4 @@ Vec2f GestureApp::warpVector( const Leap::Vector& v )
 	return result.xy();
 }
 
-// Run application
 CINDER_APP_BASIC( GestureApp, RendererGl )
