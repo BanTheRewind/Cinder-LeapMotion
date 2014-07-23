@@ -64,6 +64,7 @@ class Listener : public Leap::Listener
 {
 protected:
 	Listener();
+
     virtual void	onConnect( const Leap::Controller& controller );
     virtual void	onDisconnect( const Leap::Controller& controller );
 	virtual void	onExit( const Leap::Controller& controller );

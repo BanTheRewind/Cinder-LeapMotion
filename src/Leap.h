@@ -518,7 +518,7 @@ namespace Leap {
      * the left arm use the left-hand rule. Thus, the positive direction of the
      * x-basis is to the right for the right arm and to the left for the left
      * arm. You can change from right-hand to left-hand rule by multiplying the
-     * basis vectors by -1.
+     * z basis vector by -1.
      *
      * Note that converting the basis vectors directly into a quaternion
      * representation is not mathematically valid. If you use quaternions,
@@ -767,7 +767,7 @@ namespace Leap {
      * the left hand use the left-hand rule. Thus, the positive direction of the
      * x-basis is to the right for the right hand and to the left for the left
      * hand. You can change from right-hand to left-hand rule by multiplying the
-     * basis vectors by -1.
+     * z basis vector by -1.
      *
      * You can use the basis vectors for such purposes as measuring complex
      * finger poses and skeletal animation.

@@ -170,6 +170,7 @@ Device::Device()
 
 Device::~Device()
 {
+	mController->removeListener( mListener );
 }
 
 Leap::Controller* Device::getController() const
