@@ -4287,6 +4287,7 @@ namespace Leap {
    * Gesture.ScreenTap.MinForwardVelocity  float      50            mm/s
    * Gesture.ScreenTap.HistorySeconds      float      0.1           s
    * Gesture.ScreenTap.MinDistance         float      5.0           mm
+   * head_mounted_display_mode             boolean    false         n/a
    * ====================================  ========== ============= =======
    * \endtable
    *
@@ -4296,6 +4297,12 @@ namespace Leap {
    * has dispatched the serviceConnected or connected events or
    * Controller::isConnected is true. The configuration value changes are
    * not persistent; your application needs to set the values every time it runs.
+   *
+   * **Note:** "head_mounted_display_mode" is a temporary setting that tells the
+   * Leap Motion software to expect hands viewed from the top rather than the bottom.
+   * In the long run, we expect that the software will handle both automatically
+   * without the need for a flag. This setting can also be set from the Leap Motion
+   * control panel.
    *
    * @see CircleGesture
    * @see KeyTapGesture
