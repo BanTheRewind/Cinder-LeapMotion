@@ -12,6 +12,7 @@
 #include "LeapMath.h"
 #include <string>
 #include <vector>
+#include <algorithm>
 
 // Define integer types for Visual Studio 2008 and earlier
 #if defined(_MSC_VER) && (_MSC_VER < 1600)
@@ -76,6 +77,7 @@ namespace Leap {
   class GestureImplementation;
   class ScreenImplementation;
   class DeviceImplementation;
+  class ImageImplementation;
   class InteractionBoxImplementation;
   class FrameImplementation;
   class ControllerImplementation;
@@ -546,13 +548,23 @@ namespace Leap {
     *
     * \include Arm_wristPosition.txt
     *
-    * Note that the wrist position is not colocated with the end of any bone in
-    * the hand. There is a gap of a few centemeters since the carpal bones are 
+    * Note that the wrist position is not collocated with the end of any bone in
+    * the hand. There is a gap of a few centimeters since the carpal bones are
     * not included in the skeleton model.
     *
     * @since 2.0.3
     */
     LEAP_EXPORT Vector wristPosition() const;
+
+    /**
+    * The center of the forearm.
+    *
+    * This location represents the midpoint of the arm between the wrist position
+    * and the elbow position.
+    *
+    * @since 2.1.0
+    */
+    LEAP_EXPORT Vector center() const;
 
     /**
     * Reports whether this is a valid Arm object.
@@ -1340,7 +1352,7 @@ namespace Leap {
      * The arm to which this hand is attached.
      *
      * If the arm is not completely in view, Arm attributes are estimated based on
-     * the attributes of entities that are ain view combined with typical human anatomy.
+     * the attributes of entities that are in view combined with typical human anatomy.
      *
      * \include Arm_get.txt
      *
@@ -2609,8 +2621,14 @@ namespace Leap {
   /**
    * The Device class represents a physically connected device.
    *
+   * REVIEW NEEDED
    * The Device class contains information related to a particular connected
-   * device such as field of view, device id, and calibrated positions.
+   * device such as device id, field of view relative to the device,
+   * and the position and orientation of the device in relative coordinates.
+   *
+   * The position and orientation describe the alignment of the device relative to the user.
+   * The alignment relative to the user is only descriptive. Aligning devices to users
+   * provides consistency in the parameters that describe user interactions.
    *
    * Note that Device objects can be invalid, which means that they do not contain
    * valid device information and do not correspond to a physical device.
@@ -2688,7 +2706,7 @@ namespace Leap {
     LEAP_EXPORT float verticalViewAngle() const;
 
     /**
-     * The maximum reliable tracking range.
+     * The maximum reliable tracking range from the center of this device.
      *
      * The range reports the maximum recommended distance from the device center
      * for which tracking is expected to be reliable. This distance is not a hard limit.
@@ -2736,6 +2754,22 @@ namespace Leap {
      * @since 1.2
      */
     LEAP_EXPORT bool isStreaming() const;
+
+    // primarily for the image API
+    /**
+     *  Reports whether the coordinate axes have been reversed.
+     *
+     * The Leap Motion controller can automatically flip the coordinate axes so
+     * that the z-axis is positive toward the user and the x-axis is more positive
+     * from left to right. The user can also manually flip the axes in the Leap
+     * Motion control panel.
+     *  
+     * Images from the camera are not flipped, however.
+     *
+     * @return True, if the axes are flipped, that is, if the positive z-axis
+     * extends from the long side of the device that does not have the green LED.
+     */
+    LEAP_EXPORT bool isFlipped() const;
 
     /**
      * The device type.
@@ -2821,6 +2855,298 @@ namespace Leap {
   private:
     LEAP_EXPORT const char* toCString() const;
   };
+
+  /**
+   * The Image class represents a single greyscale image from one of the the Leap Motion cameras.
+   *
+   * In addition to image data, the Image object provides a distortion map for correcting
+   * lens distortion. 
+   *
+   * \include Image_raw.txt
+   *
+   * Note that Image objects can be invalid, which means that they do not contain
+   * valid image data. Get valid Image objects from Frame::frames(). Test for 
+   * validity with the Image::isValid() function.
+   * @since 2.1.0
+   */
+  class Image : public Interface {
+  public:
+
+    // For internal use only.
+    Image(ImageImplementation*);
+
+    /**
+     * Constructs a Image object.
+     *
+     * An uninitialized image is considered invalid.
+     * Get valid Image objects from a ImageList object obtained from the
+     * Frame::images() method.
+     *
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT Image();
+
+    /**
+     * The image ID.
+     *
+     * Images with ID of 0 are from the left camera; those with an ID of 1 are from the 
+     * right camera (with the device in its standard operating position with the
+     * green LED facing the operator).
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT int32_t id() const;
+    /**
+     * The image data.
+     * 
+     * The image data is a set of 8-bit intensity values. The buffer is 
+     * ``Image::width() * Image::height()`` bytes long.
+     *
+     * \include Image_data_1.txt
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT const unsigned char* data() const;
+    /**
+     * The distortion calibration map for this image.
+     *
+     * The calibration map is a 64x64 grid of points. Each point is defined by
+     * a pair of 32-bit floating point values. Each point in the map
+     * represents a ray projected into the camera. The value of
+     * a grid point defines the pixel in the image data containing the brightness 
+     * value produced by the light entering along the corresponding ray. By 
+     * interpolating between grid data points, you can find the brightness value 
+     * for any projected ray. Grid values that fall outside the range [0..1] do
+     * not correspond to a value in the image data and those points should be ignored.
+     *
+     * \include Image_distortion_1.txt
+     *
+     * The calibration map can be used to render an undistorted image as well as to
+     * find the true angle from the camera to a feature in the raw image. The
+     * distortion map itself is designed to be used with GLSL shader programs.
+     * In other contexts, it may be more convenient to use the Image::rectify()
+     * and Image::warp() functions.
+     *
+     * Distortion is caused by the lens geometry as well as imperfections in the
+     * lens and sensor window. The calibration map is created by the calibration
+     * process run for each device at the factory (and which can be rerun by the
+     * user).
+     * 
+     *
+     * Note, in a future release, there will be two distortion maps per image;
+     * one containing the horizontal values and the other containing the vertical values.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT const float* distortion() const;
+    /*
+     * Do not call this version of data(). It is intended only as a helper for C#,
+     * Java, and other languages. Use the primary version of data() which returns a
+     * pointer.
+     *
+     * @since 2.1.0
+     */
+    void data(unsigned char* dst) const {
+      const unsigned char* src = data();
+      std::copy(src, src + width() * height(), dst);
+    }
+    /*
+     * Do not call this version of distortion(). It is intended only as a helper for C#,
+     * Java, and other languages. Use the primary version of distortion() which returns
+     * a pointer.
+     *
+     * @since 2.1.0
+     */
+    void distortion(float* dst) const {
+      const float* src = distortion();
+      std::copy(src, src + distortionWidth() * distortionHeight(), dst);
+    }
+    /**
+     * The image width.
+     *
+     * \include Image_image_width_1.txt
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT int width() const;
+    /**
+     * The image height.
+     *
+     * \include Image_image_height_1.txt
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT int height() const;
+    /**
+     * The stride of the distortion map.
+     *
+     * Since each point on the 64x64 element distortion map has two values in the
+     * buffer, the stride is 2 times the size of the grid. (Stride is currently fixed
+     * at 2 * 64 = 128).
+     *
+     * \include Image_distortion_width_1.txt
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT int distortionWidth() const;
+    /**
+     * The distortion map height.
+     *
+     * Currently fixed at 64.
+     *
+     * \include Image_distortion_height_1.txt
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT int distortionHeight() const;
+    /**
+     * The horizontal ray offset.
+     *
+     * Used to convert between normalized coordinates in the range [0..1] and the
+     * ray slope range [-4..4].
+     *
+     * \include Image_ray_factors_1.txt
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT float rayOffsetX() const;
+    /**
+     * The vertical ray offset.
+     *
+     * Used to convert between normalized coordinates in the range [0..1] and the
+     * ray slope range [-4..4].
+     *
+     * \include Image_ray_factors_2.txt
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT float rayOffsetY() const;
+    /**
+     * The horizontal ray scale factor.
+     *
+     * Used to convert between normalized coordinates in the range [0..1] and the
+     * ray slope range [-4..4].
+     *
+     * \include Image_ray_factors_1.txt
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT float rayScaleX() const;
+    /**
+     * The vertical ray scale factor.
+     *
+     * Used to convert between normalized coordinates in the range [0..1] and the
+     * ray slope range [-4..4].
+     *
+     * \include Image_ray_factors_2.txt
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT float rayScaleY() const;
+    /**
+     * Provides the corrected camera ray intercepting the specified point on the image.
+     *
+     * Given a point on the image, ``rectify()`` corrects for camera distortion
+     * and returns the true direction from the camera to the source of that image point
+     * within the Leap Motion field of view.
+     *
+     * This direction vector has an x and y component [x, y, 0], with the third element
+     * always zero. Note that this vector uses the 2D camera coordinate system 
+     * where the x-axis parallels the longer (typically horizontal) dimension and
+     * the y-axis parallels the shorter (vertical) dimension. The camera coordinate
+     * system does not correlate to the 3D Leap Motion coordinate system.
+     *
+     * \include Image_rectify_1.txt
+     *
+     * @param uv A Vector containing the position of a pixel in the image.
+     * @returns A Vector containing the ray direction (the z-component of the vector is always 0).
+     * @since 2.1.0
+     */
+    LEAP_EXPORT Vector rectify(const Vector& uv) const; // returns a vector (x, y, 0). The z-component is ignored
+    /**
+     * Provides the point in the image corresponding to a ray projecting
+     * from the camera.
+     *
+     * Given a ray projected from the camera in the specified direction, ``warp()``
+     * corrects for camera distortion and returns the corresponding pixel
+     * coordinates in the image.
+     *
+     * The ray direction is specified in relationship to the camera. The first 
+     * vector element corresponds to the "horizontal" view angle; the second
+     * corresponds to the "vertical" view angle. 
+     *
+     * \include Image_warp_1.txt
+     *
+     * @param xy A Vector containing the ray direction.
+     * @returns A Vector containing the pixel coordinates [x, y, 0] (with z always zero).
+     * @since 2.1.0
+     */
+    LEAP_EXPORT Vector warp(const Vector& xy) const; // returns vector (u, v, 0). The z-component is ignored
+
+    /**
+     * Reports whether this Image instance contains valid data.
+     *
+     * @returns true, if and only if the image is valid.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT bool isValid() const;
+
+    /**
+     * Returns an invalid Image object.
+     *
+     * You can use the instance returned by this function in comparisons testing
+     * whether a given Image instance is valid or invalid. (You can also use the
+     * Image::isValid() function.)
+     *
+     *
+     * @returns The invalid Image instance.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT static const Image& invalid();
+
+    /**
+     * Compare Image object equality.
+     *
+     * Two Image objects are equal if and only if both Image objects represent the
+     * exact same Image and both Images are valid.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT bool operator==(const Image&) const;
+
+    /**
+     * Compare Image object inequality.
+     *
+     *
+     * Two Image objects are equal if and only if both Image objects represent the
+     * exact same Image and both Images are valid.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT bool operator!=(const Image&) const;
+
+    /**
+     * Writes a brief, human readable description of the Image object.
+     *
+     * @since 2.1.0
+     */
+    LEAP_EXPORT friend std::ostream& operator<<(std::ostream&, const Image&);
+
+    /**
+     * A string containing a brief, human readable description of the Image object.
+     *
+     * @returns A description of the Image as a string.
+     * @since 2.1.0
+     */
+    std::string toString() const {
+      const char* cstr = toCString();
+      std::string str(cstr);
+      deleteCString(cstr);
+      return str;
+    }
+
+  private:
+    LEAP_EXPORT const char* toCString() const;
+  };
+
 
   // For internal use only.
   template<typename L, typename T>
@@ -3558,6 +3884,76 @@ namespace Leap {
   };
 
   /**
+   * The ImageList class represents a list of Image objects.
+   *
+   * Get a ImageList object by calling Controller::devices().
+   * @since 1.0
+   */
+  class ImageList : public Interface {
+  public:
+    // For internal use only.
+    ImageList(const ListBaseImplementation<Image>&);
+
+    /**
+     * Constructs an empty list of images.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT ImageList();
+
+    /**
+     * Yhe number of images in this list.
+     *
+     * @returns The number of images in this list.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT int count() const;
+
+    /**
+     * Reports whether the list is empty.
+     *
+     * \include ImageList_isEmpty.txt
+     *
+     * @returns True, if the list has no members.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT bool isEmpty() const;
+
+    /**
+     * Access a list member by its position in the list.
+     * @param index The zero-based list position index.
+     * @returns The Image object at the specified index.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT Image operator[](int index) const;
+
+    /**
+     * Appends the members of the specified ImageList to this ImageList.
+     * @param other A ImageList object containing Image objects
+     * to append to the end of this ImageList.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT ImageList& append(const ImageList& other);
+
+    /**
+     * A C++ iterator type for this ImageList objects.
+     * @since 2.1.0
+     */
+    typedef ConstListIterator<ImageList, Image> const_iterator;
+
+    /**
+     * The C++ iterator set to the beginning of this ImageList.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT const_iterator begin() const;
+
+    /**
+     * The C++ iterator set to the end of this ImageList.
+     * @since 2.1.0
+     */
+    LEAP_EXPORT const_iterator end() const;
+  };
+
+  /**
    * The InteractionBox class represents a box-shaped region completely
    * within the field of view of the Leap Motion controller.
    *
@@ -3968,6 +4364,13 @@ namespace Leap {
     LEAP_EXPORT GestureList gestures(const Frame& sinceFrame) const;
 
     /**
+     *  The list of images from the Leap Motion cameras.
+     *  
+     *  @return An ImageList object containing the camera images analyzed to create this Frame.
+     */
+    LEAP_EXPORT ImageList images() const;
+
+    /**
      * The change of position derived from the overall linear motion between
      * the current frame and the specified frame.
      *
@@ -4250,6 +4653,61 @@ namespace Leap {
     LEAP_EXPORT friend std::ostream& operator<<(std::ostream&, const Frame&);
 
     /**
+     * Encodings the Frame object to a byte string.
+     *
+     * \include Frame_serialize.txt
+     *
+     * @since 2.1.0
+     */
+    std::string serialize() const {
+      size_t length = 0;
+      const char* cstr = serializeCString(length);
+      std::string str(cstr, length);
+      deleteCString(cstr);
+      return str;
+    }
+
+    /**
+     * Decodes a byte string to restore properties of this Frame.
+     *
+     * \include Frame_deserialize.txt
+     *
+     * @since 2.1.0
+     */
+    void deserialize(const std::string& str) {
+      deserializeCString(str.data(), str.length());
+    }
+
+    /**
+     * Do not call this version of serialize(). It is intended only as
+     * a helper for C#, Java, and other language bindings.
+     */
+    void serialize(unsigned char* ptr) const {
+      size_t length;
+      const unsigned char* cstr = reinterpret_cast<const unsigned char*>(serializeCString(length));
+      std::copy(cstr, cstr + length, ptr);
+    }
+
+    /**
+     * Do not call serializeLength(). It is intended only as a helper for
+     * C#, Java, and other language bindings. To get the length of the
+     * serialized byte array, use serialize().length()
+     */
+    int serializeLength() const {
+      size_t length = 0;
+      serializeCString(length);
+      return static_cast<int>(length);
+    }
+
+    /**
+     * Do not call this version of deserialize(). It is intended only as
+     * a helper for C#, Java, and other language bindings.
+     */
+    void deserialize(const unsigned char* ptr, int length) {
+      deserializeCString(reinterpret_cast<const char*>(ptr), static_cast<size_t>(length));
+    }
+
+    /**
      * A string containing a brief, human readable description of the Frame object.
      *
      * @returns A description of the Frame as a string.
@@ -4264,6 +4722,8 @@ namespace Leap {
 
   private:
     LEAP_EXPORT const char* toCString() const;
+    LEAP_EXPORT const char* serializeCString(size_t& length) const;
+    LEAP_EXPORT void deserializeCString(const char* str, size_t length);
   };
 
   /**
@@ -4542,7 +5002,7 @@ namespace Leap {
    * its own thread, not on an application thread.
    * @since 1.0
    */
-  class Controller : public Interface {
+  class LEAP_EXPORT_CLASS Controller : public Interface {
   public:
     // For internal use only.
     Controller(ControllerImplementation*);
@@ -4635,6 +5095,11 @@ namespace Leap {
        * @since 1.0
        */
       POLICY_BACKGROUND_FRAMES = (1 << 0),
+
+      /**
+       * Receive raw images.
+       */
+      POLICY_IMAGES = (1 << 1),
 #ifdef SWIGCSHARP
       // deprecated
       POLICYDEFAULT = POLICY_DEFAULT,
@@ -4817,6 +5282,7 @@ namespace Leap {
      * @since 1.0
      */
     LEAP_EXPORT bool isGestureEnabled(Gesture::Type type) const;
+
   };
 
   /**
@@ -4832,7 +5298,7 @@ namespace Leap {
    * by the Leap Motion library, not the thread used to create or set the Listener instance.
    * @since 1.0
    */
-  class Listener {
+  class LEAP_EXPORT_CLASS Listener {
   public:
     /**
      * Constructs a Listener object.
