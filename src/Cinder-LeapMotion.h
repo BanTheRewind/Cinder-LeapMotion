@@ -37,6 +37,7 @@
 #pragma once
 
 #include "Leap.h"
+#include "cinder/Channel.h"
 #include "cinder/Matrix.h"
 #include "cinder/Thread.h"
 #include "cinder/Vector.h"
@@ -44,6 +45,8 @@
 
 namespace LeapMotion {
 
+//! Converts a native Leap image into a Cinder channel.
+ci::Channel8u	toChannel8u( const Leap::Image& img );
 //! Converts a native Leap 3x3 matrix into a Cinder one.
 ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );
 //! Converts a native Leap 4x4 matrix into a Cinder one.
