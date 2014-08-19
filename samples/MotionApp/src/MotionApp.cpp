@@ -197,9 +197,9 @@ void MotionApp::setup()
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
 	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 120 ) );
-	mParams->addParam( "Frame rate",		&mFrameRate,				"", true );
-	mParams->addParam( "Constrain motion",	&mConstrainMotion,			"key=m" );
-	mParams->addParam( "Full screen",		&mFullScreen,				"key=f" );
+	mParams->addParam( "Frame rate",		&mFrameRate),				"", true );
+	mParams->addParam( "Constrain motion",	&mConstrainMotion ).key( "m" );
+	mParams->addParam( "Full screen",		&mFullScreen ).key( "f" );
 	mParams->addButton( "Screen shot",		[ & ]() { screenShot(); },	"key=space" );
 	mParams->addButton( "Quit",				[ & ]() { quit(); },		"key=q" );
 }

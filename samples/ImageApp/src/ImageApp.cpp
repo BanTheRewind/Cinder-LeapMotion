@@ -46,7 +46,6 @@ public:
 	void						draw();
 	void						prepareSettings( ci::app::AppBasic::Settings* settings );
 	void						setup();
-	void						shutdown();
 	void						update();
 private:
 	LeapMotion::DeviceRef		mDevice;
@@ -114,16 +113,10 @@ void ImageApp::setup()
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
 	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
-	mParams->addParam( "Frame rate",	&mFrameRate,						"", true );
-	mParams->addParam( "Full screen",	&mFullScreen,						"key=f" );
-	mParams->addButton( "Screen shot",	bind( &ImageApp::screenShot, this ),	"key=space" );
-	mParams->addButton( "Quit",			bind( &ImageApp::quit, this ),		"key=q" );
-}
-
-void ImageApp::shutdown()
-{
-	mDevice.reset();
-	console() << "here" << endl;
+	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
+	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
+	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
+	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
 }
 
 void ImageApp::update()
