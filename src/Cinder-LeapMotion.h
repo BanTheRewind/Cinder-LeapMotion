@@ -45,8 +45,9 @@
 
 namespace LeapMotion {
 
-//! Converts a native Leap image into a Cinder channel.
-ci::Channel8u	toChannel8u( const Leap::Image& img );
+/*! Converts a native Leap image into a Cinder channel.
+    Set \a copyData to true makes channel own data (slower). */
+ci::Channel8u	toChannel8u( const Leap::Image& img, bool copyData = false );
 //! Converts a native Leap 3x3 matrix into a Cinder one.
 ci::Matrix33f	toMatrix33f( const Leap::Matrix& m );
 //! Converts a native Leap 4x4 matrix into a Cinder one.
