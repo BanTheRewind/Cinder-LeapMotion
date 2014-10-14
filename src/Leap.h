@@ -12,7 +12,7 @@
 #include "LeapMath.h"
 #include <string>
 #include <vector>
-#include <algorithm>
+#include <cstring>
 
 // Define integer types for Visual Studio 2008 and earlier
 #if defined(_MSC_VER) && (_MSC_VER < 1600)
@@ -70,7 +70,6 @@ namespace Leap {
   // Forward declarations for internal use only
   class PointableImplementation;
   class BoneImplementation;
-  class ArmImplementation;
   class FingerImplementation;
   class ToolImplementation;
   class HandImplementation;
@@ -207,9 +206,12 @@ namespace Leap {
     LEAP_EXPORT Frame frame() const;
 
     /**
-     * The Hand associated with this finger or tool.
+     * The Hand associated with a finger.
      *
      * \include Pointable_hand.txt
+     *
+     * Not that in version 2+, tools are not associated with hands. For
+     * tools, this function always returns an invalid Hand object.
      *
      * @returns The associated Hand object, if available; otherwise,
      * an invalid Hand object is returned.
@@ -258,10 +260,6 @@ namespace Leap {
      *
      * \include Pointable_width.txt
      *
-     * The reported width is the average width of the visible portion of the
-     * finger or tool from the hand to the tip. If the width isn't known,
-     * then a value of 0 is returned.
-     *
      * @returns The estimated width of this Pointable object.
      * @since 1.0
      */
@@ -269,9 +267,6 @@ namespace Leap {
 
     /**
      * The estimated length of the finger or tool in millimeters.
-     *
-     * The reported length is the visible length of the finger or tool from the
-     * hand to tip. If the length isn't known, then a value of 0 is returned.
      *
      * \include Pointable_length.txt
      *
@@ -281,8 +276,7 @@ namespace Leap {
     LEAP_EXPORT float length() const;
 
     /**
-     * Whether or not this Pointable is believed to be a finger.
-     * Fingers are generally shorter, thicker, and less straight than tools.
+     * Whether or not this Pointable is classified as a finger.
      *
      * \include Pointable_Conversion.txt
      *
@@ -292,8 +286,7 @@ namespace Leap {
     LEAP_EXPORT bool isFinger() const;
 
     /**
-     * Whether or not this Pointable is believed to be a tool.
-     * Tools are generally longer, thinner, and straighter than fingers.
+     * Whether or not this Pointable is classified as a tool.
      *
      * \include Pointable_Conversion.txt
      *
@@ -338,9 +331,11 @@ namespace Leap {
      *
      * The possible states are present in the Zone enum of this class:
      *
-     * * Zone.NONE -- The Pointable is outside the hovering zone.
-     * * Zone.HOVERING -- The Pointable is close to, but not touching the touch plane.
-     * * Zone.TOUCHING -- The Pointable has penetrated the touch plane.
+     * **Zone.NONE** -- The Pointable is outside the hovering zone.
+     *
+     * **Zone.HOVERING** -- The Pointable is close to, but not touching the touch plane.
+     *
+     * **Zone.TOUCHING** -- The Pointable has penetrated the touch plane.
      *
      * The touchDistance value provides a normalized indication of the distance to
      * the touch plane when the Pointable is in the hovering or touching zones.
@@ -470,7 +465,7 @@ namespace Leap {
   class Arm : public Interface {
   public:
     // For internal use only.
-    Arm(ArmImplementation*);
+    Arm(HandImplementation*);
 
     /**
     * Constructs an invalid Arm object.
@@ -506,12 +501,14 @@ namespace Leap {
      *
      * Basis vectors specify the orientation of a bone.
      *
-     * * xBasis. Perpendicular to the longitudinal axis of the
+     * **xBasis** Perpendicular to the longitudinal axis of the
      *   bone; exits the arm laterally through the sides of the wrist.
-     * * yBasis or up vector. Perpendicular to the longitudinal
+     *
+     * **yBasis or up vector** Perpendicular to the longitudinal
      *   axis of the bone; exits the top and bottom of the arm. More positive
      *   in the upward direction.
-     * * zBasis. Aligned with the longitudinal axis of the arm bone.
+     *
+     * **zBasis** Aligned with the longitudinal axis of the arm bone.
      *   More positive toward the wrist.
      *
      * \include Arm_basis.txt
@@ -767,12 +764,14 @@ namespace Leap {
      *
      * Basis vectors specify the orientation of a bone.
      *
-     * * xBasis. Perpendicular to the longitudinal axis of the
+     * **xBasis** Perpendicular to the longitudinal axis of the
      *   bone; exits the sides of the finger.
-     * * yBasis or up vector. Perpendicular to the longitudinal
+     *
+     * **yBasis or up vector** Perpendicular to the longitudinal
      *   axis of the bone; exits the top and bottom of the finger. More positive
      *   in the upward direction.
-     * * zBasis. Aligned with the longitudinal axis of the bone.
+     *
+     * **zBasis** Aligned with the longitudinal axis of the bone.
      *   More positive toward the base of the finger.
      *
      * The bases provided for the right hand use the right-hand rule; those for
@@ -999,11 +998,8 @@ namespace Leap {
    * The Tool class represents a tracked tool.
    *
    * Tools are Pointable objects that the Leap Motion software has classified as a tool.
-   * Tools are longer, thinner, and straighter than a typical finger.
-   * Get valid Tool objects from a Frame or a Hand object.
    *
-   * Tools may reference a hand, but unlike fingers they are not permanently associated.
-   * Instead, a tool can be transferred between hands while keeping the same ID.
+   * Get valid Tool objects from a Frame object.
    *
    * \image html images/Leap_Tool.png
    *
@@ -1024,7 +1020,7 @@ namespace Leap {
      * Constructs a Tool object.
      *
      * An uninitialized tool is considered invalid.
-     * Get valid Tool objects from a Frame or a Hand object.
+     * Get valid Tool objects from a Frame object.
      *
      * \include Tool_Tool.txt
      *
@@ -1078,7 +1074,7 @@ namespace Leap {
    *
    * Hand tracking data includes a palm position and velocity; vectors for
    * the palm normal and direction to the fingers; properties of a sphere fit
-   * to the hand; and lists of the attached fingers and tools.
+   * to the hand; and lists of the attached fingers.
    *
    * Get Hand objects from a Frame object:
    *
@@ -1138,15 +1134,9 @@ namespace Leap {
     LEAP_EXPORT Frame frame() const;
 
     /**
-     * The list of Pointable objects (fingers and tools) detected in this frame
+     * The list of Pointable objects detected in this frame
      * that are associated with this hand, given in arbitrary order. The list
-     * will contain at least the 5 fingers.
-     *
-     * Use the Pointable::isFinger() function to determine whether or not an
-     * item in the list represents a finger. Use the Pointable::isTool() function
-     * to determine whether or not an item in the list represents a tool.
-     * You can also get only fingers using the Hand::fingers() function or
-     * only tools using the Hand::tools() function.
+     * will always contain 5 fingers.
      *
      * Use PointableList::extended() to remove non-extended fingers from the list.
      *
@@ -1162,15 +1152,16 @@ namespace Leap {
      *
      * Use the Hand::pointable() function to retrieve a Pointable object
      * associated with this hand using an ID value obtained from a previous frame.
-     * This function always returns a Pointable object, but if no finger or tool
+     * This function always returns a Pointable object, but if no finger
      * with the specified ID is present, an invalid Pointable object is returned.
      *
      * \include Hand_Get_Pointable_ByID.txt
      *
-     * Note that the ID values assigned to objects persist across frames, but only until
-     * tracking of that object is lost. If tracking of a finger or tool is lost and subsequently
-     * regained, the new Pointable object representing that finger or tool may have a
-     * different ID than that representing the finger or tool in an earlier frame.
+     * Note that the ID values assigned to fingers are based on the hand ID. 
+     * Hand IDs persist across frames, but only until
+     * tracking of that hand is lost. If tracking of the hand is lost and subsequently
+     * regained, the new Hand object and its child Finger objects will have a
+     * different ID than in an earlier frame.
      *
      * @param id The ID value of a Pointable object from a previous frame.
      * @returns The Pointable object with the matching ID if one exists for this
@@ -1214,7 +1205,7 @@ namespace Leap {
      */
     LEAP_EXPORT Finger finger(int32_t id) const;
 
-    /**
+    /*
      * The list of Tool objects detected in this frame that are held by this
      * hand, given in arbitrary order.
      * The list can be empty if no tools held by this hand are detected.
@@ -1224,9 +1215,15 @@ namespace Leap {
      * @returns The ToolList containing all Tool objects held by this hand.
      * @since 1.0
      */
+     /**
+     * Tools are not associated with hands in version 2+. This list
+     * is always empty.
+     *
+     * @deprecated 2.0
+     */
     LEAP_EXPORT ToolList tools() const;
 
-    /**
+    /*
      * The Tool object with the specified ID held by this hand.
      *
      * Use the Hand::tool() function to retrieve a Tool object held by
@@ -1245,6 +1242,12 @@ namespace Leap {
      * @returns The Tool object with the matching ID if one exists for this
      * hand in this frame; otherwise, an invalid Tool object is returned.
      * @since 1.0
+     */
+     /**
+     * Tools are not associated with hands in version 2+. This function
+     * always returns an invalid Tool object.
+     *
+     * @deprecated 2.0
      */
     LEAP_EXPORT Tool tool(int32_t id) const;
 
@@ -1334,9 +1337,11 @@ namespace Leap {
      *
      * The basis is defined as follows:
      *
-     * * xAxis: Positive in the direction of the pinky
-     * * yAxis: Positive above the hand
-     * * zAxis: Positive in the direction of the wrist
+     * **xAxis** Positive in the direction of the pinky
+     *
+     * **yAxis** Positive above the hand
+     *
+     * **zAxis** Positive in the direction of the wrist
      *
      * Note: Since the left hand is a mirror of the right hand, the
      * basis matrix will be left-handed for left hands.
@@ -1467,7 +1472,7 @@ namespace Leap {
 
     /**
      * The axis of rotation derived from the change in orientation of this
-     * hand, and any associated fingers and tools, between the current frame
+     * hand, and any associated fingers, between the current frame
      * and the specified frame.
      *
      * \include Hand_rotationAxis.txt
@@ -1488,7 +1493,7 @@ namespace Leap {
 
     /**
      * The angle of rotation around the rotation axis derived from the change
-     * in orientation of this hand, and any associated fingers and tools,
+     * in orientation of this hand, and any associated fingers,
      * between the current frame and the specified frame.
      *
      * \include Hand_rotationAngle.txt
@@ -1511,7 +1516,7 @@ namespace Leap {
 
     /**
      * The angle of rotation around the specified axis derived from the change
-     * in orientation of this hand, and any associated fingers and tools,
+     * in orientation of this hand, and any associated fingers,
      * between the current frame and the specified frame.
      *
      * \include Hand_rotationAngle_axis.txt
@@ -1535,7 +1540,7 @@ namespace Leap {
 
     /**
      * The transform matrix expressing the rotation derived from the change
-     * in orientation of this hand, and any associated fingers and tools,
+     * in orientation of this hand, and any associated fingers,
      * between the current frame and the specified frame.
      *
      * \include Hand_rotationMatrix.txt
@@ -1581,7 +1586,7 @@ namespace Leap {
      * \include Hand_scaleFactor.txt
      *
      * The Leap Motion software derives scaling from the relative inward or outward motion of
-     * a hand and its associated fingers and tools (independent of translation
+     * a hand and its associated fingers (independent of translation
      * and rotation).
      *
      * If a corresponding Hand object is not found in sinceFrame, or if either
@@ -1750,12 +1755,15 @@ namespace Leap {
    * Subclasses of Gesture define the properties for the specific movement patterns
    * recognized by the Leap Motion software.
    *
-   * The Gesture subclasses for include:
+   * The Gesture subclasses include:
    *
-   * * CircleGesture -- A circular movement by a finger.
-   * * SwipeGesture -- A straight line movement by the hand with fingers extended.
-   * * ScreenTapGesture -- A forward tapping movement by a finger.
-   * * KeyTapGesture -- A downward tapping movement by a finger.
+   * **CircleGesture** -- A circular movement by a finger.
+   *
+   * **SwipeGesture** -- A straight line movement by the hand with fingers extended.
+   *
+   * **ScreenTapGesture** -- A forward tapping movement by a finger.
+   *
+   * **KeyTapGesture** -- A downward tapping movement by a finger.
    *
    * Circle and swipe gestures are continuous and these objects can have a
    * state of start, update, and stop.
@@ -2068,12 +2076,12 @@ namespace Leap {
   };
 
   /**
-   * The SwipeGesture class represents a swiping motion of hand and a finger or tool.
+   * The SwipeGesture class represents a swiping motion a finger or tool.
    *
    * \image html images/Leap_Gesture_Swipe.png
    *
-   * SwipeGesture objects are generated for each visible finger or tool on the
-   * swiping hand. Swipe gestures are continuous; a gesture object with the same
+   * SwipeGesture objects are generated for each visible finger or tool. 
+   * Swipe gestures are continuous; a gesture object with the same
    * ID value will appear in each frame while the gesture continues.
    *
    * **Important:** To use swipe gestures in your application, you must enable
@@ -2206,10 +2214,12 @@ namespace Leap {
    * Circle gestures are continuous. The CircleGesture objects for the gesture have
    * three possible states:
    *
-   * * State::STATE_START -- The circle gesture has just started. The movement has
+   * **State::STATE_START** -- The circle gesture has just started. The movement has
    *   progressed far enough for the recognizer to classify it as a circle.
-   * * State::STATE_UPDATE -- The circle gesture is continuing.
-   * * State::STATE_STOP -- The circle gesture is finished.
+   *
+   * **State::STATE_UPDATE** -- The circle gesture is continuing.
+   *
+   * **State::STATE_STOP** -- The circle gesture is finished.
    *
    * You can set the minimum radius and minimum arc length required for a movement
    * to be recognized as a circle using the config attribute of a connected
@@ -2768,6 +2778,8 @@ namespace Leap {
      *
      * @return True, if the axes are flipped, that is, if the positive z-axis
      * extends from the long side of the device that does not have the green LED.
+     *
+     * @since 2.1
      */
     LEAP_EXPORT bool isFlipped() const;
 
@@ -2948,7 +2960,7 @@ namespace Leap {
      */
     void data(unsigned char* dst) const {
       const unsigned char* src = data();
-      std::copy(src, src + width() * height(), dst);
+      memcpy(dst, src, width() * height() * sizeof(unsigned char));
     }
     /*
      * Do not call this version of distortion(). It is intended only as a helper for C#,
@@ -2959,7 +2971,7 @@ namespace Leap {
      */
     void distortion(float* dst) const {
       const float* src = distortion();
-      std::copy(src, src + distortionWidth() * distortionHeight(), dst);
+      memcpy(dst, src, distortionWidth() * distortionHeight() * sizeof(float));
     }
     /**
      * The image width.
@@ -3464,7 +3476,7 @@ namespace Leap {
   /**
    * The ToolList class represents a list of Tool objects.
    *
-   * Get a ToolList object by calling Frame::tools() or Hand::tools().
+   * Get a ToolList object by calling Frame::tools().
    *
    * \include ToolList_ToolList.txt
    *
@@ -3901,7 +3913,7 @@ namespace Leap {
     LEAP_EXPORT ImageList();
 
     /**
-     * Yhe number of images in this list.
+     * The number of images in this list.
      *
      * @returns The number of images in this list.
      * @since 2.1.0
@@ -4148,6 +4160,10 @@ namespace Leap {
      *
      * \include Frame_Frame.txt
      *
+     * The only time you should use this constructor is before deserializing
+     * serialized frame data. Call ``Frame::deserialize(string)`` to recreate
+     * a saved Frame.
+     *
      * @since 1.0
      */
     LEAP_EXPORT Frame();
@@ -4367,6 +4383,7 @@ namespace Leap {
      *  The list of images from the Leap Motion cameras.
      *  
      *  @return An ImageList object containing the camera images analyzed to create this Frame.
+     *  @since 2.1
      */
     LEAP_EXPORT ImageList images() const;
 
@@ -4653,10 +4670,11 @@ namespace Leap {
     LEAP_EXPORT friend std::ostream& operator<<(std::ostream&, const Frame&);
 
     /**
-     * Encodings the Frame object to a byte string.
+     * Encodes this Frame object as a byte string.
      *
      * \include Frame_serialize.txt
      *
+     * @returns The serialized string encoding the data for this frame.
      * @since 2.1.0
      */
     std::string serialize() const {
@@ -4668,9 +4686,26 @@ namespace Leap {
     }
 
     /**
-     * Decodes a byte string to restore properties of this Frame.
+     * Decodes a byte string to replace the properties of this Frame.
+     *
+     * A Controller object must be instantiated for this function to succeed, but 
+     * it does not need to be connected. 
+     * 
+     * Any existing data in the frame is
+     * destroyed. If you have references to 
+     * child objects (hands, fingers, etc.), these are preserved as long as the 
+     * references remain in scope.
      *
      * \include Frame_deserialize.txt
+     *
+     * **Note:** The behavior when calling functions which take
+     * another Frame object as a parameter is undefined when either frame has
+     * been deserialized. For example, calling ``gestures(sinceFrame)`` on a
+     * deserialized frame or with a deserialized frame as parameter (or both)
+     * does not necessarily return all gestures that occured between the two
+     * frames. Motion functions, like ``scaleFactor(startFrame)``, are more
+     * likely to return reasonable results, but could return anomalous values
+     * in some cases.
      *
      * @since 2.1.0
      */
@@ -4678,17 +4713,17 @@ namespace Leap {
       deserializeCString(str.data(), str.length());
     }
 
-    /**
+    /*
      * Do not call this version of serialize(). It is intended only as
      * a helper for C#, Java, and other language bindings.
      */
     void serialize(unsigned char* ptr) const {
       size_t length;
       const unsigned char* cstr = reinterpret_cast<const unsigned char*>(serializeCString(length));
-      std::copy(cstr, cstr + length, ptr);
+      memcpy(ptr, cstr, length * sizeof(unsigned char));
     }
 
-    /**
+    /*
      * Do not call serializeLength(). It is intended only as a helper for
      * C#, Java, and other language bindings. To get the length of the
      * serialized byte array, use serialize().length()
@@ -4699,7 +4734,7 @@ namespace Leap {
       return static_cast<int>(length);
     }
 
-    /**
+    /*
      * Do not call this version of deserialize(). It is intended only as
      * a helper for C#, Java, and other language bindings.
      */
@@ -4747,7 +4782,6 @@ namespace Leap {
    * Gesture.ScreenTap.MinForwardVelocity  float      50            mm/s
    * Gesture.ScreenTap.HistorySeconds      float      0.1           s
    * Gesture.ScreenTap.MinDistance         float      5.0           mm
-   * head_mounted_display_mode             boolean    false         n/a
    * ====================================  ========== ============= =======
    * \endtable
    *
@@ -4757,12 +4791,6 @@ namespace Leap {
    * has dispatched the serviceConnected or connected events or
    * Controller::isConnected is true. The configuration value changes are
    * not persistent; your application needs to set the values every time it runs.
-   *
-   * **Note:** "head_mounted_display_mode" is a temporary setting that tells the
-   * Leap Motion software to expect hands viewed from the top rather than the bottom.
-   * In the long run, we expect that the software will handle both automatically
-   * without the need for a flag. This setting can also be set from the Leap Motion
-   * control panel.
    *
    * @see CircleGesture
    * @see KeyTapGesture
@@ -5079,9 +5107,38 @@ namespace Leap {
     /**
      * The supported controller policies.
      *
-     * Currently, the only supported policy is the background frames policy,
-     * which determines whether your application receives frames of tracking
-     * data when it is not the focused, foreground application.
+     * The supported policy flags are:
+     *
+     * **POLICY_BACKGROUND_FRAMES** -- requests that your application receives frames
+     *   when it is not the foreground application for user input.
+     *
+     *   The background frames policy determines whether an application
+     *   receives frames of tracking data while in the background. By
+     *   default, the Leap Motion  software only sends tracking data to the foreground application.
+     *   Only applications that need this ability should request the background
+     *   frames policy. The "Allow Background Apps" checkbox must be enabled in the
+     *   Leap Motion Control Panel or this policy will be denied.
+     *
+     * **POLICY_IMAGES** -- request that your application receives images from the
+     *   device cameras. The "Allow Images" checkbox must be enabled in the
+     *   Leap Motion Control Panel or this policy will be denied.
+     *
+     *   The images policy determines whether an application recieves image data from
+     *   the Leap Motion sensors which each frame of data. By default, this data is
+     *   not sent. Only applications that use the image data should request this policy.
+     *
+     *
+     * **POLICY_OPTIMIZE_HMD** -- request that the tracking be optimized for head-mounted
+     *   tracking.
+     *   
+     *   The optimize HMD policy improves tracking in situations where the Leap
+     *   Motion hardware is attached to a head-mounted display. This policy is
+     *   not granted for devices that cannot be mounted to an HMD, such as 
+     *   Leap Motion controllers embedded in a laptop or keyboard.
+     *
+     * Some policies can be denied if the user has disabled the feature on
+     * their Leap Motion control panel.
+     *
      * @since 1.0
      */
     enum PolicyFlag {
@@ -5097,9 +5154,17 @@ namespace Leap {
       POLICY_BACKGROUND_FRAMES = (1 << 0),
 
       /**
-       * Receive raw images.
+       * Receive raw images from sensor cameras.
+       * @since 2.1.0
        */
       POLICY_IMAGES = (1 << 1),
+
+      /**
+       * Optimize the tracking for head-mounted device.
+       * @since 2.1.2
+       */
+      POLICY_OPTIMIZE_HMD = (1 << 2),
+
 #ifdef SWIGCSHARP
       // deprecated
       POLICYDEFAULT = POLICY_DEFAULT,
@@ -5135,24 +5200,9 @@ namespace Leap {
      * The desired policy flags must be set every time an application runs.
      *
      * Policy changes are completed asynchronously and, because they are subject
-     * to user approval, may not complete successfully. Call
+     * to user approval or system compatibility checks, may not complete successfully. Call
      * Controller::policyFlags() after a suitable interval to test whether
      * the change was accepted.
-     *
-     * Currently, the background frames policy is the only policy supported.
-     * The background frames policy determines whether an application
-     * receives frames of tracking data while in the background. By
-     * default, the Leap Motion  software only sends tracking data to the foreground application.
-     * Only applications that need this ability should request the background
-     * frames policy.
-     *
-     * At this time, you can use the Leap Motion Settings dialog to
-     * globally enable or disable the background frames policy. However,
-     * each application that needs tracking data while in the background
-     * must also set the policy flag using this function.
-     *
-     * This function can be called before the Controller object is connected,
-     * but the request will be sent to the Leap Motion software after the Controller connects.
      *
      * \include Controller_setPolicyFlags.txt
      *
