@@ -57,6 +57,7 @@ private:
 	void						screenShot();
 };
 
+#include "cinder/app/RendererGl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
@@ -67,7 +68,7 @@ using namespace std;
 
 void ImageApp::draw()
 {
-	gl::setViewport( getWindowBounds() );
+	gl::viewport( getWindowSize() );
 	gl::clear( Colorf::white() );
 	gl::setMatricesWindow( getWindowSize() );
 	gl::color( ColorAf::white() );
@@ -112,7 +113,7 @@ void ImageApp::setup()
 
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
 	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
 	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
 	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );

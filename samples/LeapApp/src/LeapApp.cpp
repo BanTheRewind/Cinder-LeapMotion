@@ -60,6 +60,7 @@ private:
 	void						screenShot();
 };
 
+#include "cinder/app/RendererGl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
@@ -70,7 +71,7 @@ using namespace std;
 
 void LeapApp::draw()
 {
-	gl::setViewport( getWindowBounds() );
+	gl::viewport( getWindowSize() );
 	gl::clear( Colorf::white() );
 	gl::setMatrices( mCamera );
 
@@ -85,11 +86,11 @@ void LeapApp::draw()
 		const Leap::Hand& hand = *handIter;
 
 		// Get hand data
-		Vec3f handDir		= LeapMotion::toVec3f( hand.direction() );
-		Vec3f palmNorm		= LeapMotion::toVec3f( hand.palmNormal() );
-		Vec3f palmPos		= LeapMotion::toVec3f( hand.palmPosition() );
-		Vec3f palmVel		= LeapMotion::toVec3f( hand.palmVelocity() );
-		Vec3f sphereCenter	= LeapMotion::toVec3f( hand.sphereCenter() );
+		vec3 handDir		= LeapMotion::toVec3( hand.direction() );
+		vec3 palmNorm		= LeapMotion::toVec3( hand.palmNormal() );
+		vec3 palmPos		= LeapMotion::toVec3( hand.palmPosition() );
+		vec3 palmVel		= LeapMotion::toVec3( hand.palmVelocity() );
+		vec3 sphereCenter	= LeapMotion::toVec3( hand.sphereCenter() );
 		float sphereRadius	= hand.sphereRadius();
 		
 		// Hand sphere
@@ -102,9 +103,9 @@ void LeapApp::draw()
 		gl::color( ColorAf( 0.75f, 0.0f, 0.75f, 0.25f ) );
 		gl::pushMatrices();
 		gl::translate( palmPos );
-		gl::rotate( Quatf( palmPos, handDir ) );
+		gl::rotate( quat( palmPos, handDir ) );
 		for ( float i = 0.25f; i <= 1.0f; i += 0.25f ) {
-			gl::drawStrokedCircle( Vec2f::zero(), sphereRadius * i, 16 );
+			gl::drawStrokedCircle( vec2( 0.0f ), sphereRadius * i, 16 );
 		}
 		gl::popMatrices();
 
@@ -126,13 +127,13 @@ void LeapApp::draw()
 			const Leap::Pointable& pointable = *pointIter;
 
 			// Get pointable data
-			Vec3f dir		= LeapMotion::toVec3f( pointable.direction() );
+			vec3 dir		= LeapMotion::toVec3( pointable.direction() );
 			bool isTool		= pointable.isTool();
 			float length	= pointable.length();
-			Vec3f tipPos	= LeapMotion::toVec3f( pointable.tipPosition() );
-			Vec3f tipVel	= LeapMotion::toVec3f( pointable.tipVelocity() );
+			vec3 tipPos		= LeapMotion::toVec3( pointable.tipPosition() );
+			vec3 tipVel		= LeapMotion::toVec3( pointable.tipVelocity() );
 			float width		= pointable.width();
-			Vec3f basePos	= tipPos + dir * -length;
+			vec3 basePos	= tipPos + dir * -length;
 			
 			// Draw line representing pointable's length
 			gl::color( ColorAf::gray( 0.3f ) );
@@ -143,7 +144,7 @@ void LeapApp::draw()
 			gl::color( color );
 			gl::pushMatrices();
 			gl::translate( tipPos );
-			gl::drawStrokedCircle( Vec2f::zero(), width, 16 );
+			gl::drawStrokedCircle( vec2( 0.0f ), width, 16 );
 			gl::popMatrices();
 
 			// Finger velocity
@@ -184,14 +185,14 @@ void LeapApp::setup()
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
 	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 1.0f, 1000.0f );
-	mCamera.lookAt( Vec3f( 0.0f, 250.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
+	mCamera.lookAt( vec3( 0.0f, 250.0f, 500.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
 	
 	mDevice = Device::create();
 	mDevice->connectEventHandler( &LeapApp::onFrame, this );
 
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
 	mParams->addParam( "Frame rate",	&mFrameRate,						"", true );
 	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
 	mParams->addButton( "Screen shot",	bind( &LeapApp::screenShot, this ),	"key=space" );

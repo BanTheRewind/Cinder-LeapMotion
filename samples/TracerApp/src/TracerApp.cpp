@@ -55,8 +55,8 @@ private:
 	Leap::Frame					mFrame;
 	LeapMotion::DeviceRef		mDevice;
 	
-	ci::gl::Fbo					mFbo[ 3 ];
-	ci::gl::GlslProg			mShader[ 2 ];
+	ci::gl::FboRef				mFbo[ 3 ];
+	ci::gl::GlslProgRef			mShader[ 2 ];
 
 	ci::CameraPersp				mCamera;
 
@@ -80,7 +80,7 @@ void TracerApp::draw()
 {
 	// Add to accumulation buffer
 	mFbo[ 0 ].bindFramebuffer();
-	gl::setViewport( mFbo[ 0 ].getBounds() );
+	gl::viewport( mFbo[ 0 ].getSize() );
 	gl::setMatricesWindow( mFbo[ 0 ].getSize() );
 	gl::enableAlphaBlending();
 
@@ -100,7 +100,7 @@ void TracerApp::draw()
 	gl::enable( GL_TEXTURE_2D );
 	gl::enableAlphaBlending();
 	gl::color( ColorAf::white() );
-	Vec2f pixel	= ( Vec2f::one() / Vec2f( mFbo[ 0 ].getSize() ) ) * 3.0f;
+	vec2 pixel	= ( vec2( 1.0f ) / vec2( mFbo[ 0 ].getSize() ) ) * 3.0f;
 	for ( size_t i = 0; i < 2; ++i ) {
 		mFbo[ i + 1 ].bindFramebuffer();
 		gl::clear();
@@ -109,8 +109,11 @@ void TracerApp::draw()
 		mShader[ i ].uniform( "size",	pixel );
 		mShader[ i ].uniform( "tex",	0 );
 				
-		gl::Texture& texture = mFbo[ i ].getTexture();
+		gl::TextureRef& texture = mFbo[ i ].getTexture();
 		texture.bind();
+
+		mFbo
+
 		gl::drawSolidRect( Rectf( mFbo[ i ].getBounds() ) );
 		texture.unbind();
 		
@@ -155,7 +158,7 @@ void TracerApp::screenShot()
 void TracerApp::setup()
 {
 	mCamera	= CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
-	mCamera.lookAt( Vec3f( 0.0f, 93.75f, 250.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
+	mCamera.lookAt( vec3( 0.0f, 93.75f, 250.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
 	
 	mDevice = Device::create();
 	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
@@ -165,20 +168,20 @@ void TracerApp::setup()
  );
 
 	try {
-		mShader[ 0 ]	= gl::GlslProg( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_X_FRAG ) );
+		mShader[ 0 ]	= gl::GlslProg::create( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_X_FRAG ) );
 	} catch ( gl::GlslProgCompileExc ex ) {
 		console() << "Unable to compile blur X shader: \n" << string( ex.what() ) << "\n";
 		quit();
 	}
 	try {
-		mShader[ 1 ]	= gl::GlslProg( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_Y_FRAG ) );
+		mShader[ 1 ]	= gl::GlslProg::create( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_Y_FRAG ) );
 	} catch ( gl::GlslProgCompileExc ex ) {
 		console() << "Unable to compile blur Y shader: \n" << string( ex.what() ) << "\n";
 		quit();
 	}
 
 	mFrameRate	= 0.0f;
-	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
 	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
 	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
 	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
@@ -188,7 +191,7 @@ void TracerApp::setup()
 	
 	gl::Fbo::Format format;
 #if defined( GL_RGBA32F )
-	format.setColorInternalFormat( GL_RGBA32F );
+	format.setColorTextureFormat( gl::Texture2d::Format(). );
 #else if defined( GL_RGBA32F_ARB )
 	format.setColorInternalFormat( GL_RGBA32F_ARB );
 #endif
@@ -221,7 +224,7 @@ void TracerApp::update()
 
 			int32_t id = pointable.id();
 			if ( mRibbons.find( id ) == mRibbons.end() ) {
-				Vec3f v = randVec3f() * 0.01f;
+				vec3 v = randvec3() * 0.01f;
 				v.x = math<float>::abs( v.x );
 				v.y = math<float>::abs( v.y );
 				v.z = math<float>::abs( v.z );
@@ -231,7 +234,7 @@ void TracerApp::update()
 			}
 			float width = math<float>::abs( pointable.tipVelocity().y ) * 0.0025f;
 			width		= math<float>::max( width, 5.0f );
-			mRibbons[ id ].addPoint( LeapMotion::toVec3f( pointable.tipPosition() ), width );
+			mRibbons[ id ].addPoint( LeapMotion::tovec3( pointable.tipPosition() ), width );
 		}
 	}
 

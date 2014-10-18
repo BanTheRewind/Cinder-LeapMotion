@@ -60,6 +60,7 @@ private:
 	void						screenShot();
 };
 
+#include "cinder/app/RendererGl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
@@ -70,7 +71,7 @@ using namespace std;
 
 void SkeletalApp::draw()
 {
-	gl::setViewport( getWindowBounds() );
+	gl::viewport( getWindowSize() );
 	gl::clear( Colorf::white() );
 	gl::setMatrices( mCamera );
 
@@ -84,24 +85,24 @@ void SkeletalApp::draw()
 		const Leap::Hand& hand	= *handIter;
 		const Leap::Arm& arm	= hand.arm();
 		
-		Vec3f palm				= LeapMotion::toVec3f( hand.palmPosition() );
-		Vec3f elbow				= LeapMotion::toVec3f( arm.elbowPosition() );
-		Vec3f rotation			= Vec3f( hand.direction().pitch(), hand.direction().yaw(), hand.palmNormal().roll() );
-		Vec3f wrist				= LeapMotion::toVec3f( arm.wristPosition() );
+		vec3 palm				= LeapMotion::toVec3( hand.palmPosition() );
+		vec3 elbow				= LeapMotion::toVec3( arm.elbowPosition() );
+		vec3 rotation			= vec3( hand.direction().pitch(), hand.direction().yaw(), hand.palmNormal().roll() );
+		vec3 wrist				= LeapMotion::toVec3( arm.wristPosition() );
 
 		gl::drawLine( elbow, wrist );
 
-		vector<Vec3f> knuckles;
+		vector<vec3> knuckles;
 		const Leap::FingerList fingers = hand.fingers();
 		for ( Leap::FingerList::const_iterator fingerIter = fingers.begin(); fingerIter != fingers.end(); ++fingerIter ) {
 			const Leap::Finger& finger = *fingerIter;
 
 			for ( int32_t i = 0; i < 4; ++i ) {
 				const Leap::Bone& bone = finger.bone( (Leap::Bone::Type)i );
-				Vec3f center	= LeapMotion::toVec3f( bone.center() );
-				Vec3f direction	= LeapMotion::toVec3f( bone.direction() );
-				Vec3f start		= center - direction * bone.length() * 0.5f;
-				Vec3f end		= center + direction * bone.length() * 0.5f;
+				vec3 center		= LeapMotion::toVec3( bone.center() );
+				vec3 direction	= LeapMotion::toVec3( bone.direction() );
+				vec3 start		= center - direction * bone.length() * 0.5f;
+				vec3 end		= center + direction * bone.length() * 0.5f;
 				
 				if ( i == 0 ) {
 					knuckles.push_back( start );
@@ -114,8 +115,8 @@ void SkeletalApp::draw()
 
 		if ( knuckles.size() > 1 ) {
 			for ( size_t i = 1; i < knuckles.size(); ++i ) {
-				const Vec3f& v0 = knuckles.at( i - 1 );
-				const Vec3f& v1 = knuckles.at( i );
+				const vec3& v0 = knuckles.at( i - 1 );
+				const vec3& v1 = knuckles.at( i );
 				gl::drawLine( v0,		v1 );
 			}
 			gl::drawLine( elbow, knuckles.at( 0 ) );
@@ -155,7 +156,7 @@ void SkeletalApp::setup()
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
 
 	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 1.0f, 5000.0f );
-	mCamera.lookAt( Vec3f( 0.0f, 300.0f, 300.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
+	mCamera.lookAt( vec3( 0.0f, 300.0f, 300.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
 	
 	mDevice = Device::create();
 	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
@@ -165,7 +166,7 @@ void SkeletalApp::setup()
 
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
 	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
 	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
 	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );

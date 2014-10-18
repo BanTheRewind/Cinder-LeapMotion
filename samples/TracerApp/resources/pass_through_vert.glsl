@@ -1,4 +1,6 @@
-varying vec2	uv;
+#version 150
+
+out vec2	uv;
 
 void main( void )
 {

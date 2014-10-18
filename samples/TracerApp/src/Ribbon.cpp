@@ -42,7 +42,7 @@
 using namespace ci;
 using namespace std;
 
-Ribbon::Point::Point( const Vec3f& position, float width )
+Ribbon::Point::Point( const vec3& position, float width )
 {
 	mAlpha		= 1.0f;
 	mPosition	= position;
@@ -60,7 +60,7 @@ Ribbon::~Ribbon()
 	mPoints.clear();
 }
 
-void Ribbon::addPoint( const Vec3f& position, float width )
+void Ribbon::addPoint( const vec3& position, float width )
 {
 	Point point( position, width );
 	mPoints.push_back( point );
@@ -83,14 +83,14 @@ void Ribbon::draw() const
 		return;
 	}
 
-	glBegin( GL_TRIANGLES );
+	gl::begin( GL_TRIANGLES );
 	for ( size_t i = 0; i < count - 2; ++i ) {
         uint32_t index = i * 2;
 
-		Vec3f pos0 = mPositions.at( index + 0 );
-		Vec3f pos1 = mPositions.at( index + 1 );
-		Vec3f pos2 = mPositions.at( index + 2 );
-		Vec3f pos3 = mPositions.at( index + 3 );
+		vec3 pos0 = mPositions.at( index + 0 );
+		vec3 pos1 = mPositions.at( index + 1 );
+		vec3 pos2 = mPositions.at( index + 2 );
+		vec3 pos3 = mPositions.at( index + 3 );
 
 		ColorAf color( mColor, mPoints.at( i ).mAlpha );
 		gl::color( color );
@@ -102,7 +102,7 @@ void Ribbon::draw() const
 		gl::vertex( pos2 );
 		gl::vertex( pos3 );
     }
-	glEnd();
+	gl::end();
 }
 
 void Ribbon::update()
@@ -125,14 +125,14 @@ void Ribbon::update()
 			const Point& a	= mPoints.at( i );
 			const Point& b	= mPoints.at( i + 1 );
 
-			Vec3f pos0		= a.mPosition;
-			Vec3f pos1		= b.mPosition;
-			Vec3f dir		= pos0 - pos1;
+			vec3 pos0		= a.mPosition;
+			vec3 pos1		= b.mPosition;
+			vec3 dir		= pos0 - pos1;
 			dir.z			= 0.0f;
-			Vec3f tan		= dir.cross( Vec3f::zAxis() );
-			tan				= dir.cross( tan );
-			tan				= dir.cross( tan ).normalized();
-			Vec3f offset	= tan * a.mWidth;
+			vec3 tan		= cross( dir, vec3( 0.0f, 0.0f, 1.0f ) );
+			vec3 tan		= cross( dir, tan );
+			vec3 tan		= normalize( cross( dir, tan ) );
+			vec3 offset	= tan * a.mWidth;
 
 			mPositions.push_back( pos0 - offset );
 			mPositions.push_back( pos1 + offset );

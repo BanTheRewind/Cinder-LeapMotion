@@ -49,7 +49,7 @@ public:
 	Ribbon( int32_t id = 0, const ci::Colorf& color = ci::Colorf::white() );
 	~Ribbon();
 
-	void					addPoint( const ci::Vec3f& position, float width = 1.0f );
+	void					addPoint( const ci::vec3& position, float width = 1.0f );
 	void					draw() const;
 	void					update();
 	
@@ -58,14 +58,14 @@ public:
 private:
 	struct Point
 	{
-		Point( const ci::Vec3f& position = ci::Vec3f::zero(), float width = 1.0f );
+		Point( const ci::vec3& position = ci::vec3( 0.0f ), float width = 1.0f );
 		float				mAlpha;
-		ci::Vec3f			mPosition;
+		ci::vec3			mPosition;
 		float				mWidth;
 	};
 
 	ci::Colorf				mColor;
 	int32_t					mId;
 	std::vector<Point>		mPoints;
-	std::vector<ci::Vec3f>	mPositions;
+	std::vector<ci::vec3>	mPositions;
 };
