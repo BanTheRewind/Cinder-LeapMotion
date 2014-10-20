@@ -106,6 +106,10 @@ void ImageApp::setup()
 	gl::enable( GL_TEXTURE_2D );
 	
 	mDevice = Device::create();
+	// Set Leap controller to background mode and enable images
+	mDevice->getController()->setPolicyFlags(Leap::Controller::POLICY_BACKGROUND_FRAMES);
+	mDevice->getController()->setPolicyFlags(Leap::Controller::POLICY_IMAGES);
+
 	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
 	{
 		mFrame = frame;
