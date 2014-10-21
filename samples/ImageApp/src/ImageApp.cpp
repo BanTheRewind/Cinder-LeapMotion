@@ -106,6 +106,7 @@ void ImageApp::setup()
 	gl::enable( GL_TEXTURE_2D );
 	
 	mDevice = Device::create();
+	mDevice->getController()->setPolicyFlags( Leap::Controller::POLICY_IMAGES );
 	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
 	{
 		mFrame = frame;
