@@ -1,4 +1,4 @@
-#version 150
+#version 150 core
 
 uniform vec2		size;
 uniform sampler2D	tex;

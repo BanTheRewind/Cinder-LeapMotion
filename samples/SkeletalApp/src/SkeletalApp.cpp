@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -34,19 +34,18 @@
 * 
 */
 
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/App.h"
 #include "cinder/Camera.h"
 #include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapMotion.h"
 
-class SkeletalApp : public ci::app::AppBasic
+class SkeletalApp : public ci::app::App
 {
 public:
-	void						draw();
-	void						prepareSettings( ci::app::AppBasic::Settings* settings );
-	void						setup();
-	void						update();
+	void						draw() override;
+	void						setup() override;
+	void						update() override;
 private:
 	LeapMotion::DeviceRef		mDevice;
 	Leap::Frame					mFrame;
@@ -117,7 +116,7 @@ void SkeletalApp::draw()
 			for ( size_t i = 1; i < knuckles.size(); ++i ) {
 				const vec3& v0 = knuckles.at( i - 1 );
 				const vec3& v1 = knuckles.at( i );
-				gl::drawLine( v0,		v1 );
+				gl::drawLine( v0, v1 );
 			}
 			gl::drawLine( elbow, knuckles.at( 0 ) );
 		}
@@ -130,12 +129,6 @@ void SkeletalApp::draw()
 void SkeletalApp::onFrame( Leap::Frame frame )
 {
 	mFrame = frame;
-}
-
-void SkeletalApp::prepareSettings( Settings* settings )
-{
-	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
 }
 
 void SkeletalApp::screenShot()
@@ -182,4 +175,8 @@ void SkeletalApp::update()
 	}
 }
 
-CINDER_APP_BASIC( SkeletalApp, RendererGl )
+CINDER_APP( SkeletalApp, RendererGl, []( App::Settings* settings )
+{
+	settings->setWindowSize( 1024, 768 );
+	settings->setFrameRate( 60.0f );
+} )

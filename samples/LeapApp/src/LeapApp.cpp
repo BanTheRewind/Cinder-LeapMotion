@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -34,19 +34,18 @@
 * 
 */
 
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/App.h"
 #include "cinder/Camera.h"
 #include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapMotion.h"
 
-class LeapApp : public ci::app::AppBasic
+class LeapApp : public ci::app::App
 {
 public:
-	void						draw();
-	void						prepareSettings( ci::app::AppBasic::Settings* settings );
-	void						setup();
-	void						update();
+	void						draw() override;
+	void						setup() override;
+	void						update() override;
 private:
 	LeapMotion::DeviceRef		mDevice;
 	Leap::Frame					mFrame;
@@ -161,12 +160,6 @@ void LeapApp::onFrame( Leap::Frame frame )
 	mFrame = frame;
 }
 
-void LeapApp::prepareSettings( Settings* settings )
-{
-	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
-}
-
 void LeapApp::screenShot()
 {
 #if defined( CINDER_MSW )
@@ -208,4 +201,8 @@ void LeapApp::update()
 	}
 }
 
-CINDER_APP_BASIC( LeapApp, RendererGl )
+CINDER_APP( LeapApp, RendererGl, []( App::Settings* settings )
+{
+	settings->setWindowSize( 1024, 768 );
+	settings->setFrameRate( 60.0f );
+} )

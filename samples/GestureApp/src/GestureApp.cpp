@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -34,20 +34,19 @@
 * 
 */
 
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/App.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/params/Params.h"
 
 #include "Cinder-LeapMotion.h"
 
-class GestureApp : public ci::app::AppBasic
+class GestureApp : public ci::app::App
 {
 public:
-	void					draw();
-	void					prepareSettings( ci::app::AppBasic::Settings* settings );
-	void					resize();
-	void					setup();
-	void					update();
+	void					draw() override;
+	void					resize() override;
+	void					setup() override;
+	void					update() override;
 private:
 	Leap::Frame				mFrame;
 	LeapMotion::DeviceRef	mDevice;
@@ -277,13 +276,6 @@ void GestureApp::drawUi()
 	}
 }
 
-// Prepare window
-void GestureApp::prepareSettings( Settings* settings )
-{
-	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
-}
-
 // Handles window resize
 void GestureApp::resize()
 {
@@ -469,4 +461,8 @@ vec2 GestureApp::warpVector( const Leap::Vector& v )
 	return vec2( result.x, result.y );
 }
 
-CINDER_APP_BASIC( GestureApp, RendererGl )
+CINDER_APP( GestureApp, RendererGl, []( App::Settings* settings )
+{
+	settings->setWindowSize( 1024, 768 );
+	settings->setFrameRate( 60.0f );
+} )

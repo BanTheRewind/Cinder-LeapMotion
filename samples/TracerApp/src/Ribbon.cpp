@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -130,8 +130,8 @@ void Ribbon::update()
 			vec3 dir		= pos0 - pos1;
 			dir.z			= 0.0f;
 			vec3 tan		= cross( dir, vec3( 0.0f, 0.0f, 1.0f ) );
-			vec3 tan		= cross( dir, tan );
-			vec3 tan		= normalize( cross( dir, tan ) );
+			tan				= cross( dir, tan );
+			tan				= normalize( cross( dir, tan ) );
 			vec3 offset	= tan * a.mWidth;
 
 			mPositions.push_back( pos0 - offset );

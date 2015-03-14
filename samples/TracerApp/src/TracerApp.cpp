@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -34,7 +34,7 @@
 * 
 */
 
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/App.h"
 #include "cinder/Camera.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
@@ -42,13 +42,12 @@
 #include "Cinder-LeapMotion.h"
 #include "Ribbon.h"
 
-class TracerApp : public ci::app::AppBasic
+class TracerApp : public ci::app::App
 {
 public:
-	void						draw();
-	void						prepareSettings( ci::app::AppBasic::Settings* settings );
-	void						setup();
-	void						update();
+	void						draw() override;
+	void						setup() override;
+	void						update() override;
 private:
 	RibbonMap					mRibbons;
 
@@ -65,6 +64,7 @@ private:
 	void						screenShot();
 };
 
+#include "cinder/app/RendererGl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Rand.h"
 #include "cinder/Utilities.h"
@@ -79,70 +79,60 @@ using namespace std;
 void TracerApp::draw()
 {
 	// Add to accumulation buffer
-	mFbo[ 0 ].bindFramebuffer();
-	gl::viewport( mFbo[ 0 ].getSize() );
-	gl::setMatricesWindow( mFbo[ 0 ].getSize() );
-	gl::enableAlphaBlending();
+	{
+		gl::disable( GL_TEXTURE_2D );
+		//gl::ScopedFramebuffer scopedFramebuffer( mFbo[ 0 ] );
+		gl::viewport( mFbo[ 0 ]->getSize() );
+		gl::setMatricesWindow( mFbo[ 0 ]->getSize() );
+		gl::enableAlphaBlending();
 
-	// Dim last frame
-	gl::color( ColorAf( Colorf::black(), 0.03f ) );
-	gl::drawSolidRect( Rectf( mFbo[ 0 ].getBounds() ) );
+		// Dim last frame
+		gl::color( ColorAf( Colorf::black(), 0.03f ) );
+		gl::drawSolidRect( Rectf( mFbo[ 0 ]->getBounds() ) );
 
-	// Draw finger tips into the accumulation buffer
-	gl::setMatrices( mCamera );
-	gl::enableAdditiveBlending();
-	for ( RibbonMap::const_iterator iter = mRibbons.begin(); iter != mRibbons.end(); ++iter ) {
-		iter->second.draw();
+		// Draw finger tips into the accumulation buffer
+		gl::setMatrices( mCamera );
+		gl::enableAdditiveBlending();
+		for ( RibbonMap::const_iterator iter = mRibbons.begin(); iter != mRibbons.end(); ++iter ) {
+			iter->second.draw();
+		}
 	}
-	mFbo[ 0 ].unbindFramebuffer();
 
 	// Blur the accumulation buffer
-	gl::enable( GL_TEXTURE_2D );
-	gl::enableAlphaBlending();
-	gl::color( ColorAf::white() );
-	vec2 pixel	= ( vec2( 1.0f ) / vec2( mFbo[ 0 ].getSize() ) ) * 3.0f;
-	for ( size_t i = 0; i < 2; ++i ) {
-		mFbo[ i + 1 ].bindFramebuffer();
-		gl::clear();
-		
-		mShader[ i ].bind();
-		mShader[ i ].uniform( "size",	pixel );
-		mShader[ i ].uniform( "tex",	0 );
-				
-		gl::TextureRef& texture = mFbo[ i ].getTexture();
-		texture.bind();
+	//gl::enable( GL_TEXTURE_2D );
+	//gl::enableAlphaBlending();
+	//gl::color( ColorAf::white() );
+	//vec2 pixel	= ( vec2( 1.0f ) / vec2( mFbo[ 0 ]->getSize() ) ) * 3.0f;
+	//for ( size_t i = 0; i < 2; ++i ) {
+	//	gl::ScopedFramebuffer scopedFramebuffer( mFbo[ i + 1 ] );
+	//	gl::clear();
+	//	
+	//	gl::ScopedGlslProg scopedGlslProg( mShader[ i ] );
+	//	mShader[ i ]->uniform( "size",	pixel );
+	//	mShader[ i ]->uniform( "tex",	0 );
+	//	
+	//	gl::ScopedTextureBind scopedTextureBind( mFbo[ i ]->getColorTexture() );
+	//	gl::drawSolidRect( Rectf( mFbo[ i ]->getBounds() ) );
+	//}
 
-		mFbo
+	//// Draw blurred image
+	//gl::setMatricesWindow( getWindowSize(), false );
+	//gl::clear();
+	//gl::color( ColorAf::white() );
+	//{
+	//	gl::ScopedTextureBind scopedTextureBind( mFbo[ 0 ]->getColorTexture() );
+	//	gl::drawSolidRect( Rectf( getWindowBounds() ) );
+	//}
 
-		gl::drawSolidRect( Rectf( mFbo[ i ].getBounds() ) );
-		texture.unbind();
-		
-		mShader[ i ].unbind();
-		mFbo[ i + 1 ].unbindFramebuffer();
-	}
-
-	// Draw blurred image
-	gl::setMatricesWindow( getWindowSize(), false );
-	gl::color( ColorAf::white() );
-	mFbo[ 0 ].bindTexture();
-	gl::drawSolidRect( Rectf( getWindowBounds() ) );
-	mFbo[ 0 ].unbindTexture();
-	
-	gl::color( ColorAf( Colorf::white(), 0.8f ) );
-	mFbo[ 2 ].bindTexture();
-	gl::drawSolidRect( Rectf( getWindowBounds() ) );
-	mFbo[ 2 ].unbindTexture();
-	gl::disableAlphaBlending();
-	gl::disable( GL_TEXTURE_2D );
+	//gl::color( ColorAf( Colorf::white(), 0.8f ) );
+	//{
+	//	gl::ScopedTextureBind scopedTextureBind( mFbo[ 2 ]->getColorTexture() );
+	//	gl::drawSolidRect( Rectf( getWindowBounds() ) );
+	//}
+	//gl::disableAlphaBlending();
+	//gl::disable( GL_TEXTURE_2D );
 
 	mParams->draw();
-}
-
-void TracerApp::prepareSettings( Settings* settings )
-{
-	settings->setFrameRate( 60.0f );
-	settings->setResizable( false );
-	settings->setWindowSize( 1024, 768 );
 }
 
 void TracerApp::screenShot()
@@ -162,25 +152,24 @@ void TracerApp::setup()
 	
 	mDevice = Device::create();
 	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
-{
-	mFrame = frame;
-}
- );
+	{
+		mFrame = frame;
+	} );
 
 	try {
-		mShader[ 0 ]	= gl::GlslProg::create( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_X_FRAG ) );
+		mShader[ 0 ] = gl::GlslProg::create( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_X_FRAG ) );
 	} catch ( gl::GlslProgCompileExc ex ) {
 		console() << "Unable to compile blur X shader: \n" << string( ex.what() ) << "\n";
 		quit();
 	}
 	try {
-		mShader[ 1 ]	= gl::GlslProg::create( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_Y_FRAG ) );
+		mShader[ 1 ] = gl::GlslProg::create( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_Y_FRAG ) );
 	} catch ( gl::GlslProgCompileExc ex ) {
 		console() << "Unable to compile blur Y shader: \n" << string( ex.what() ) << "\n";
 		quit();
 	}
 
-	mFrameRate	= 0.0f;
+	mFrameRate = 0.0f;
 	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
 	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
 	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
@@ -188,24 +177,21 @@ void TracerApp::setup()
 
 	gl::enable( GL_POLYGON_SMOOTH );
 	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
-	
-	gl::Fbo::Format format;
+
+	gl::Texture2d::Format textureFormat;
+	textureFormat.magFilter( GL_LINEAR ).minFilter( GL_LINEAR ).wrap( GL_CLAMP_TO_EDGE );
 #if defined( GL_RGBA32F )
-	format.setColorTextureFormat( gl::Texture2d::Format(). );
+	textureFormat.internalFormat( GL_RGBA32F );
 #else if defined( GL_RGBA32F_ARB )
-	format.setColorInternalFormat( GL_RGBA32F_ARB );
+	textureFormat.internalFormat( GL_RGBA32F_ARB );
 #endif
-	format.setMinFilter( GL_LINEAR );
-	format.setMagFilter( GL_LINEAR );
-	format.setWrap( GL_CLAMP, GL_CLAMP );
 	for ( size_t i = 0; i < 3; ++i ) {
-		mFbo[ i ]	= gl::Fbo( getWindowWidth(), getWindowHeight(), format );
-		mFbo[ i ].bindFramebuffer();
-		gl::setViewport( mFbo[ i ].getBounds() );
+		mFbo[ i ] = gl::Fbo::create( getWindowWidth(), getWindowHeight(), gl::Fbo::Format().colorTexture( textureFormat ) );
+		gl::ScopedFramebuffer scopedFramebuffer( mFbo[ i ] );
+		gl::viewport( mFbo[ i ]->getSize() );
 		gl::clear();
-		mFbo[ i ].unbindFramebuffer();
 	}
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 }
 
@@ -224,7 +210,7 @@ void TracerApp::update()
 
 			int32_t id = pointable.id();
 			if ( mRibbons.find( id ) == mRibbons.end() ) {
-				vec3 v = randvec3() * 0.01f;
+				vec3 v = randVec3f() * 0.01f;
 				v.x = math<float>::abs( v.x );
 				v.y = math<float>::abs( v.y );
 				v.z = math<float>::abs( v.z );
@@ -234,7 +220,7 @@ void TracerApp::update()
 			}
 			float width = math<float>::abs( pointable.tipVelocity().y ) * 0.0025f;
 			width		= math<float>::max( width, 5.0f );
-			mRibbons[ id ].addPoint( LeapMotion::tovec3( pointable.tipPosition() ), width );
+			mRibbons[ id ].addPoint( LeapMotion::toVec3( pointable.tipPosition() ), width );
 		}
 	}
 
@@ -244,4 +230,9 @@ void TracerApp::update()
 	}
 }
 
-CINDER_APP_BASIC( TracerApp, RendererGl )
+CINDER_APP( TracerApp, RendererGl( RendererGl::Options().coreProfile( true ).version( 3, 3 ).msaa( 16 ) ), []( App::Settings* settings )
+{
+	settings->setFrameRate( 60.0f );
+	settings->setResizable( false );
+	settings->setWindowSize( 1024, 768 );
+} )

@@ -1,4 +1,4 @@
-#version 150
+#version 150 core
 
 uniform float		offset;
 uniform vec2		size;

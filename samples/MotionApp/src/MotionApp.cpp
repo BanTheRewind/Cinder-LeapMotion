@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -34,19 +34,18 @@
 * 
 */
 
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/App.h"
 #include "cinder/Camera.h"
 #include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapMotion.h"
 
-class MotionApp : public ci::app::AppBasic
+class MotionApp : public ci::app::App
 {
 public:
-	void						draw();
-	void						prepareSettings( ci::app::AppBasic::Settings* settings );
-	void						setup();
-	void						update();
+	void						draw() override;
+	void						setup() override;
+	void						update() override;
 private:
 	enum
 	{
@@ -82,7 +81,7 @@ using namespace LeapMotion;
 using namespace std;
 
 static const float	kRestitution	= 0.021f;
-static const float	kRotSpeed		= 0.033f;
+static const float	kRotSpeed		= 0.33f;
 static const float	kTranslateSpeed	= 0.0033f;
 
 void MotionApp::draw()
@@ -144,12 +143,6 @@ void MotionApp::onFrame( Leap::Frame frame )
 	mFrame = frame;
 }
 
-void MotionApp::prepareSettings( Settings* settings )
-{
-	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
-}
-
 void MotionApp::screenShot()
 {
 #if defined( CINDER_MSW )
@@ -204,12 +197,16 @@ void MotionApp::update()
 	mTranslate	= lerp<vec3>( mTranslate, vec3( 0.0f), kRestitution );
 	
 	// Update cube transform
-	mTransform = mat4( 0.0f );
-	//mTransform.translate( mTranslate );
-	//mTransform.rotate( mRotAxis * mRotAngle );
-	//mTransform.translate( mTranslate * -1.0f );
-	//mTransform.translate( mTranslate );
-	//mTransform.scale( Vec3f::one() * mScale );
+	mTransform = mat4( 1.0f );
+	mTransform = glm::translate( mTransform, mTranslate );
+	mTransform = glm::rotate( mTransform, mRotAngle, mRotAxis );
+	mTransform = glm::translate( mTransform, mTranslate * -1.0f );
+	mTransform = glm::translate( mTransform, mTranslate );
+	mTransform = glm::scale( mTransform, vec3( mScale ) );
 }
 
-CINDER_APP_BASIC( MotionApp, RendererGl )
+CINDER_APP( MotionApp, RendererGl, []( App::Settings* settings )
+{
+	settings->setWindowSize( 1024, 768 );
+	settings->setFrameRate( 60.0f );
+} )
