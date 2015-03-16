@@ -94,7 +94,7 @@ void Ribbon::draw() const
 
 		ColorAf color( mColor, mPoints.at( i ).mAlpha );
 		gl::color( color );
-
+		
 		gl::vertex( pos0 );
 		gl::vertex( pos2 );
 		gl::vertex( pos1 );
@@ -125,13 +125,13 @@ void Ribbon::update()
 			const Point& a	= mPoints.at( i );
 			const Point& b	= mPoints.at( i + 1 );
 
-			vec3 pos0		= a.mPosition;
-			vec3 pos1		= b.mPosition;
-			vec3 dir		= pos0 - pos1;
-			dir.z			= 0.0f;
-			vec3 tan		= cross( dir, vec3( 0.0f, 0.0f, 1.0f ) );
-			tan				= cross( dir, tan );
-			tan				= normalize( cross( dir, tan ) );
+			vec3 pos0	= a.mPosition;
+			vec3 pos1	= b.mPosition;
+			vec3 dir	= pos0 - pos1;
+			dir.z		= 0.0f;
+			vec3 tan	= cross( dir, vec3( 0.0f, 0.0f, 1.0f ) );
+			tan			= cross( dir, tan );
+			tan			= normalize( cross( dir, tan ) );
 			vec3 offset	= tan * a.mWidth;
 
 			mPositions.push_back( pos0 - offset );

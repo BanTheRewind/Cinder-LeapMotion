@@ -38,6 +38,7 @@
 #include "cinder/Camera.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
+#include "cinder/gl/Shader.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapMotion.h"
 #include "Ribbon.h"
@@ -79,58 +80,52 @@ using namespace std;
 void TracerApp::draw()
 {
 	// Add to accumulation buffer
-	{
-		gl::disable( GL_TEXTURE_2D );
-		//gl::ScopedFramebuffer scopedFramebuffer( mFbo[ 0 ] );
-		gl::viewport( mFbo[ 0 ]->getSize() );
-		gl::setMatricesWindow( mFbo[ 0 ]->getSize() );
-		gl::enableAlphaBlending();
+	gl::ScopedFramebuffer scopedFramebuffer( mFbo[ 0 ] );
+	gl::ScopedViewport scopedViewport( ivec2( 0 ), getWindowSize() );
+	gl::ScopedGlslProg scopedGlslProgColor( gl::getStockShader( gl::ShaderDef().color() ) );
 
-		// Dim last frame
-		gl::color( ColorAf( Colorf::black(), 0.03f ) );
-		gl::drawSolidRect( Rectf( mFbo[ 0 ]->getBounds() ) );
+	gl::setMatricesWindow( mFbo[ 0 ]->getSize() );
+	gl::enableAlphaBlending();
+	gl::enableDepthRead();
+	gl::enableDepthWrite();
 
-		// Draw finger tips into the accumulation buffer
-		gl::setMatrices( mCamera );
-		gl::enableAdditiveBlending();
-		for ( RibbonMap::const_iterator iter = mRibbons.begin(); iter != mRibbons.end(); ++iter ) {
-			iter->second.draw();
-		}
+	// Dim last frame
+	gl::color( ColorAf( Colorf::black(), 0.03f ) );
+	gl::drawSolidRect( Rectf( mFbo[ 0 ]->getBounds() ) );
+
+	// Draw finger tips into the accumulation buffer
+	gl::setMatrices( mCamera );
+	gl::enableAdditiveBlending();
+	for ( RibbonMap::const_iterator iter = mRibbons.begin(); iter != mRibbons.end(); ++iter ) {
+		iter->second.draw();
 	}
 
 	// Blur the accumulation buffer
-	//gl::enable( GL_TEXTURE_2D );
-	//gl::enableAlphaBlending();
-	//gl::color( ColorAf::white() );
-	//vec2 pixel	= ( vec2( 1.0f ) / vec2( mFbo[ 0 ]->getSize() ) ) * 3.0f;
-	//for ( size_t i = 0; i < 2; ++i ) {
-	//	gl::ScopedFramebuffer scopedFramebuffer( mFbo[ i + 1 ] );
-	//	gl::clear();
-	//	
-	//	gl::ScopedGlslProg scopedGlslProg( mShader[ i ] );
-	//	mShader[ i ]->uniform( "size",	pixel );
-	//	mShader[ i ]->uniform( "tex",	0 );
-	//	
-	//	gl::ScopedTextureBind scopedTextureBind( mFbo[ i ]->getColorTexture() );
-	//	gl::drawSolidRect( Rectf( mFbo[ i ]->getBounds() ) );
-	//}
+	gl::enableAlphaBlending();
+	gl::color( ColorAf::white() );
+	
+	vec2 pixel	= ( vec2( 1.0f ) / vec2( mFbo[ 0 ]->getSize() ) ) * 3.0f;
+	for ( size_t i = 0; i < 2; ++i ) {
+		mFbo[ i + 1 ]->bindFramebuffer();
+		gl::clear();
+		
+		gl::ScopedGlslProg scopedGlslProgBlur( mShader[ i ] );
+		mShader[ i ]->uniform( "size",	pixel );
+		mShader[ i ]->uniform( "tex",	0 );
+		
+		gl::ScopedTextureBind scopedTextureBind( mFbo[ i ]->getColorTexture() );
+		gl::drawSolidRect( Rectf( mFbo[ i ]->getBounds() ) );
+	}
 
 	//// Draw blurred image
-	//gl::setMatricesWindow( getWindowSize(), false );
-	//gl::clear();
-	//gl::color( ColorAf::white() );
-	//{
-	//	gl::ScopedTextureBind scopedTextureBind( mFbo[ 0 ]->getColorTexture() );
-	//	gl::drawSolidRect( Rectf( getWindowBounds() ) );
-	//}
+	gl::setMatricesWindow( getWindowSize() );
+	gl::clear();
+	gl::ScopedGlslProg scopedGlslProgTexture( gl::getStockShader( gl::ShaderDef().texture() ) );
 
+	gl::color( ColorAf::white() );
+	gl::draw( mFbo[ 0 ]->getColorTexture(), getWindowBounds() );
 	//gl::color( ColorAf( Colorf::white(), 0.8f ) );
-	//{
-	//	gl::ScopedTextureBind scopedTextureBind( mFbo[ 2 ]->getColorTexture() );
-	//	gl::drawSolidRect( Rectf( getWindowBounds() ) );
-	//}
-	//gl::disableAlphaBlending();
-	//gl::disable( GL_TEXTURE_2D );
+	//gl::draw( mFbo[ 2 ]->getColorTexture(), getWindowBounds() );
 
 	mParams->draw();
 }
@@ -169,30 +164,19 @@ void TracerApp::setup()
 		quit();
 	}
 
+	for ( size_t i = 0; i < 3; ++i ) {
+		mFbo[ i ] = gl::Fbo::create( getWindowWidth(), getWindowHeight(), 
+									 gl::Fbo::Format().colorTexture( 
+									 gl::Texture::Format().internalFormat( GL_RGBA32F ) 
+									 ).disableDepth() 
+									 );
+	}
+
 	mFrameRate = 0.0f;
 	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
-	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
-	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
+	mParams->addParam( "Frame rate",	&mFrameRate, "", true );
+	mParams->addButton( "Screen shot",	[ &]() { screenShot(); },	"key=space" );
 	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
-
-	gl::enable( GL_POLYGON_SMOOTH );
-	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
-
-	gl::Texture2d::Format textureFormat;
-	textureFormat.magFilter( GL_LINEAR ).minFilter( GL_LINEAR ).wrap( GL_CLAMP_TO_EDGE );
-#if defined( GL_RGBA32F )
-	textureFormat.internalFormat( GL_RGBA32F );
-#else if defined( GL_RGBA32F_ARB )
-	textureFormat.internalFormat( GL_RGBA32F_ARB );
-#endif
-	for ( size_t i = 0; i < 3; ++i ) {
-		mFbo[ i ] = gl::Fbo::create( getWindowWidth(), getWindowHeight(), gl::Fbo::Format().colorTexture( textureFormat ) );
-		gl::ScopedFramebuffer scopedFramebuffer( mFbo[ i ] );
-		gl::viewport( mFbo[ i ]->getSize() );
-		gl::clear();
-	}
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 }
 
 void TracerApp::update()
@@ -210,7 +194,7 @@ void TracerApp::update()
 
 			int32_t id = pointable.id();
 			if ( mRibbons.find( id ) == mRibbons.end() ) {
-				vec3 v = randVec3f() * 0.01f;
+				vec3 v = randVec3f();
 				v.x = math<float>::abs( v.x );
 				v.y = math<float>::abs( v.y );
 				v.z = math<float>::abs( v.z );
@@ -218,8 +202,8 @@ void TracerApp::update()
 				Ribbon ribbon( id, color );
 				mRibbons[ id ] = ribbon;
 			}
-			float width = math<float>::abs( pointable.tipVelocity().y ) * 0.0025f;
-			width		= math<float>::max( width, 5.0f );
+			float width = math<float>::abs( pointable.tipVelocity().y ) * 0.00125f;
+			width		= math<float>::max( width, 3.0f );
 			mRibbons[ id ].addPoint( LeapMotion::toVec3( pointable.tipPosition() ), width );
 		}
 	}
