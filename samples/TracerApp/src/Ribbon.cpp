@@ -36,10 +36,12 @@
 
 #include "Ribbon.h"
 
-#include "cinder/Utilities.h"
+#include "cinder/app/App.h"
 #include "cinder/gl/gl.h"
+#include "cinder/Utilities.h"
 
 using namespace ci;
+using namespace ci::app;
 using namespace std;
 
 Ribbon::Point::Point( const vec3& position, float width )
@@ -62,7 +64,12 @@ Ribbon::~Ribbon()
 
 void Ribbon::addPoint( const vec3& position, float width )
 {
-	Point point( position, width );
+	vec3 p( position );
+	if ( !mPoints.empty() ) {
+		p = glm::mix( mPoints.back().mPosition, position, vec3( 0.15f ) );
+	}
+
+	Point point( p, width );
 	mPoints.push_back( point );
 }
 
@@ -107,10 +114,15 @@ void Ribbon::draw() const
 
 void Ribbon::update()
 {
-	for ( vector<Point>::iterator iter = mPoints.begin(); iter != mPoints.end(); ) {
+	float e = getElapsedSeconds() * 40.0f;
+	float i = 0.0f;
+	for ( vector<Point>::iterator iter = mPoints.begin(); iter != mPoints.end(); i += 1.0f ) {
 		iter->mAlpha		-= 0.01f;
-		iter->mWidth		-= 0.3f;
-		iter->mPosition.y	+= 1.0f;
+		iter->mWidth		-= 0.125f;
+		float t				= powf( i, 2.0f ) + e;
+		iter->mPosition.x	+= cosf( t ) * 0.3f;
+		iter->mPosition.y	+= sinf( t ) * 0.5f - 2.5f;
+
 		if ( iter->mAlpha <= 0.0f || iter->mWidth <= 0.0f ) {
 			iter = mPoints.erase( iter );
 		} else {
@@ -127,15 +139,15 @@ void Ribbon::update()
 
 			vec3 pos0	= a.mPosition;
 			vec3 pos1	= b.mPosition;
-			vec3 dir	= pos0 - pos1;
-			dir.z		= 0.0f;
-			vec3 tan	= cross( dir, vec3( 0.0f, 0.0f, 1.0f ) );
-			tan			= cross( dir, tan );
-			tan			= normalize( cross( dir, tan ) );
-			vec3 offset	= tan * a.mWidth;
+			vec3 dir0	= pos0 - pos1;
+			dir0.z		= 0.0f;
+			vec3 dir1	= glm::cross( dir0, vec3( 0.0f, 0.0f, 1.0f ) );
+			vec3 dir2	= glm::cross( dir0, dir1 );
+			dir1		= glm::normalize( glm::cross( dir0, dir2 ) );
+			vec3 offset	= dir1 * a.mWidth;
 
 			mPositions.push_back( pos0 - offset );
-			mPositions.push_back( pos1 + offset );
+			mPositions.push_back( pos0 + offset );
 		}
 	}
 }

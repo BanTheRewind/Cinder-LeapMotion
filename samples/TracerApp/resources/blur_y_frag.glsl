@@ -1,25 +1,21 @@
-#version 150 core
+#version 330 core
 
-uniform float		offset;
-uniform vec2		size;
-uniform sampler2D	tex;
+uniform vec2		uSize;
+uniform sampler2D	uTexture;
 
-in vec2		uv;
+in vec2				vUv;
 
-out vec4	gl_FragColor;
+out vec4			oColor;
  
 void main( void )
 {
-	vec4 color		= vec4( 0.0 );
-	vec4 src		= texture( tex, uv );
-	color			= src * 0.16;
-	color			+= texture( tex, vec2( uv.s, uv.t - 4.0 * size.y ) ) * 0.05;
-	color			+= texture( tex, vec2( uv.s, uv.t - 3.0 * size.y ) ) * 0.09;
-	color			+= texture( tex, vec2( uv.s, uv.t - 2.0 * size.y ) ) * 0.12;
-	color			+= texture( tex, vec2( uv.s, uv.t - 1.0 * size.y ) ) * 0.15;
-	color			+= texture( tex, vec2( uv.s, uv.t + 1.0 * size.y ) ) * 0.15;
-	color			+= texture( tex, vec2( uv.s, uv.t + 2.0 * size.y ) ) * 0.12;
-	color			+= texture( tex, vec2( uv.s, uv.t + 3.0 * size.y ) ) * 0.09;
-	color			+= texture( tex, vec2( uv.s, uv.t + 4.0 * size.y ) ) * 0.05;
-	gl_FragColor	= color;
+	oColor = texture( uTexture, vUv ) * 0.16;
+	oColor += texture( uTexture, vec2( vUv.s, vUv.t - 4.0 * uSize.y ) ) * 0.05;
+	oColor += texture( uTexture, vec2( vUv.s, vUv.t - 3.0 * uSize.y ) ) * 0.09;
+	oColor += texture( uTexture, vec2( vUv.s, vUv.t - 2.0 * uSize.y ) ) * 0.12;
+	oColor += texture( uTexture, vec2( vUv.s, vUv.t - 1.0 * uSize.y ) ) * 0.15;
+	oColor += texture( uTexture, vec2( vUv.s, vUv.t + 1.0 * uSize.y ) ) * 0.15;
+	oColor += texture( uTexture, vec2( vUv.s, vUv.t + 2.0 * uSize.y ) ) * 0.12;
+	oColor += texture( uTexture, vec2( vUv.s, vUv.t + 3.0 * uSize.y ) ) * 0.09;
+	oColor += texture( uTexture, vec2( vUv.s, vUv.t + 4.0 * uSize.y ) ) * 0.05;
 }

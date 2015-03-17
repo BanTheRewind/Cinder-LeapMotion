@@ -1,11 +1,11 @@
-#version 150 core
+#version 330 core
 
-in vec4 position;
+in vec4		ciPosition;
 
-out vec2	uv;
+out vec2	vUv;
 
 void main( void )
 {
-	uv			= sign( position.xy );
-	gl_Position	= vec4( uv, 0.0, 1.0 ) - vec4( 0.5 );
+	vUv			= sign( ciPosition.xy );
+	gl_Position	= vec4( vUv, 0.0, 1.0 ) - vec4( 0.5 );
 }

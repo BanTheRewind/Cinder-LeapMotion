@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -34,17 +34,18 @@
 *
 */
 
-#include "cinder/app/AppNative.h"
+#include "cinder/app/App.h"
+#include "cinder/app/RendererGl.h"
 #include "cinder/Camera.h"
 #include "cinder/gl/gl.h"
 
 #include "Cinder-LeapMotion.h"
 
-class _TBOX_PREFIX_App : public ci::app::AppNative 
+class _TBOX_PREFIX_App : public ci::app::App
 {
  public:
-	void 					draw();
-	void 					setup();
+	void 					draw() override;
+	void 					setup() override;
  private:	
 	Leap::Frame				mFrame;
 	LeapMotion::DeviceRef	mLeap;
@@ -58,19 +59,19 @@ using namespace std;
 
 void _TBOX_PREFIX_App::draw() 
 {
-	gl::setViewport( getWindowBounds() );
+	gl::viewport( getWindowSize() );
 	gl::clear( Colorf::black() );
 	gl::setMatrices( mCamera );
 	
 	const Leap::HandList& hands = mFrame.hands();
 	for ( const Leap::Hand& hand : hands ) {
 		for ( const Leap::Pointable& pointable : hand.pointables() ) {
-			Vec3f dir		= LeapMotion::toVec3f( pointable.direction() );
+			vec3 dir		= LeapMotion::toVec3( pointable.direction() );
 			float length	= pointable.length();
-			Vec3f tipPos	= LeapMotion::toVec3f( pointable.tipPosition() );
-			Vec3f basePos	= tipPos + dir * length;
+			vec3 tipPos		= LeapMotion::toVec3( pointable.tipPosition() );
+			vec3 basePos	= tipPos + dir * length;
 			
-			gl::drawColorCube( tipPos, Vec3f( 20, 20, 20 ) );
+			gl::drawColorCube( tipPos, vec3( 20.0f, 20.0f, 20.0f ) );
 			gl::color( ColorAf::gray( 0.8f ) );
 			gl::drawLine( basePos, tipPos );
 		}
@@ -83,7 +84,7 @@ void _TBOX_PREFIX_App::setup()
 	gl::enableDepthWrite();
 	
 	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
-	mCamera.lookAt( Vec3f( 0.0f, 125.0f, 500.0f ), Vec3f( 0.0f, 250.0f, 0.0f ) );
+	mCamera.lookAt( vec3( 0.0f, 125.0f, 500.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
 	
 	mLeap = LeapMotion::Device::create();
 	mLeap->connectEventHandler( [ & ]( Leap::Frame frame )
@@ -92,4 +93,4 @@ void _TBOX_PREFIX_App::setup()
 	} );
 }
 
-CINDER_APP_NATIVE( _TBOX_PREFIX_App, RendererGl )
+CINDER_APP( _TBOX_PREFIX_App, RendererGl )

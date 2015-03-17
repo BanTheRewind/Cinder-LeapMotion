@@ -10,7 +10,7 @@
 	version="2.2.3.25971"
 	>
 	<supports os="macosx" />
-	<supports os="msw" compiler="vc11" />
+	<supports os="msw" />
 	<source>src/Cinder-LeapMotion.cpp</source>
 	<header>src/Cinder-LeapMotion.h</header>
 	<header>src/Leap.h</header>
@@ -20,14 +20,14 @@
 		<dynamicLibrary>lib/macosx/libLeap.dylib</dynamicLibrary>
 		<buildCopy>lib/macosx/libLeap.dylib</buildCopy>
 	</platform>
-	<platform os="msw" compiler="vc11">
+	<platform os="msw">
 		<platform config="debug">
-			<buildCopy>lib/msw/Leapd.dll</buildCopy>
-			<staticLibrary>lib/msw/Leapd.lib</staticLibrary>
+			<buildCopy>lib/msw/$(PlatformTarget)/Leap.dll</buildCopy>
+			<staticLibrary>lib/msw/$(PlatformTarget)/Leap.lib</staticLibrary>
 		</platform>
 		<platform config="release">
-			<buildCopy>lib/msw/Leap.dll</buildCopy>
-			<staticLibrary>lib/msw/Leap.lib</staticLibrary>
+			<buildCopy>lib/msw/$(PlatformTarget)/Leap.dll</buildCopy>
+			<staticLibrary>lib/msw/$(PlatformTarget)/Leap.lib</staticLibrary>
 		</platform>
 	</platform>
 </block>
