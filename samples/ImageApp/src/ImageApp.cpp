@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -34,19 +34,18 @@
 * 
 */
 
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/App.h"
 #include "cinder/Camera.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapMotion.h"
 
-class ImageApp : public ci::app::AppBasic
+class ImageApp : public ci::app::App
 {
 public:
-	void						draw();
-	void						prepareSettings( ci::app::AppBasic::Settings* settings );
-	void						setup();
-	void						update();
+	void						draw() override;
+	void						setup() override;
+	void						update() override;
 private:
 	LeapMotion::DeviceRef		mDevice;
 	Leap::Frame					mFrame;
@@ -57,6 +56,7 @@ private:
 	void						screenShot();
 };
 
+#include "cinder/app/RendererGl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
@@ -67,7 +67,7 @@ using namespace std;
 
 void ImageApp::draw()
 {
-	gl::setViewport( getWindowBounds() );
+	gl::viewport( getWindowSize() );
 	gl::clear( Colorf::white() );
 	gl::setMatricesWindow( getWindowSize() );
 	gl::color( ColorAf::white() );
@@ -82,12 +82,6 @@ void ImageApp::draw()
 	}
 	
 	mParams->draw();
-}
-
-void ImageApp::prepareSettings( Settings* settings )
-{
-	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
 }
 
 void ImageApp::screenShot()
@@ -113,7 +107,7 @@ void ImageApp::setup()
 
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
 	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
 	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
 	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
@@ -129,4 +123,8 @@ void ImageApp::update()
 	}
 }
 
-CINDER_APP_BASIC( ImageApp, RendererGl )
+CINDER_APP( ImageApp, RendererGl, []( App::Settings* settings )
+{
+	settings->setWindowSize( 1024, 768 );
+	settings->setFrameRate( 60.0f );
+} )

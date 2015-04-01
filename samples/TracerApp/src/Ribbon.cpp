@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -36,13 +36,15 @@
 
 #include "Ribbon.h"
 
-#include "cinder/Utilities.h"
+#include "cinder/app/App.h"
 #include "cinder/gl/gl.h"
+#include "cinder/Utilities.h"
 
 using namespace ci;
+using namespace ci::app;
 using namespace std;
 
-Ribbon::Point::Point( const Vec3f& position, float width )
+Ribbon::Point::Point( const vec3& position, float width )
 {
 	mAlpha		= 1.0f;
 	mPosition	= position;
@@ -60,9 +62,14 @@ Ribbon::~Ribbon()
 	mPoints.clear();
 }
 
-void Ribbon::addPoint( const Vec3f& position, float width )
+void Ribbon::addPoint( const vec3& position, float width )
 {
-	Point point( position, width );
+	vec3 p( position );
+	if ( !mPoints.empty() ) {
+		p = glm::mix( mPoints.back().mPosition, position, vec3( 0.15f ) );
+	}
+
+	Point point( p, width );
 	mPoints.push_back( point );
 }
 
@@ -83,18 +90,18 @@ void Ribbon::draw() const
 		return;
 	}
 
-	glBegin( GL_TRIANGLES );
+	gl::begin( GL_TRIANGLES );
 	for ( size_t i = 0; i < count - 2; ++i ) {
         uint32_t index = i * 2;
 
-		Vec3f pos0 = mPositions.at( index + 0 );
-		Vec3f pos1 = mPositions.at( index + 1 );
-		Vec3f pos2 = mPositions.at( index + 2 );
-		Vec3f pos3 = mPositions.at( index + 3 );
+		vec3 pos0 = mPositions.at( index + 0 );
+		vec3 pos1 = mPositions.at( index + 1 );
+		vec3 pos2 = mPositions.at( index + 2 );
+		vec3 pos3 = mPositions.at( index + 3 );
 
 		ColorAf color( mColor, mPoints.at( i ).mAlpha );
 		gl::color( color );
-
+		
 		gl::vertex( pos0 );
 		gl::vertex( pos2 );
 		gl::vertex( pos1 );
@@ -102,15 +109,20 @@ void Ribbon::draw() const
 		gl::vertex( pos2 );
 		gl::vertex( pos3 );
     }
-	glEnd();
+	gl::end();
 }
 
 void Ribbon::update()
 {
-	for ( vector<Point>::iterator iter = mPoints.begin(); iter != mPoints.end(); ) {
+	float e = getElapsedSeconds() * 40.0f;
+	float i = 0.0f;
+	for ( vector<Point>::iterator iter = mPoints.begin(); iter != mPoints.end(); i += 1.0f ) {
 		iter->mAlpha		-= 0.01f;
-		iter->mWidth		-= 0.3f;
-		iter->mPosition.y	+= 1.0f;
+		iter->mWidth		-= 0.125f;
+		float t				= powf( i, 2.0f ) + e;
+		iter->mPosition.x	+= cosf( t ) * 0.3f;
+		iter->mPosition.y	+= sinf( t ) * 0.5f - 2.5f;
+
 		if ( iter->mAlpha <= 0.0f || iter->mWidth <= 0.0f ) {
 			iter = mPoints.erase( iter );
 		} else {
@@ -125,17 +137,17 @@ void Ribbon::update()
 			const Point& a	= mPoints.at( i );
 			const Point& b	= mPoints.at( i + 1 );
 
-			Vec3f pos0		= a.mPosition;
-			Vec3f pos1		= b.mPosition;
-			Vec3f dir		= pos0 - pos1;
-			dir.z			= 0.0f;
-			Vec3f tan		= dir.cross( Vec3f::zAxis() );
-			tan				= dir.cross( tan );
-			tan				= dir.cross( tan ).normalized();
-			Vec3f offset	= tan * a.mWidth;
+			vec3 pos0	= a.mPosition;
+			vec3 pos1	= b.mPosition;
+			vec3 dir0	= pos0 - pos1;
+			dir0.z		= 0.0f;
+			vec3 dir1	= glm::cross( dir0, vec3( 0.0f, 0.0f, 1.0f ) );
+			vec3 dir2	= glm::cross( dir0, dir1 );
+			dir1		= glm::normalize( glm::cross( dir0, dir2 ) );
+			vec3 offset	= dir1 * a.mWidth;
 
 			mPositions.push_back( pos0 - offset );
-			mPositions.push_back( pos1 + offset );
+			mPositions.push_back( pos0 + offset );
 		}
 	}
 }

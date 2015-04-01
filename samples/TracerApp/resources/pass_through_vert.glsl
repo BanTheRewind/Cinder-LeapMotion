@@ -1,7 +1,11 @@
-varying vec2	uv;
+#version 330 core
+
+in vec4		ciPosition;
+
+out vec2	vUv;
 
 void main( void )
 {
-	uv			= sign( gl_Vertex.xy );
-	gl_Position	= vec4( uv, 0.0, 1.0 ) - 0.5;
+	vUv			= sign( ciPosition.xy );
+	gl_Position	= vec4( vUv, 0.0, 1.0 ) - vec4( 0.5 );
 }

@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2014, Ban the Rewind
+* Copyright (c) 2015, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -34,31 +34,30 @@
 * 
 */
 
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/App.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/params/Params.h"
 
 #include "Cinder-LeapMotion.h"
 
-class GestureApp : public ci::app::AppBasic
+class GestureApp : public ci::app::App
 {
 public:
-	void					draw();
-	void					prepareSettings( ci::app::AppBasic::Settings* settings );
-	void					resize();
-	void					setup();
-	void					update();
+	void					draw() override;
+	void					resize() override;
+	void					setup() override;
+	void					update() override;
 private:
 	Leap::Frame				mFrame;
 	LeapMotion::DeviceRef	mDevice;
-	ci::Vec2f				warpPointable( const Leap::Pointable& p );
-	ci::Vec2f				warpVector( const Leap::Vector& v );
+	ci::vec2				warpPointable( const Leap::Pointable& p );
+	ci::vec2				warpVector( const Leap::Vector& v );
 	
 	float					mBackgroundBrightness;
 	ci::Colorf				mBackgroundColor;
 	int32_t					mCircleResolution;
 	float					mDialBrightness;
-	ci::Vec2f				mDialPosition;
+	ci::vec2				mDialPosition;
 	float					mDialRadius;
 	float					mDialSpeed;
 	float					mDialValue;
@@ -69,7 +68,7 @@ private:
 	float					mKeySpacing;
 	ci::Rectf				mKeyRect;
 	float					mKeySize;
-	ci::Vec2f				mOffset;
+	ci::vec2				mOffset;
 	float					mPointableRadius;
 	float					mSwipeBrightness;
 	float					mSwipePos;
@@ -89,10 +88,10 @@ private:
 	};
 	std::vector<Key>		mKeys;
 
-	void					drawDottedCircle( const ci::Vec2f& center, float radius,
+	void					drawDottedCircle( const ci::vec2& center, float radius,
 											 float dotRadius, int32_t resolution,
 											 float progress = 1.0f );
-	void					drawDottedRect( const ci::Vec2f& center, const ci::Vec2f& size );
+	void					drawDottedRect( const ci::vec2& center, const ci::vec2& size );
 	void					drawGestures();
 	void					drawPointables();
 	void					drawUi();
@@ -103,6 +102,7 @@ private:
 	void						screenShot();
 };
 
+#include "cinder/app/RendererGl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
@@ -113,7 +113,7 @@ using namespace std;
 
 void GestureApp::draw()
 {
-	gl::setViewport( getWindowBounds() );
+	gl::viewport( getWindowSize() );
 	gl::clear( mBackgroundColor + Colorf::gray( mBackgroundBrightness ) );
 	gl::setMatricesWindow( getWindowSize() );
 	gl::enableAlphaBlending();
@@ -132,7 +132,7 @@ void GestureApp::draw()
 	mParams->draw();
 }
 
-void GestureApp::drawDottedCircle( const Vec2f& center, float radius, float dotRadius,
+void GestureApp::drawDottedCircle( const vec2& center, float radius, float dotRadius,
 								  int32_t resolution, float progress )
 {
 	float twoPi		= (float)M_PI * 2.0f;
@@ -143,15 +143,15 @@ void GestureApp::drawDottedCircle( const Vec2f& center, float radius, float dotR
 		float x		= math<float>::cos( t );
 		float y		= math<float>::sin( t );
 		
-		Vec2f pos	= center + Vec2f( x, y ) * radius;
+		vec2 pos	= center + vec2( x, y ) * radius;
 		gl::drawSolidCircle( pos, dotRadius, 32 );
 	}
 }
 
-void GestureApp::drawDottedRect( const Vec2f& center, const Vec2f& size )
+void GestureApp::drawDottedRect( const vec2& center, const vec2& size )
 {
 	Rectf rect( center - size, center + size );
-	Vec2f pos = rect.getUpperLeft();
+	vec2 pos = rect.getUpperLeft();
 	while ( pos.x < rect.getX2() ) {
 		gl::drawSolidCircle( pos, mDotRadius, mCircleResolution );
 		pos.x += mDotSpacing;
@@ -181,26 +181,26 @@ void GestureApp::drawGestures()
 		if ( type == Leap::Gesture::Type::TYPE_CIRCLE ) {
 			const Leap::CircleGesture& gesture = (Leap::CircleGesture)*iter;
 						
-			Vec2f pos	= warpVector( gesture.center() );
+			vec2 pos	= warpVector( gesture.center() );
 			float progress	= gesture.progress();
 			float radius	= gesture.radius() * 2.0f;
 			
 			drawDottedCircle( pos, radius, mDotRadius, mCircleResolution, progress );
 		} else if ( type == Leap::Gesture::Type::TYPE_KEY_TAP ) {
 			const Leap::KeyTapGesture& gesture = (Leap::KeyTapGesture)*iter;
-			Vec2f center = warpVector( gesture.position() );
+			vec2 center = warpVector( gesture.position() );
 			
-			Vec2f size( 30.0f, 30.0f );
+			vec2 size( 30.0f, 30.0f );
 			drawDottedRect( center, size );
 		} else if ( type == Leap::Gesture::Type::TYPE_SCREEN_TAP ) {
 			
-			Vec2f center = getWindowCenter();
-			Vec2f size( 300.0f, 300.0f );
+			vec2 center = getWindowCenter();
+			vec2 size( 300.0f, 300.0f );
 			drawDottedRect( center, size );
 		} else if ( type == Leap::Gesture::Type::TYPE_SWIPE ) {
 			const Leap::SwipeGesture& gesture = (Leap::SwipeGesture)*iter;
-			ci::Vec2f a	= warpVector( gesture.startPosition() );
-			ci::Vec2f b	= warpVector( gesture.position() );
+			ci::vec2 a	= warpVector( gesture.startPosition() );
+			ci::vec2 b	= warpVector( gesture.position() );
 			
 			float spacing = mDotRadius * 3.0f;
 			float direction = 1.0f;
@@ -209,7 +209,7 @@ void GestureApp::drawGestures()
 				swap( a, b );
 			}
 
-			Vec2f pos = a;
+			vec2 pos = a;
 			while ( pos.x <= b.x ) {
 				pos.x += spacing;
 				gl::drawSolidCircle( pos, mDotRadius, 32 );
@@ -224,11 +224,11 @@ void GestureApp::drawGestures()
 			}
 			pos.y		= a.y;
 			pos.x		+= spacing;
-			gl::drawSolidCircle( pos + Vec2f( 0.0f, spacing ), mDotRadius, 32 );
-			gl::drawSolidCircle( pos + Vec2f( 0.0f, spacing * -1.0f ), mDotRadius, 32 );
+			gl::drawSolidCircle( pos + vec2( 0.0f, spacing ), mDotRadius, 32 );
+			gl::drawSolidCircle( pos + vec2( 0.0f, spacing * -1.0f ), mDotRadius, 32 );
 			pos.x		+= spacing;
-			gl::drawSolidCircle( pos + Vec2f( 0.0f, spacing * 2.0f ), mDotRadius, 32 );
-			gl::drawSolidCircle( pos + Vec2f( 0.0f, spacing * -2.0f ), mDotRadius, 32 );
+			gl::drawSolidCircle( pos + vec2( 0.0f, spacing * 2.0f ), mDotRadius, 32 );
+			gl::drawSolidCircle( pos + vec2( 0.0f, spacing * -2.0f ), mDotRadius, 32 );
 		}
 	}
 }
@@ -243,7 +243,7 @@ void GestureApp::drawPointables()
 		for ( Leap::PointableList::const_iterator pointIter = pointables.begin(); pointIter != pointables.end(); ++pointIter ) {
 			const Leap::Pointable& pointable = *pointIter;
 			
-			Vec2f pos( warpPointable( pointable ) );
+			vec2 pos( warpPointable( pointable ) );
 			drawDottedCircle( pos, mPointableRadius, mDotRadius * 0.5f, mCircleResolution / 2 );
 		}
 	}
@@ -256,7 +256,7 @@ void GestureApp::drawUi()
 	gl::drawSolidCircle( mDialPosition, mDialRadius, mCircleResolution * 2 );
 	gl::color( mBackgroundColor );
 	float angle = mDialValue * (float)M_PI * 2.0f;
-	Vec2f pos( math<float>::cos( angle ), math<float>::sin( angle ) );
+	vec2 pos( math<float>::cos( angle ), math<float>::sin( angle ) );
 	pos *= mDialRadius - mDotSpacing;
 	gl::drawSolidCircle( mDialPosition + pos, mDotRadius, mCircleResolution );
 	
@@ -276,17 +276,10 @@ void GestureApp::drawUi()
 	}
 }
 
-// Prepare window
-void GestureApp::prepareSettings( Settings* settings )
-{
-	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
-}
-
 // Handles window resize
 void GestureApp::resize()
 {
-	mOffset = getWindowCenter() - Vec2f::one() * 320.0f;
+	mOffset = getWindowCenter() - vec2( 1.0f ) * 320.0f;
 }
 
 // Take screen shot
@@ -310,7 +303,7 @@ void GestureApp::setup()
 	mBackgroundColor		= Colorf( 0.0f, 0.1f, 0.2f );
 	mCircleResolution		= 32;
 	mDialBrightness			= 0.0f;
-	mDialPosition			= Vec2f( 155.0f, 230.0f );
+	mDialPosition			= vec2( 155.0f, 230.0f );
 	mDialRadius				= 120.0f;
 	mDialSpeed				= 0.21f;
 	mDialValue				= 0.0f;
@@ -379,7 +372,7 @@ void GestureApp::setup()
 	
 	mFrameRate	= 0.0f;
 	mFullScreen	= false;
-	mParams = params::InterfaceGl::create( "Params", Vec2i( 200, 105 ) );
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
 	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
 	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
 	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
@@ -405,7 +398,7 @@ void GestureApp::update()
 			mDialValueDest	= gesture.progress();
 		} else if ( type == Leap::Gesture::Type::TYPE_KEY_TAP ) {
 			const Leap::KeyTapGesture& gesture = (Leap::KeyTapGesture)*iter;
-			Vec2f center	= warpVector( gesture.position() );
+			vec2 center	= warpVector( gesture.position() );
 			center			-= mOffset;
 			
 			for ( vector<Key>::iterator keyIter = mKeys.begin(); keyIter != mKeys.end(); ++keyIter ) {
@@ -418,8 +411,8 @@ void GestureApp::update()
 			mBackgroundBrightness = 1.0f;
 		} else if ( type == Leap::Gesture::Type::TYPE_SWIPE ) {
 			const Leap::SwipeGesture& swipeGesture = (Leap::SwipeGesture)gesture;
-			ci::Vec2f a	= warpVector( swipeGesture.startPosition() );
-			ci::Vec2f b	= warpVector( swipeGesture.position() );
+			ci::vec2 a	= warpVector( swipeGesture.startPosition() );
+			ci::vec2 b	= warpVector( swipeGesture.position() );
 			
 			mSwipeBrightness	= 1.0f;
 			if ( gesture.state() == Leap::Gesture::State::STATE_STOP ) {
@@ -442,30 +435,34 @@ void GestureApp::update()
 	}
 }
 
-Vec2f GestureApp::warpPointable( const Leap::Pointable& p )
+vec2 GestureApp::warpPointable( const Leap::Pointable& p )
 {
-	Vec3f result	= Vec3f::zero();
+	vec3 result( 0.0f );
 	if ( mDevice ) {
 		const Leap::Screen& screen = mDevice->getController()->locatedScreens().closestScreenHit( p );
 		
-		result		= LeapMotion::toVec3f( screen.intersect( p, true, 1.0f ) );
+		result	= LeapMotion::toVec3( screen.intersect( p, true, 1.0f ) );
 	}
-	result			*= Vec3f( Vec2f( getWindowSize() ), 0.0f );
-	result.y		= (float)getWindowHeight() - result.y;
-	return result.xy();
+	result		*= vec3( vec2( getWindowSize() ), 0.0f );
+	result.y	= (float)getWindowHeight() - result.y;
+	return vec2( result.x, result.y );
 }
 
-Vec2f GestureApp::warpVector( const Leap::Vector& v )
+vec2 GestureApp::warpVector( const Leap::Vector& v )
 {
-	Vec3f result	= Vec3f::zero();
+	vec3 result( 0.0f );
 	if ( mDevice ) {
 		const Leap::Screen& screen = mDevice->getController()->locatedScreens().closestScreen( v );
 		
-		result		= LeapMotion::toVec3f( screen.project( v, true ) );
+		result	= LeapMotion::toVec3( screen.project( v, true ) );
 	}
-	result			*= Vec3f( getWindowSize(), 0.0f );
-	result.y		= (float)getWindowHeight() - result.y;
-	return result.xy();
+	result		*= vec3( getWindowSize(), 0.0f );
+	result.y	= (float)getWindowHeight() - result.y;
+	return vec2( result.x, result.y );
 }
 
-CINDER_APP_BASIC( GestureApp, RendererGl )
+CINDER_APP( GestureApp, RendererGl, []( App::Settings* settings )
+{
+	settings->setWindowSize( 1024, 768 );
+	settings->setFrameRate( 60.0f );
+} )
