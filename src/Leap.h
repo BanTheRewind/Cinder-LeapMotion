@@ -3036,6 +3036,22 @@ namespace Leap {
       memcpy(dst, src, distortionWidth() * distortionHeight() * sizeof(float));
     }
 
+    /* Do not call dataPointer(). It is intended only as a helper for C#.
+     *
+     * @since 2.3.0
+     */
+    void* dataPointer() const {
+      return (void*) data();
+    }
+
+    /* Do not call distortionPointer(). It is intended only as a helper for C#.
+     *
+     * @since 2.3.0
+     */
+    void* distortionPointer() const {
+      return (void*) distortion();
+    }
+
     /**
      * The image width.
      *
