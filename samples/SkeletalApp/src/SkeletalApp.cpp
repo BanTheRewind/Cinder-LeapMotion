@@ -49,7 +49,6 @@ public:
 private:
 	LeapMotion::DeviceRef		mDevice;
 	Leap::Frame					mFrame;
-	void 						onFrame( Leap::Frame frame );
 
 	ci::CameraPersp				mCamera;
 
@@ -124,11 +123,6 @@ void SkeletalApp::draw()
 	}
 
 	mParams->draw();
-}
-
-void SkeletalApp::onFrame( Leap::Frame frame )
-{
-	mFrame = frame;
 }
 
 void SkeletalApp::screenShot()
