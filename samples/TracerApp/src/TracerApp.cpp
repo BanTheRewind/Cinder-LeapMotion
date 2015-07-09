@@ -36,9 +36,7 @@
 
 #include "cinder/app/App.h"
 #include "cinder/Camera.h"
-#include "cinder/gl/Fbo.h"
-#include "cinder/gl/GlslProg.h"
-#include "cinder/gl/Shader.h"
+#include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapMotion.h"
 #include "Ribbon.h"
