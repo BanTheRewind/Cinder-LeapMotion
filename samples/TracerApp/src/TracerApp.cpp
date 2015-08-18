@@ -218,7 +218,7 @@ void TracerApp::update()
 			if ( finger.isExtended() ) {
 				int32_t id = finger.id();
 				if ( mRibbons.find( id ) == mRibbons.end() ) {
-					vec3 v = randVec3f();
+					vec3 v = randVec3();
 					v.x = math<float>::abs( v.x );
 					v.y = math<float>::abs( v.y );
 					v.z = math<float>::abs( v.z );
