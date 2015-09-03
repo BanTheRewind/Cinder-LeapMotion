@@ -39,27 +39,27 @@
 #include "Leap.h"
 #include "cinder/Channel.h"
 #include "cinder/Matrix.h"
-#include "cinder/Thread.h"
 #include "cinder/Vector.h"
 #include <functional>
+#include <mutex>
 
 namespace LeapMotion {
 
 /*! Converts a native Leap image into a Cinder channel.
     Set \a copyData to true makes channel own data (slower). */
-ci::Channel8u	toChannel8u( const Leap::Image& img, bool copyData = false );
+ci::Channel8uRef	toChannel8u( const Leap::Image& img, bool copyData = false );
 //! Converts a native Leap 3x3 matrix into a Cinder one.
-ci::mat3		toMat3( const Leap::Matrix& m );
+ci::mat3			toMat3( const Leap::Matrix& m );
 //! Converts a native Leap 4x4 matrix into a Cinder one.
-ci::mat4		toMat4( const Leap::Matrix& m );
+ci::mat4			toMat4( const Leap::Matrix& m );
 //! Converts a Cinder 3x3 matrix into a native Leap one.
-Leap::Matrix	toLeapMatrix( const ci::mat3& m );
+Leap::Matrix		toLeapMatrix( const ci::mat3& m );
 //! Converts a Cinder 4x4 matrix into a native Leap one.
-Leap::Matrix	toLeapMatrix( const ci::mat4 m );
+Leap::Matrix		toLeapMatrix( const ci::mat4 m );
 //! Converts a Cinder vector into a native Leap one.
-Leap::Vector	toLeapVector( const ci::vec3& v );
+Leap::Vector		toLeapVector( const ci::vec3& v );
 //! Converts a native Leap vector into a Cinder one.
-ci::vec3		toVec3( const Leap::Vector& v );
+ci::vec3			toVec3( const Leap::Vector& v );
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -81,7 +81,7 @@ protected:
 	volatile bool	mExited;
 	volatile bool	mFocused;
 	volatile bool	mInitialized;
-	std::mutex		*mMutex;
+	std::mutex*		mMutex;
 	volatile bool	mNewFrame;
 
 	Leap::Frame		mFrame;

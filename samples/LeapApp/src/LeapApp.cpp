@@ -43,8 +43,9 @@
 class LeapApp : public ci::app::App
 {
 public:
+	LeapApp();
+
 	void						draw() override;
-	void						setup() override;
 	void						update() override;
 private:
 	LeapMotion::DeviceRef		mDevice;
@@ -68,13 +69,38 @@ using namespace ci::app;
 using namespace LeapMotion;
 using namespace std;
 
+LeapApp::LeapApp()
+{
+	mFrameRate	= 0.0f;
+	mFullScreen	= false;
+
+	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 1.0f, 1000.0f );
+	mCamera.lookAt( vec3( 0.0f, 250.0f, 500.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
+	
+	mDevice = Device::create();
+	mDevice->connectEventHandler( &LeapApp::onFrame, this );
+
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
+	mParams->addParam( "Frame rate",	&mFrameRate,						"", true );
+	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
+	mParams->addButton( "Screen shot",	bind( &LeapApp::screenShot, this ),	"key=space" );
+	mParams->addButton( "Quit",			bind( &LeapApp::quit, this ),		"key=q" );
+
+	gl::enable( GL_LINE_SMOOTH );
+	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST );
+	gl::enable( GL_POLYGON_SMOOTH );
+	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+	gl::enableVerticalSync();
+}
+
 void LeapApp::draw()
 {
-	gl::viewport( getWindowSize() );
+	const gl::ScopedViewport scopedViewport( ivec2( 0 ), getWindowSize() );
+	const gl::ScopedMatrices scopedMatrices;
+	const gl::ScopedBlendAlpha scopedBlendAlpha;
 	gl::clear( Colorf::white() );
 	gl::setMatrices( mCamera );
 
-	gl::enableAlphaBlending();
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
 	
@@ -85,40 +111,49 @@ void LeapApp::draw()
 		const Leap::Hand& hand = *handIter;
 
 		// Get hand data
-		vec3 handDir		= LeapMotion::toVec3( hand.direction() );
-		vec3 palmNorm		= LeapMotion::toVec3( hand.palmNormal() );
-		vec3 palmPos		= LeapMotion::toVec3( hand.palmPosition() );
-		vec3 palmVel		= LeapMotion::toVec3( hand.palmVelocity() );
-		vec3 sphereCenter	= LeapMotion::toVec3( hand.sphereCenter() );
-		float sphereRadius	= hand.sphereRadius();
-		
+		const vec3 handDir			= LeapMotion::toVec3( hand.direction() );
+		const vec3 palmNorm			= LeapMotion::toVec3( hand.palmNormal() );
+		const vec3 palmPos			= LeapMotion::toVec3( hand.palmPosition() );
+		const vec3 palmVel			= LeapMotion::toVec3( hand.palmVelocity() );
+		const vec3 sphereCenter		= LeapMotion::toVec3( hand.sphereCenter() );
+		const float sphereRadius	= hand.sphereRadius();
+
 		// Hand sphere
-		gl::enableWireframe();
-		gl::color( ColorAf( Colorf::gray( 0.9f ), 0.5f ) );
-		gl::drawSphere( sphereCenter, sphereRadius, 16 );
-		gl::disableWireframe();
+		{
+			const gl::ScopedColor scopedColor( ColorAf( Colorf::gray( 0.9f ), 0.5f ) );
+			gl::enableWireframe();
+			gl::drawSphere( sphereCenter, sphereRadius, 16 );
+			gl::disableWireframe();
+		}
 
 		// Hand plane
-		gl::color( ColorAf( 0.75f, 0.0f, 0.75f, 0.25f ) );
-		gl::pushMatrices();
-		gl::translate( palmPos );
-		gl::rotate( quat( palmPos, handDir ) );
-		for ( float i = 0.25f; i <= 1.0f; i += 0.25f ) {
-			gl::drawStrokedCircle( vec2( 0.0f ), sphereRadius * i, 16 );
+		{
+			const gl::ScopedColor scopedColor( ColorAf( 0.75f, 0.0f, 0.75f, 0.25f ) );
+			const gl::ScopedModelMatrix scopedModelMatrix;
+			gl::translate( palmPos );
+			gl::rotate( quat( palmPos, handDir ) );
+			for ( float i = 0.25f; i <= 1.0f; i += 0.25f ) {
+				gl::drawStrokedCircle( vec2( 0.0f ), sphereRadius * i, 16 );
+			}
 		}
-		gl::popMatrices();
 
 		// Hand direction
-		gl::color( 1.0f, 0.0f, 1.0f, 0.5f );
-		gl::drawVector( palmPos, palmPos + handDir * 30.0f, headLength, headRadius );
+		{
+			const gl::ScopedColor scopedColor( ColorAf( 1.0f, 0.0f, 1.0f, 0.5f ) );
+			gl::drawVector( palmPos, palmPos + handDir * 30.0f, headLength, headRadius );
+		}
 
 		// Hand normal
-		gl::color( 0.0f, 0.0f, 1.0f, 0.5f );
-		gl::drawVector( palmPos, palmPos + palmNorm * 30.0f, headLength, headRadius );
+		{
+			const gl::ScopedColor scopedColor( ColorAf( 0.0f, 0.0f, 1.0f, 0.5f ) );
+			gl::drawVector( palmPos, palmPos + palmNorm * 30.0f, headLength, headRadius );
+		}
 
 		// Hand velocity
-		gl::color( 0.0f, 1.0f, 0.0f, 0.5f );
-		gl::drawVector( palmPos, palmPos + palmVel * 0.05f, headLength, headRadius );
+		{
+			const gl::ScopedColor scopedColor( ColorAf( 0.0f, 1.0f, 0.0f, 0.5f ) );
+			gl::drawVector( palmPos, palmPos + palmVel * 0.05f, headLength, headRadius );
+		}
 
 		// Fingers
 		const Leap::PointableList& pointables = hand.pointables();
@@ -126,29 +161,33 @@ void LeapApp::draw()
 			const Leap::Pointable& pointable = *pointIter;
 
 			// Get pointable data
-			vec3 dir		= LeapMotion::toVec3( pointable.direction() );
-			bool isTool		= pointable.isTool();
-			float length	= pointable.length();
-			vec3 tipPos		= LeapMotion::toVec3( pointable.tipPosition() );
-			vec3 tipVel		= LeapMotion::toVec3( pointable.tipVelocity() );
-			float width		= pointable.width();
-			vec3 basePos	= tipPos + dir * -length;
+			const vec3 dir		= LeapMotion::toVec3( pointable.direction() );
+			const bool isTool	= pointable.isTool();
+			const float length	= pointable.length();
+			const vec3 tipPos	= LeapMotion::toVec3( pointable.tipPosition() );
+			const vec3 tipVel	= LeapMotion::toVec3( pointable.tipVelocity() );
+			const float width	= pointable.width();
+			const vec3 basePos	= tipPos + dir * -length;
 			
 			// Draw line representing pointable's length
-			gl::color( ColorAf::gray( 0.3f ) );
-			gl::drawLine( basePos, tipPos );
+			{
+				const gl::ScopedColor scopedColor( ColorAf::gray( 0.3f ) );
+				gl::drawLine( basePos, tipPos );
+			}
 
 			// Tip position
-			Colorf color = isTool ? Colorf( 1.0f, 0.0f, 0.0f ) : Colorf::black();
-			gl::color( color );
-			gl::pushMatrices();
-			gl::translate( tipPos );
-			gl::drawStrokedCircle( vec2( 0.0f ), width, 16 );
-			gl::popMatrices();
+			{
+				const gl::ScopedColor scopedColor( isTool ? Colorf( 1.0f, 0.0f, 0.0f ) : Colorf::black() );
+				const gl::ScopedModelMatrix scopedModelMatrix;
+				gl::translate( tipPos );
+				gl::drawStrokedCircle( vec2( 0.0f ), width, 16 );
+			}
 
 			// Finger velocity
-			gl::color( 0.0f, 1.0f, 0.0f, 0.5f );
-			gl::drawVector( tipPos, tipPos + tipVel * 0.05f, headLength, headRadius );
+			{
+				const gl::ScopedColor scopedColor( ColorAf( 0.0f, 1.0f, 0.0f, 0.5f ) );
+				gl::drawVector( tipPos, tipPos + tipVel * 0.05f, headLength, headRadius );
+			}
 		}
 	}
 	
@@ -162,34 +201,7 @@ void LeapApp::onFrame( Leap::Frame frame )
 
 void LeapApp::screenShot()
 {
-#if defined( CINDER_MSW )
-	fs::path path = getAppPath();
-#else
-	fs::path path = getAppPath().parent_path();
-#endif
-	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
-}
-
-void LeapApp::setup()
-{
-	gl::enable( GL_LINE_SMOOTH );
-	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ); 
-	gl::enable( GL_POLYGON_SMOOTH );
-	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
-
-	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 1.0f, 1000.0f );
-	mCamera.lookAt( vec3( 0.0f, 250.0f, 500.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
-	
-	mDevice = Device::create();
-	mDevice->connectEventHandler( &LeapApp::onFrame, this );
-
-	mFrameRate	= 0.0f;
-	mFullScreen	= false;
-	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
-	mParams->addParam( "Frame rate",	&mFrameRate,						"", true );
-	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
-	mParams->addButton( "Screen shot",	bind( &LeapApp::screenShot, this ),	"key=space" );
-	mParams->addButton( "Quit",			bind( &LeapApp::quit, this ),		"key=q" );
+	writeImage( getAppPath() / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
 void LeapApp::update()
@@ -204,5 +216,5 @@ void LeapApp::update()
 CINDER_APP( LeapApp, RendererGl, []( App::Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
+	settings->disableFrameRate();
 } )

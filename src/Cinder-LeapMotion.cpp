@@ -44,16 +44,16 @@ using namespace std;
 
 namespace LeapMotion {
 
-Channel8u toChannel8u( const Leap::Image& img, bool copyData )
+Channel8uRef toChannel8u( const Leap::Image& img, bool copyData )
 {
 	int32_t h = img.height();
 	int32_t w = img.width();
-	Channel8u channel;
+	Channel8uRef channel;
 	if ( copyData ) {
-		channel = Channel8u( w, h );
-		char_traits<uint8_t>::copy( channel.getData(), img.data(), w * h * sizeof( uint8_t ) );
+		channel = Channel8u::create( w, h );
+		char_traits<uint8_t>::copy( channel->getData(), img.data(), w * h * sizeof( uint8_t ) );
 	} else {
-		channel = Channel8u( w, h, w * sizeof( uint8_t ), sizeof( uint8_t ), (uint8_t*)img.data() );
+		channel = Channel8u::create( w, h, w * sizeof( uint8_t ), sizeof( uint8_t ), (uint8_t*)img.data() );
 	}
 	return channel;
 }

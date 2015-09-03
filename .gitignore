@@ -9,6 +9,7 @@ DerivedData
 ipch
 Debug
 Release
+.vs
 *.opensdf
 *.sdf
 *.suo
