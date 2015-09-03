@@ -4671,7 +4671,10 @@ namespace Leap {
     LEAP_EXPORT int64_t id() const;
 
     /**
-     * The frame capture time in microseconds elapsed since the Leap started.
+     * The frame capture time in microseconds elapsed since an arbitrary point in 
+     * time in the past.
+     *
+     * Use Controller::now() to calculate the age of the frame.
      *
      * \include Frame_timestamp.txt
      *
