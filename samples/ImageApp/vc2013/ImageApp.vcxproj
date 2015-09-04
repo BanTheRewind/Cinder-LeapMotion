@@ -123,7 +123,7 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy "..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(ProjectDir)bin\" /Y /C</Command>
+      <Command>xcopy "$(SolutionDir)..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(SolutionDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\..\include</AdditionalIncludeDirectories>
@@ -152,7 +152,7 @@
       <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy "..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(ProjectDir)bin\" /Y /C</Command>
+      <Command>xcopy "$(SolutionDir)..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(SolutionDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\..\include</AdditionalIncludeDirectories>
@@ -186,7 +186,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy "..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(ProjectDir)bin\" /Y /C</Command>
+      <Command>xcopy "$(SolutionDir)..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(SolutionDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\..\include</AdditionalIncludeDirectories>
@@ -219,7 +219,7 @@
       </DataExecutionPrevention>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy "..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(ProjectDir)bin\" /Y /C</Command>
+      <Command>xcopy "$(SolutionDir)..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(SolutionDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
       <AdditionalIncludeDirectories>..\..\..\..\..\include</AdditionalIncludeDirectories>

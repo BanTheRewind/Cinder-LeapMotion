@@ -44,9 +44,10 @@
 class TracerApp : public ci::app::App
 {
 public:
+	TracerApp();
+
 	void						draw() override;
 	void						resize() override;
-	void						setup() override;
 	void						update() override;
 private:
 	RibbonMap					mRibbons;
@@ -54,8 +55,8 @@ private:
 	Leap::Frame					mFrame;
 	LeapMotion::DeviceRef		mDevice;
 	
+	ci::gl::BatchRef			mBatchBlur;
 	ci::gl::FboRef				mFbo[ 3 ];
-	ci::gl::GlslProgRef			mGlslProg[ 2 ];
 
 	ci::CameraPersp				mCamera;
 
@@ -68,20 +69,58 @@ private:
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/Context.h"
 #include "cinder/ImageIo.h"
+#include "cinder/Log.h"
 #include "cinder/Rand.h"
 #include "cinder/Utilities.h"
 #include "Resources.h"
 
-// Imports
 using namespace ci;
 using namespace ci::app;
 using namespace LeapMotion;
 using namespace std;
+TracerApp::TracerApp()
+{
+	mFrameRate = 0.0f;
+	mFullScreen = isFullScreen();
+
+	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
+	mCamera.lookAt( vec3( 0.0f, 93.75f, 250.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
+
+	mDevice = Device::create();
+	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
+	{
+		mFrame = frame;
+	} );
+
+	gl::GlslProgRef glsl;
+	try {
+		glsl = gl::GlslProg::create( gl::GlslProg::Format()
+			.vertex( loadResource( RES_GLSL_PASS_THROUGH_VERT ) )
+			.fragment( loadResource( RES_GLSL_BLUR_FRAG ) )
+			.version( 330 ) );
+	} catch ( gl::GlslProgCompileExc ex ) {
+		CI_LOG_V( "Unable to compile blur X shader: \n" << string( ex.what() ) );
+		quit();
+		return;
+	}
+
+	glsl->uniform( "uSampler", 0 );
+	mBatchBlur = gl::Batch::create( geom::Rect()
+		.texCoords( vec2( 0.0f ), vec2( 1.0f, 0.0f ), vec2( 1.0f ), vec2( 0.0f, 1.0f ) ),
+		glsl );
+
+	resize();
+
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
+	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
+	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
+	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
+	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
+}
 
 void TracerApp::draw()
 {
-	gl::viewport( getWindowSize() );
-	gl::enableAlphaBlending();
+	const gl::ScopedViewport scopedViewport( ivec2( 0 ), getWindowSize() );
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
 
@@ -90,57 +129,60 @@ void TracerApp::draw()
 		gl::ScopedFramebuffer scopedFramebuffer( mFbo[ 0 ] );
 
 		// Dim last frame
-		gl::setMatricesWindow( getWindowSize() );
-		gl::color( ColorAf( Colorf::black(), 0.075f ) );
-		gl::color( Colorf::black() );
-		gl::drawSolidRect( Rectf( mFbo[ 0 ]->getBounds() ) );
+		{
+			const gl::ScopedMatrices scopedMatrices;
+			const gl::ScopedBlendAlpha scopedBlendAlpha;
+			const gl::ScopedColor scopedColor( ColorAf( Colorf::black(), 0.075f ) );
+			gl::setMatricesWindow( getWindowSize() );
+			gl::drawSolidRect( Rectf( mFbo[ 0 ]->getBounds() ) );
+		}
 
 		// Draw finger tips into the accumulation buffer
-		gl::setMatrices( mCamera );
-		gl::enableAdditiveBlending();
-		for ( RibbonMap::const_iterator iter = mRibbons.begin(); iter != mRibbons.end(); ++iter ) {
-			iter->second.draw();
+		{
+			const gl::ScopedMatrices scopedMatrices;
+			const gl::ScopedBlendAdditive scopedBlendAdditive;
+			gl::setMatrices( mCamera );
+			for ( RibbonMap::const_iterator iter = mRibbons.begin(); iter != mRibbons.end(); ++iter ) {
+				iter->second.draw();
+			}
 		}
 	}
 
+	const gl::ScopedMatrices scopedMatrices;
 	gl::setMatricesWindow( getWindowSize() );
 	gl::disableDepthRead();
 	gl::disableDepthWrite();
-	gl::color( ColorAf::white() );
 
 	// Blur the accumulation buffer
-	vec2 pixel	= ( vec2( 1.0f ) / vec2( mFbo[ 0 ]->getSize() ) ) * 3.0f;
+	vec2 pixel = ( vec2( 1.0f ) / vec2( mFbo[ 0 ]->getSize() ) ) * 3.0f;
 	for ( size_t i = 0; i < 2; ++i ) {
 		gl::ScopedFramebuffer scopedFramebuffer( mFbo[ i + 1 ] );
 		gl::clear();
-		gl::ScopedGlslProg scopedGlslProg( mGlslProg[ i ] );
+		const gl::ScopedModelMatrix scopedModelMatrix;
 		gl::ScopedTextureBind scopedTextureBind( mFbo[ i ]->getColorTexture() );
-		
-		mGlslProg[ i ]->uniform( "uSize",		pixel );
-		mGlslProg[ i ]->uniform( "uTexture",	0 );
-
-		gl::drawSolidRect( getWindowBounds() );
+		mBatchBlur->getGlslProg()->uniform( "uSize", pixel * ( i == 0 ? vec2( 1.0f, 0.0f ) : vec2( 0.0f, 1.0f ) ) );
+		gl::translate( getWindowCenter() );
+		gl::scale( getWindowSize() );
+		mBatchBlur->draw();
 	}
 
 	// Draw blurred image
 	gl::clear();
-	
-	gl::color( ColorAf::white() );
-	gl::draw( mFbo[ 0 ]->getColorTexture(), getWindowBounds() );
-	gl::color( ColorAf( Colorf::white(), 0.8f ) );
-	gl::draw( mFbo[ 2 ]->getColorTexture(), getWindowBounds() );
+	{
+		const gl::ScopedColor scopedColor( ColorAf::white() );
+		gl::draw( mFbo[ 0 ]->getColorTexture(), getWindowBounds() );
+	}
+	{
+		const gl::ScopedColor scopedColor( ColorAf( Colorf::white(), 0.8f ) );
+		gl::draw( mFbo[ 2 ]->getColorTexture(), getWindowBounds() );
+	}
 
 	mParams->draw();
 }
 
 void TracerApp::screenShot()
 {
-#if defined( CINDER_MSW )
-	fs::path path = getAppPath();
-#else
-	fs::path path = getAppPath().parent_path();
-#endif
-	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
+	writeImage( getAppPath() / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
 void TracerApp::resize()
@@ -159,43 +201,6 @@ void TracerApp::resize()
 		gl::viewport( mFbo[ i ]->getSize() );
 		gl::clear();
 	}
-}
-
-void TracerApp::setup()
-{
-	mFrameRate	= 0.0f;
-	mFullScreen	= isFullScreen();
-
-	mCamera	= CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
-	mCamera.lookAt( vec3( 0.0f, 93.75f, 250.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
-	
-	mDevice = Device::create();
-	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
-	{
-		mFrame = frame;
-	} );
-
-	// Compile shaders
-	try {
-		mGlslProg[ 0 ] = gl::GlslProg::create( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_X_FRAG ) );
-	} catch ( gl::GlslProgCompileExc ex ) {
-		console() << "Unable to compile blur X shader: \n" << string( ex.what() ) << "\n";
-		quit();
-	}
-	try {
-		mGlslProg[ 1 ] = gl::GlslProg::create( loadResource( RES_GLSL_PASS_THROUGH_VERT ), loadResource( RES_GLSL_BLUR_Y_FRAG ) );
-	} catch ( gl::GlslProgCompileExc ex ) {
-		console() << "Unable to compile blur Y shader: \n" << string( ex.what() ) << "\n";
-		quit();
-	}
-
-	resize();
-
-	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
-	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
-	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
-	mParams->addButton( "Screen shot",	[ &]() { screenShot(); },	"key=space" );
-	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
 }
 
 void TracerApp::update()
@@ -218,7 +223,7 @@ void TracerApp::update()
 			if ( finger.isExtended() ) {
 				int32_t id = finger.id();
 				if ( mRibbons.find( id ) == mRibbons.end() ) {
-					vec3 v = randVec3f();
+					vec3 v = randVec3();
 					v.x = math<float>::abs( v.x );
 					v.y = math<float>::abs( v.y );
 					v.z = math<float>::abs( v.z );

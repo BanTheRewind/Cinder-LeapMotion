@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -20,8 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\Cinder-LeapMotion.cpp" />
-    <ClCompile Include="..\src\Ribbon.cpp" />
-    <ClCompile Include="..\src\TracerApp.cpp" />
+    <ClCompile Include="..\src\ImageApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="cinder_app_icon.ico" />
@@ -33,16 +32,10 @@
     <ClInclude Include="..\..\..\src\Cinder-LeapMotion.h" />
     <ClInclude Include="..\..\..\src\Leap.h" />
     <ClInclude Include="..\..\..\src\LeapMath.h" />
-    <ClInclude Include="..\include\Resources.h" />
-    <ClInclude Include="..\include\Ribbon.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\resources\blur.frag" />
-    <None Include="..\resources\pass_through.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{74202EDD-91D2-4D2A-B0B6-355CEB16E6BE}</ProjectGuid>
-    <RootNamespace>TracerApp</RootNamespace>
+    <RootNamespace>ImageApp</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -50,23 +43,23 @@
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -108,7 +101,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\..\..\..\..\boost;..\..\..\src;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\..\..\..\..\boost;..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -133,13 +126,13 @@
       <Command>xcopy "$(SolutionDir)..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(SolutionDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\..\..\..\..\boost;..\..\..\src;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\..\..\..\..\boost;..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -162,12 +155,12 @@
       <Command>xcopy "$(SolutionDir)..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(SolutionDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\..\..\..\..\boost;..\..\..\src;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\..\..\..\..\boost;..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -196,12 +189,12 @@
       <Command>xcopy "$(SolutionDir)..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(SolutionDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\..\..\..\..\boost;..\..\..\src;..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\..\..\..\..\boost;..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader>
@@ -229,7 +222,7 @@
       <Command>xcopy "$(SolutionDir)..\..\..\lib\msw\$(PlatformTarget)\Leap.dll" "$(SolutionDir)bin\" /Y /C</Command>
     </PreBuildEvent>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\..\include;..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

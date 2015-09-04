@@ -43,8 +43,9 @@
 class ImageApp : public ci::app::App
 {
 public:
+	ImageApp();
+
 	void						draw() override;
-	void						setup() override;
 	void						update() override;
 private:
 	LeapMotion::DeviceRef		mDevice;
@@ -65,53 +66,61 @@ using namespace ci::app;
 using namespace LeapMotion;
 using namespace std;
 
-void ImageApp::draw()
+ImageApp::ImageApp()
 {
-	gl::viewport( getWindowSize() );
-	gl::clear( Colorf::white() );
-	gl::setMatricesWindow( getWindowSize() );
-	gl::color( ColorAf::white() );
+	mFrameRate = 0.0f;
+	mFullScreen = false;
 
-	size_t i = 0;
-	const Leap::ImageList& images = mFrame.images();
-	for ( Leap::ImageList::const_iterator iter = images.begin(); iter != images.end(); ++iter, ++i ) {
-		const Leap::Image& img = *iter;
-
-		Channel8u channel = LeapMotion::toChannel8u( img );
-		gl::draw( gl::Texture::create( channel ), channel.getBounds(), getWindowBounds() );
-	}
-	
-	mParams->draw();
-}
-
-void ImageApp::screenShot()
-{
-#if defined( CINDER_MSW )
-	fs::path path = getAppPath();
-#else
-	fs::path path = getAppPath().parent_path();
-#endif
-	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
-}
-
-void ImageApp::setup()
-{
-	gl::enable( GL_TEXTURE_2D );
-	
 	mDevice = Device::create();
 	mDevice->getController()->setPolicyFlags( Leap::Controller::POLICY_IMAGES );
-	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
+	mDevice->connectEventHandler( [ &]( Leap::Frame frame )
 	{
 		mFrame = frame;
 	} );
 
-	mFrameRate	= 0.0f;
-	mFullScreen	= false;
 	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
 	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
 	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
 	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
 	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
+
+	gl::color( ColorAf::white() );
+	gl::enableVerticalSync();
+}
+
+void ImageApp::draw()
+{
+	const gl::ScopedViewport scopedViewport( ivec2( 0 ), getWindowSize() );
+	const gl::ScopedMatrices scopedMatrices;
+	gl::clear( Colorf::white() );
+	gl::setMatricesWindow( getWindowSize() );
+	
+	const Leap::ImageList& images = mFrame.images();
+	int32_t count	= images.count();
+	if ( count > 0 ) {
+		Rectf bounds	= Rectf( getWindowBounds() ) / (float)count;
+		float x			= 0.0f;
+		const float y	= getWindowCenter().y - bounds.getHeight() * 0.5f;
+		int32_t i		= 0;
+		for ( Leap::ImageList::const_iterator iter = images.begin(); iter != images.end(); ++iter, ++i ) {
+			const Leap::Image& img	= *iter;
+			Channel8uRef channel	= LeapMotion::toChannel8u( img );
+			if ( channel ) {
+				const gl::ScopedModelMatrix scopedModelMatrix;
+				gl::translate( x, y );
+				const gl::Texture2dRef tex = gl::Texture::create( *channel );
+				gl::draw( tex, tex->getBounds(), bounds );
+			}
+			x += bounds.getWidth();
+		}
+	}
+
+	mParams->draw();
+}
+
+void ImageApp::screenShot()
+{
+	writeImage( getAppPath() / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
 void ImageApp::update()
@@ -126,5 +135,5 @@ void ImageApp::update()
 CINDER_APP( ImageApp, RendererGl, []( App::Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
+	settings->disableFrameRate();
 } )

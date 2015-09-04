@@ -12,18 +12,12 @@
     <Filter Include="blocks">
       <UniqueIdentifier>{45d24446-3e56-4215-a1fa-96eb967451d4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{db5b0def-827b-4809-a474-719156d9c1d7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="blocks\Cinder-LeapMotion">
       <UniqueIdentifier>{b4c6b03c-4f71-4a06-a861-abda64840ef2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\TracerApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Ribbon.cpp">
+    <ClCompile Include="..\src\ImageApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\Cinder-LeapMotion.cpp">
@@ -47,22 +41,8 @@
     <ClInclude Include="..\..\..\src\LeapMath.h">
       <Filter>blocks\Cinder-LeapMotion</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\Resources.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Ribbon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\Cinder-LeapMotion.h">
       <Filter>blocks\Cinder-LeapMotion</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\resources\blur.frag">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="..\resources\pass_through.vert">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
 </Project>
