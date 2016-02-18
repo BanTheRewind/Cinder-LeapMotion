@@ -7,7 +7,7 @@
 	git="git://github.com/BanTheRewind/Cinder-LeapMotion.git"
 	summary=""
 	libraryUrl="https://developer.leapmotion.com/"
-	version="2.3.1+31549"
+	version="3.0.0+39171"
 	>
 	<supports os="macosx" />
 	<supports os="msw" />
