@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2015, Ban the Rewind
+* Copyright (c) 2016, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -36,7 +36,6 @@
 
 #include "cinder/app/App.h"
 #include "cinder/Camera.h"
-#include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapMotion.h"
 
@@ -58,6 +57,7 @@ private:
 };
 
 #include "cinder/app/RendererGl.h"
+#include "cinder/gl/gl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
@@ -132,7 +132,8 @@ void ImageApp::update()
 	}
 }
 
-CINDER_APP( ImageApp, RendererGl, []( App::Settings* settings )
+RendererGl::Options gOptions;
+CINDER_APP( ImageApp, RendererGl( gOptions.msaa( 16 ) ), []( App::Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
 	settings->disableFrameRate();

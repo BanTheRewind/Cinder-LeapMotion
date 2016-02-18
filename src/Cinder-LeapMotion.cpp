@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2015, Ban the Rewind
+* Copyright (c) 2016, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 

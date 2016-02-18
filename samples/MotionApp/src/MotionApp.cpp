@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2015, Ban the Rewind
+* Copyright (c) 2016, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -36,15 +36,15 @@
 
 #include "cinder/app/App.h"
 #include "cinder/Camera.h"
-#include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapMotion.h"
 
 class MotionApp : public ci::app::App
 {
 public:
+	MotionApp();
+
 	void						draw() override;
-	void						setup() override;
 	void						update() override;
 private:
 	enum
@@ -72,6 +72,7 @@ private:
 };
 
 #include "cinder/app/RendererGl.h"
+#include "cinder/gl/gl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
@@ -84,21 +85,49 @@ static const float	kRestitution	= 0.021f;
 static const float	kRotSpeed		= 0.33f;
 static const float	kTranslateSpeed	= 0.0033f;
 
+MotionApp::MotionApp()
+{
+	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 45.0f, 0.01f, 10.0f );
+	mCamera.lookAt( vec3( 0.0f, 0.0f, 3.0f ), vec3( 0.0f ) );
+	
+	mConstrainMotion = false;
+	
+	mRotAngle	= 0.0f;
+	mRotAxis	= vec3( 0.0f );
+	mScale		= 1.0f;
+	mTranslate	= vec3( 0.0f );
+
+	mDevice = Device::create();
+	mDevice->connectEventHandler( &MotionApp::onFrame, this );
+
+	mFrameRate	= 0.0f;
+	mFullScreen	= false;
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 120 ) );
+	mParams->addParam( "Frame rate",		&mFrameRate,				"", true );
+	mParams->addParam( "Constrain motion",	&mConstrainMotion ).key( "m" );
+	mParams->addParam( "Full screen",		&mFullScreen ).key( "f" );
+	mParams->addButton( "Screen shot",		[ & ]() { screenShot(); },	"key=space" );
+	mParams->addButton( "Quit",				[ & ]() { quit(); },		"key=q" );
+
+	gl::enable( GL_POLYGON_SMOOTH );
+	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+	gl::enableVerticalSync();
+	gl::enableAlphaBlending();
+	gl::enableDepthRead();
+	gl::enableDepthWrite();
+}
+
 void MotionApp::draw()
 {
 	gl::viewport( getWindowSize() );
 	gl::clear( Colorf::white() );
 	gl::setMatrices( mCamera );
-
-	gl::enableAlphaBlending();
-	gl::enableDepthRead();
-	gl::enableDepthWrite();
 	
-	gl::color( ColorAf::gray( 0.5f ) );
-	gl::pushMatrices();
-	gl::multModelMatrix( mTransform );
-	gl::drawColorCube( vec3( 0.0f ), vec3( 1.0f ) );
-	gl::popMatrices();
+	{
+		const gl::ScopedMatrices scopedMatrices;
+		gl::multModelMatrix( mTransform );
+		gl::drawColorCube( vec3( 0.0f ), vec3( 1.0f ) );
+	}
 
 	mParams->draw();
 }
@@ -145,41 +174,7 @@ void MotionApp::onFrame( Leap::Frame frame )
 
 void MotionApp::screenShot()
 {
-#if defined( CINDER_MSW )
-	fs::path path = getAppPath();
-#else
-	fs::path path = getAppPath().parent_path();
-#endif
-	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
-}
-
-void MotionApp::setup()
-{
-	gl::enable( GL_POLYGON_SMOOTH );
-	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
-	
-	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 45.0f, 0.01f, 10.0f );
-	mCamera.lookAt( vec3( 0.0f, 0.0f, 3.0f ), vec3( 0.0f ) );
-	
-	mConstrainMotion = false;
-	
-	mRotAngle	= 0.0f;
-	mRotAxis	= vec3( 0.0f );
-	mScale		= 1.0f;
-	mTranslate	= vec3( 0.0f );
-
-	mDevice = Device::create();
-	mDevice->connectEventHandler( &MotionApp::onFrame, this );
-
-	// Params
-	mFrameRate	= 0.0f;
-	mFullScreen	= false;
-	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 120 ) );
-	mParams->addParam( "Frame rate",		&mFrameRate,				"", true );
-	mParams->addParam( "Constrain motion",	&mConstrainMotion ).key( "m" );
-	mParams->addParam( "Full screen",		&mFullScreen ).key( "f" );
-	mParams->addButton( "Screen shot",		[ & ]() { screenShot(); },	"key=space" );
-	mParams->addButton( "Quit",				[ & ]() { quit(); },		"key=q" );
+	writeImage( getAppPath() / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
 void MotionApp::update()
@@ -205,8 +200,9 @@ void MotionApp::update()
 	mTransform = glm::scale( mTransform, vec3( mScale ) );
 }
 
-CINDER_APP( MotionApp, RendererGl, []( App::Settings* settings )
+RendererGl::Options gOptions;
+CINDER_APP( MotionApp, RendererGl( gOptions.msaa( 16 ) ), []( App::Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
+	settings->disableFrameRate();
 } )

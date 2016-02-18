@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2015, Ban the Rewind
+* Copyright (c) 2016, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -121,7 +121,7 @@ void Ribbon::update()
 		iter->mWidth		-= 0.125f;
 		float t				= powf( i, 2.0f ) + e;
 		iter->mPosition.x	+= cosf( t ) * 0.3f;
-		iter->mPosition.y	+= sinf( t ) * 0.5f - 2.5f;
+		iter->mPosition.y	+= sinf( t ) * 0.5f;
 
 		if ( iter->mAlpha <= 0.0f || iter->mWidth <= 0.0f ) {
 			iter = mPoints.erase( iter );

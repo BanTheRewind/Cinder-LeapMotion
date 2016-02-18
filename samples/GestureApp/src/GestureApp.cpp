@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2015, Ban the Rewind
+* Copyright (c) 2016, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -35,7 +35,6 @@
 */
 
 #include "cinder/app/App.h"
-#include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
 
 #include "Cinder-LeapMotion.h"
@@ -43,9 +42,10 @@
 class GestureApp : public ci::app::App
 {
 public:
+	GestureApp();
+
 	void					draw() override;
 	void					resize() override;
-	void					setup() override;
 	void					update() override;
 private:
 	Leap::Frame				mFrame;
@@ -103,6 +103,7 @@ private:
 };
 
 #include "cinder/app/RendererGl.h"
+#include "cinder/gl/gl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
@@ -110,6 +111,90 @@ using namespace ci;
 using namespace ci::app;
 using namespace LeapMotion;
 using namespace std;
+
+GestureApp::GestureApp()
+{
+	mBackgroundBrightness	= 0.0f;
+	mBackgroundColor		= Colorf( 0.0f, 0.1f, 0.2f );
+	mCircleResolution		= 32;
+	mDialBrightness			= 0.0f;
+	mDialPosition			= vec2( 155.0f, 230.0f );
+	mDialRadius				= 120.0f;
+	mDialSpeed				= 0.21f;
+	mDialValue				= 0.0f;
+	mDialValueDest			= mDialValue;
+	mDotRadius				= 3.0f;
+	mDotSpacing				= mDotRadius * 3.0f;
+	mFadeSpeed				= 0.95f;
+	mKeySpacing				= 25.0f;
+	mKeyRect				= Rectf( mKeySpacing, 360.0f + mKeySpacing, 600.0f, 600.0f );
+	mKeySize				= 60.0f;
+	mPointableRadius		= 15.0f;
+	mSwipeBrightness		= 0.0f;
+	mSwipePos				= 0.0f;
+	mSwipePosDest			= mSwipePos;
+	mSwipePosSpeed			= 0.33f;
+	mSwipeRect				= Rectf( 310.0f, 100.0f, 595.0f, 360.0f );
+	mSwipeStep				= 0.033f;
+	
+	resize();
+	
+	// Lay out keys
+	float spacing = mKeySize + mKeySpacing;
+	for ( float y = mKeyRect.y1; y < mKeyRect.y2; y += spacing ) {
+		for ( float x = mKeyRect.x1; x < mKeyRect.x2; x += spacing ) {
+			Rectf bounds( x, y, x + mKeySize, y + mKeySize );
+			Key key( bounds );
+			mKeys.push_back( key );
+		}
+	}
+	
+	mDevice = Device::create();
+	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
+	{
+		mFrame = frame;
+	} );
+
+	// Enable gesture types
+	Leap::Controller* controller = mDevice->getController();
+	controller->enableGesture( Leap::Gesture::Type::TYPE_CIRCLE );
+	controller->enableGesture( Leap::Gesture::Type::TYPE_KEY_TAP );
+	controller->enableGesture( Leap::Gesture::Type::TYPE_SCREEN_TAP );
+	controller->enableGesture( Leap::Gesture::Type::TYPE_SWIPE );
+	
+	// Write gesture config to console
+	Leap::Config config = controller->config();
+	console() << "Gesture.Circle.MinRadius: " << config.getFloat( "Gesture.Circle.MinRadius" ) << endl;
+	console() << "Gesture.Circle.MinArc: " << config.getFloat( "Gesture.Circle.MinArc" ) << endl;
+	console() << "Gesture.Swipe.MinLength: " << config.getFloat( "Gesture.Swipe.MinLength" ) << endl;
+	console() << "Gesture.Swipe.MinVelocity: " << config.getFloat( "Gesture.Swipe.MinVelocity" ) << endl;
+	console() << "Gesture.KeyTap.MinDownVelocity: " << config.getFloat( "Gesture.KeyTap.MinDownVelocity" ) << endl;
+	console() << "Gesture.KeyTap.HistorySeconds: " << config.getFloat( "Gesture.KeyTap.HistorySeconds" ) << endl;
+	console() << "Gesture.KeyTap.MinDistance: " << config.getFloat( "Gesture.KeyTap.MinDistance" ) << endl;
+	console() << "Gesture.ScreenTap.MinForwardVelocity: " << config.getFloat( "Gesture.ScreenTap.MinForwardVelocity" ) << endl;
+	console() << "Gesture.ScreenTap.HistorySeconds: " << config.getFloat( "Gesture.ScreenTap.HistorySeconds" ) << endl;
+	console() << "Gesture.ScreenTap.MinDistance: " << config.getFloat( "Gesture.ScreenTap.MinDistance" ) << endl;
+
+	// Update config to make gestures easier
+	config.setFloat( "Gesture.Circle.MinRadius",		2.5f );
+	config.setFloat( "Gesture.Circle.MinArc",			3.0f );
+	config.setFloat( "Gesture.Swipe.MinLength",			75.0f );
+	config.setFloat( "Gesture.Swipe.MinVelocity",		500.0f );
+	config.setFloat( "Gesture.KeyTap.MinDownVelocity",	25.0f );
+	
+	// Allows app to run in background
+	controller->setPolicyFlags( Leap::Controller::PolicyFlag::POLICY_BACKGROUND_FRAMES );
+	
+	mFrameRate	= 0.0f;
+	mFullScreen	= false;
+	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
+	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
+	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
+	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
+	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
+
+	gl::enableVerticalSync();
+}
 
 void GestureApp::draw()
 {
@@ -119,16 +204,15 @@ void GestureApp::draw()
 	gl::enableAlphaBlending();
 	gl::color( Colorf::white() );
 	
-	// Draw everything
-	gl::pushMatrices();
-	gl::translate( mOffset );
-	
-	drawUi();
-	drawGestures();
-	drawPointables();
-	
-	gl::popMatrices();
-	
+	{
+		const gl::ScopedMatrices scopedMatrices;
+		gl::translate( mOffset );
+		
+		drawUi();
+		drawGestures();
+		drawPointables();
+	}
+
 	mParams->draw();
 }
 
@@ -260,7 +344,7 @@ void GestureApp::drawUi()
 	pos *= mDialRadius - mDotSpacing;
 	gl::drawSolidCircle( mDialPosition + pos, mDotRadius, mCircleResolution );
 	
-	// Wwipe
+	// Swipe
 	float x = mSwipeRect.x1 + mSwipePos * mSwipeRect.getWidth();
 	Rectf a( mSwipeRect.x1, mSwipeRect.y1, x, mSwipeRect.y2 );
 	Rectf b( x, mSwipeRect.y1, mSwipeRect.x2, mSwipeRect.y2 );
@@ -285,98 +369,7 @@ void GestureApp::resize()
 // Take screen shot
 void GestureApp::screenShot()
 {
-#if defined( CINDER_MSW )
-	fs::path path = getAppPath();
-#else
-	fs::path path = getAppPath().parent_path();
-#endif
-	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
-}
-
-// Set up
-void GestureApp::setup()
-{
-	gl::enable( GL_POLYGON_SMOOTH );
-	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
-	
-	mBackgroundBrightness	= 0.0f;
-	mBackgroundColor		= Colorf( 0.0f, 0.1f, 0.2f );
-	mCircleResolution		= 32;
-	mDialBrightness			= 0.0f;
-	mDialPosition			= vec2( 155.0f, 230.0f );
-	mDialRadius				= 120.0f;
-	mDialSpeed				= 0.21f;
-	mDialValue				= 0.0f;
-	mDialValueDest			= mDialValue;
-	mDotRadius				= 3.0f;
-	mDotSpacing				= mDotRadius * 3.0f;
-	mFadeSpeed				= 0.95f;
-	mKeySpacing				= 25.0f;
-	mKeyRect				= Rectf( mKeySpacing, 360.0f + mKeySpacing, 600.0f, 600.0f );
-	mKeySize				= 60.0f;
-	mPointableRadius		= 15.0f;
-	mSwipeBrightness		= 0.0f;
-	mSwipePos				= 0.0f;
-	mSwipePosDest			= mSwipePos;
-	mSwipePosSpeed			= 0.33f;
-	mSwipeRect				= Rectf( 310.0f, 100.0f, 595.0f, 360.0f );
-	mSwipeStep				= 0.033f;
-	
-	resize();
-	
-	// Lay out keys
-	float spacing = mKeySize + mKeySpacing;
-	for ( float y = mKeyRect.y1; y < mKeyRect.y2; y += spacing ) {
-		for ( float x = mKeyRect.x1; x < mKeyRect.x2; x += spacing ) {
-			Rectf bounds( x, y, x + mKeySize, y + mKeySize );
-			Key key( bounds );
-			mKeys.push_back( key );
-		}
-	}
-	
-	mDevice = Device::create();
-	mDevice->connectEventHandler( [ & ]( Leap::Frame frame )
-	{
-		mFrame = frame;
-	} );
-
-	// Enable gesture types
-	Leap::Controller* controller = mDevice->getController();
-	controller->enableGesture( Leap::Gesture::Type::TYPE_CIRCLE );
-	controller->enableGesture( Leap::Gesture::Type::TYPE_KEY_TAP );
-	controller->enableGesture( Leap::Gesture::Type::TYPE_SCREEN_TAP );
-	controller->enableGesture( Leap::Gesture::Type::TYPE_SWIPE );
-	
-	// Write gesture config to console
-	Leap::Config config = controller->config();
-	console() << "Gesture.Circle.MinRadius: " << config.getFloat( "Gesture.Circle.MinRadius" ) << endl;
-	console() << "Gesture.Circle.MinArc: " << config.getFloat( "Gesture.Circle.MinArc" ) << endl;
-	console() << "Gesture.Swipe.MinLength: " << config.getFloat( "Gesture.Swipe.MinLength" ) << endl;
-	console() << "Gesture.Swipe.MinVelocity: " << config.getFloat( "Gesture.Swipe.MinVelocity" ) << endl;
-	console() << "Gesture.KeyTap.MinDownVelocity: " << config.getFloat( "Gesture.KeyTap.MinDownVelocity" ) << endl;
-	console() << "Gesture.KeyTap.HistorySeconds: " << config.getFloat( "Gesture.KeyTap.HistorySeconds" ) << endl;
-	console() << "Gesture.KeyTap.MinDistance: " << config.getFloat( "Gesture.KeyTap.MinDistance" ) << endl;
-	console() << "Gesture.ScreenTap.MinForwardVelocity: " << config.getFloat( "Gesture.ScreenTap.MinForwardVelocity" ) << endl;
-	console() << "Gesture.ScreenTap.HistorySeconds: " << config.getFloat( "Gesture.ScreenTap.HistorySeconds" ) << endl;
-	console() << "Gesture.ScreenTap.MinDistance: " << config.getFloat( "Gesture.ScreenTap.MinDistance" ) << endl;
-
-	// Update config to make gestures easier
-	config.setFloat( "Gesture.Circle.MinRadius",		2.5f );
-	config.setFloat( "Gesture.Circle.MinArc",			3.0f );
-	config.setFloat( "Gesture.Swipe.MinLength",			75.0f );
-	config.setFloat( "Gesture.Swipe.MinVelocity",		500.0f );
-	config.setFloat( "Gesture.KeyTap.MinDownVelocity",	25.0f );
-	
-	// Allows app to run in background
-	controller->setPolicyFlags( Leap::Controller::PolicyFlag::POLICY_BACKGROUND_FRAMES );
-	
-	mFrameRate	= 0.0f;
-	mFullScreen	= false;
-	mParams = params::InterfaceGl::create( "Params", ivec2( 200, 105 ) );
-	mParams->addParam( "Frame rate",	&mFrameRate,				"", true );
-	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
-	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
-	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
+	writeImage( getAppPath() / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
 void GestureApp::update()
@@ -461,7 +454,8 @@ vec2 GestureApp::warpVector( const Leap::Vector& v )
 	return vec2( result.x, result.y );
 }
 
-CINDER_APP( GestureApp, RendererGl, []( App::Settings* settings )
+RendererGl::Options gOptions;
+CINDER_APP( GestureApp, RendererGl( gOptions.msaa( 16 ) ), []( App::Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
 	settings->setFrameRate( 60.0f );

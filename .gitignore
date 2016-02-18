@@ -18,3 +18,5 @@ Release
 *.map
 *.pdb
 *.ilk
+Thumbs.db
+.vs

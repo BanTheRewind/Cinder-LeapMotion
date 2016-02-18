@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2015, Ban the Rewind
+* Copyright (c) 2016, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -116,6 +116,8 @@ TracerApp::TracerApp()
 	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
 	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
 	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
+
+	gl::enableVerticalSync();
 }
 
 void TracerApp::draw()
@@ -244,8 +246,9 @@ void TracerApp::update()
 	}
 }
 
-CINDER_APP( TracerApp, RendererGl( RendererGl::Options().coreProfile( true ).version( 3, 3 ).msaa( 16 ) ), []( App::Settings* settings )
+RendererGl::Options gOptions;
+CINDER_APP( TracerApp, RendererGl( gOptions.coreProfile( true ).version( 3, 3 ).msaa( 16 ) ), []( App::Settings* settings )
 {
-	settings->setFrameRate( 60.0f );
 	settings->setWindowSize( 1024, 768 );
+	settings->disableFrameRate();
 } )

@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2015, Ban the Rewind
+* Copyright (c) 2016, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -36,7 +36,6 @@
 
 #include "cinder/app/App.h"
 #include "cinder/Camera.h"
-#include "cinder/gl/gl.h"
 #include "cinder/params/Params.h"
 #include "Cinder-LeapMotion.h"
 
@@ -59,6 +58,7 @@ private:
 };
 
 #include "cinder/app/RendererGl.h"
+#include "cinder/gl/gl.h"
 #include "cinder/ImageIo.h"
 #include "cinder/Utilities.h"
 
@@ -127,21 +127,11 @@ void SkeletalApp::draw()
 
 void SkeletalApp::screenShot()
 {
-#if defined( CINDER_MSW )
-	fs::path path = getAppPath();
-#else
-	fs::path path = getAppPath().parent_path();
-#endif
-	writeImage( path / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
+	writeImage( getAppPath() / fs::path( "frame" + toString( getElapsedFrames() ) + ".png" ), copyWindowSurface() );
 }
 
 void SkeletalApp::setup()
 {
-	gl::enable( GL_LINE_SMOOTH );
-	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ); 
-	gl::enable( GL_POLYGON_SMOOTH );
-	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
-
 	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 1.0f, 5000.0f );
 	mCamera.lookAt( vec3( 0.0f, 300.0f, 300.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
 	
@@ -158,6 +148,12 @@ void SkeletalApp::setup()
 	mParams->addParam( "Full screen",	&mFullScreen ).key( "f" );
 	mParams->addButton( "Screen shot",	[ & ]() { screenShot(); },	"key=space" );
 	mParams->addButton( "Quit",			[ & ]() { quit(); },		"key=q" );
+
+	gl::enable( GL_LINE_SMOOTH );
+	glHint( GL_LINE_SMOOTH_HINT, GL_NICEST ); 
+	gl::enable( GL_POLYGON_SMOOTH );
+	glHint( GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+	gl::enableVerticalSync();
 }
 
 void SkeletalApp::update()
@@ -169,8 +165,9 @@ void SkeletalApp::update()
 	}
 }
 
-CINDER_APP( SkeletalApp, RendererGl, []( App::Settings* settings )
+RendererGl::Options gOptions;
+CINDER_APP( SkeletalApp, RendererGl( gOptions.msaa( 16 ) ), []( App::Settings* settings )
 {
 	settings->setWindowSize( 1024, 768 );
-	settings->setFrameRate( 60.0f );
+	settings->disableFrameRate();
 } )
