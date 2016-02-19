@@ -1,6 +1,6 @@
 /*
 * 
-* Copyright (c) 2015, Ban the Rewind
+* Copyright (c) 2016, Ban the Rewind
 * All rights reserved.
 * 
 * Redistribution and use in source and binary forms, with or 
@@ -44,8 +44,9 @@
 class _TBOX_PREFIX_App : public ci::app::App
 {
  public:
+	_TBOX_PREFIX_App();
+	
 	void 					draw() override;
-	void 					setup() override;
  private:	
 	Leap::Frame				mFrame;
 	LeapMotion::DeviceRef	mLeap;
@@ -56,6 +57,21 @@ class _TBOX_PREFIX_App : public ci::app::App
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+
+_TBOX_PREFIX_App::_TBOX_PREFIX_App()
+{	 
+	gl::enableDepthRead();
+	gl::enableDepthWrite();
+	
+	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
+	mCamera.lookAt( vec3( 0.0f, 125.0f, 500.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
+	
+	mLeap = LeapMotion::Device::create();
+	mLeap->connectEventHandler( [ & ]( Leap::Frame frame )
+	{
+		mFrame = frame;
+	} );
+}
 
 void _TBOX_PREFIX_App::draw() 
 {
@@ -76,21 +92,6 @@ void _TBOX_PREFIX_App::draw()
 			gl::drawLine( basePos, tipPos );
 		}
 	}
-}
-
-void _TBOX_PREFIX_App::setup()
-{	 
-	gl::enableDepthRead();
-	gl::enableDepthWrite();
-	
-	mCamera = CameraPersp( getWindowWidth(), getWindowHeight(), 60.0f, 0.01f, 1000.0f );
-	mCamera.lookAt( vec3( 0.0f, 125.0f, 500.0f ), vec3( 0.0f, 250.0f, 0.0f ) );
-	
-	mLeap = LeapMotion::Device::create();
-	mLeap->connectEventHandler( [ & ]( Leap::Frame frame )
-	{
-		mFrame = frame;
-	} );
 }
 
 CINDER_APP( _TBOX_PREFIX_App, RendererGl )
