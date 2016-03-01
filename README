@@ -1,8 +1,10 @@
-This block wraps the Leap Motion + Orion SDK.
+This block wraps the Leap Motion Orion SDK.
 
 -----------------------------------------
 
-Version 3.0.0+39171
+Version 3.1.0+39495
+
+Orion does not support OSX. Use the master or release branches of this repo to run the Leap on Mac.
 
 -----------------------------------------
 

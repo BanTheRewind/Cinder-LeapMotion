@@ -80,8 +80,6 @@ namespace Leap {
   class ControllerImplementation;
   class MaskImplementation;
   class TrackedQuadImplementation;
-  class EdgeSampleImplementation;
-  class TipImplementation;
   template<typename T> class ListBaseImplementation;
 
   // Forward declarations
@@ -92,8 +90,6 @@ namespace Leap {
   class GestureList;
   class ImageList;
   class MaskList;
-  class EdgeSampleList;
-  class TipList;
   class Hand;
   class Gesture;
   class InteractionBox;
@@ -4110,311 +4106,6 @@ namespace Leap {
   * Note: This class is an experimental API for internal use only. It may be
   * removed without warning.
   *
-  * A 3D position along the observed edges of hands and tools.
-  *
-  * If there is insufficient contrast between the  background and the hands or
-  * tools, the edge can be noisy with some samples positioned on background
-  * edges. The weight() value estimates the confidence that a sample is on the
-  * edge of a hand or tool.
-  *
-  * @since 3.0
-  */
-  class EdgeSample : public Interface {
-  public:
-
-    // For internal use only.
-    EdgeSample(EdgeSampleImplementation*);
-
-    /**
-    * Constructs a new EdgeSample object. Do not use. Get valid EdgeSamples
-    * from a Frame object.
-    * \include EdgeSample_constructor_controller.txt
-    * \include EdgeSample_constructor_frame.txt
-    */
-    LEAP_EXPORT EdgeSample();
-
-    /**
-    * The 3D position of the sample.
-    * @since 3.0
-    */
-    LEAP_EXPORT Vector position() const;
-
-    /**
-    * The confidence that this sample is positioned along the edge of a hand or
-    * tool.
-    *
-    * The weight value is in the range [0..1].
-    * @since 3.0
-    */
-    LEAP_EXPORT float weight() const;
-
-    LEAP_EXPORT int32_t idLeft() const;
-
-    LEAP_EXPORT int32_t idRight() const;
-
-    /**
-    * Reports whether this is a valid object.
-    * \include EdgeSample_isValid.txt
-    * @since 3.0
-    */
-    LEAP_EXPORT bool isValid() const;
-
-    /**
-    * An invalid object.
-    * @since 3.0
-    */
-    LEAP_EXPORT static const EdgeSample& invalid();
-
-    /**
-    * Compares edge sample objects for equality.
-    * @since 3.0
-    */
-    LEAP_EXPORT bool operator==(const EdgeSample&) const;
-
-    /**
-    * Compares edge sample objects for inequality.
-    * @since 3.0
-    */
-    LEAP_EXPORT bool operator!=(const EdgeSample&) const;
-
-    /**
-    * Prints a brief, human-readable description of this edge sample to a std::ostream.
-    * @since 3.0
-    */
-    LEAP_EXPORT friend std::ostream& operator<<(std::ostream&, const EdgeSample&);
-
-    /**
-    * Provides a brief, human-readable description of this edge sample.
-    * @since 3.0
-    */
-    std::string toString() const {
-      const char* cstr = toCString();
-      std::string str(cstr);
-      deleteCString(cstr);
-      return str;
-    }
-
-  private:
-    LEAP_EXPORT const char* toCString() const;
-  };
-
-  /**
-  * Note: This class is an experimental API for internal use only. It may be
-  * removed without warning.
-  *
-  * A list containing EdgeSample objects.
-  *
-  * Get the list of EdgeSample objects from a Frame object.
-  * @since 3.0
-  */
-  class EdgeSampleList : public Interface {
-  public:
-    // For internal use only.
-    EdgeSampleList(const ListBaseImplementation<EdgeSample>&);
-
-    /**
-    * Constructs an empty list for EdgeSample objects.
-    * @since 3.0
-    */
-    LEAP_EXPORT EdgeSampleList();
-
-    /**
-    * The number of edge samples in this list.
-    * @since 3.0
-    */
-    LEAP_EXPORT int count() const;
-
-    /**
-    * Reports whether this list is empty.
-    * @since 3.0
-    */
-    LEAP_EXPORT bool isEmpty() const;
-
-    /**
-    * The EdgeSampleList supports array indexing.
-    * @since 3.0
-    */
-    LEAP_EXPORT EdgeSample operator[](int index) const;
-
-    /**
-    * Appends the contents of another list of edge samples to this one.
-    * @since 3.0
-    */
-    LEAP_EXPORT EdgeSampleList& append(const EdgeSampleList& other);
-
-    typedef ConstListIterator<EdgeSampleList, EdgeSample> const_iterator;
-
-    /**
-    * A list iterator set to the beginning of the list.
-    * @since 3.0
-    */
-    LEAP_EXPORT const_iterator begin() const;
-
-    /**
-    * A list iterator set to the end of the list.
-    * @since 3.0
-    */
-    LEAP_EXPORT const_iterator end() const;
-  };
-
-  /**
-  * Note: This class is an experimental API for internal use only. It may be
-  * removed without warning.
-  *
-  * Represents the 3D position and size of a detected tip.
-  *
-  * The position of a tip is measured directly before fitting the finger to the
-  * hand skeleton model. Since the skeleton
-  * model is transformed to best fit the observed data while maintaining
-  * plausibility constraints, the position of a Tip object may not align with the
-  * point reported by any Pointable::tipPosition().
-  *
-  * The tips in the TipList are not correlated with either hands or fingers. If
-  * desired, you can estimate the correspondance by comparing the position
-  * of the tip with the reported positions of finger and tools.
-  *
-  * @since 3.0
-  */
-  class Tip : public Interface {
-  public:
-
-    // For internal use only.
-    Tip(TipImplementation*);
-
-    /**
-    * Constructs a new Tip object. Do not use. Get the list of valid Tip objects
-    * from a Frame object.
-    * \include Tip_constructor_controller.txt
-    * \include Tip_constructor_frame.txt
-    *
-    * @since 3.0
-    */
-    LEAP_EXPORT Tip();
-
-    /**
-    * The 3D position of the tip.
-    *
-    * The position is inside the observed contour of the finger or tool by a distance
-    * equal to the radius.
-    * @since 3.0
-    */
-    LEAP_EXPORT Vector position() const;
-
-    /**
-    * The radius of curvature of the finger tip or tool.
-    * @since 3.0
-    */
-    LEAP_EXPORT float radius() const;
-
-    /**
-    * Reports whether this is a valid object.
-    * \include Tip_isValid.txt
-    * @since 3.0
-    */
-    LEAP_EXPORT bool isValid() const;
-
-    /**
-    * An invalid object.
-    * @since 3.0
-    */
-    LEAP_EXPORT static const Tip& invalid();
-
-    /**
-    * Compares tip objects for equality.
-    * @since 3.0
-    */
-    LEAP_EXPORT bool operator==(const Tip&) const;
-
-    /**
-    * Compares tip objects for inequality.
-    * @since 3.0
-    */
-    LEAP_EXPORT bool operator!=(const Tip&) const;
-
-    /**
-    * Prints a brief, human-readable description of this tip to a std::ostream.
-    * @since 3.0
-    */
-    LEAP_EXPORT friend std::ostream& operator<<(std::ostream&, const Tip&);
-
-    /**
-    * Provides a brief, human-readable description of this tip.
-    * @since 3.0
-    */
-    std::string toString() const {
-      const char* cstr = toCString();
-      std::string str(cstr);
-      deleteCString(cstr);
-      return str;
-    }
-
-  private:
-    LEAP_EXPORT const char* toCString() const;
-  };
-
-  /**
-  * Note: This class is an experimental API for internal use only. It may be
-  * removed without warning.
-  *
-  * A list containing Tip objects. Get the list of currently observed tips from
-  * a Frame object.
-  * @since 3.0
-  */
-  class TipList : public Interface {
-  public:
-    // For internal use only.
-    TipList(const ListBaseImplementation<Tip>&);
-
-    /**
-    * Constructs an empty list for Tip objects. Get a list containing the observed
-    * tips from a Frame object.
-    * @since 3.0
-    */
-    LEAP_EXPORT TipList();
-
-    /**
-    * The number of matched image tips in this list.
-    * @since 3.0
-    */
-    LEAP_EXPORT int count() const;
-
-    /**
-    * Reports whether this list is empty.
-    * @since 3.0
-    */
-    LEAP_EXPORT bool isEmpty() const;
-
-    /**
-    * The TipList supports array indexing.
-    * @since 3.0
-    */
-    LEAP_EXPORT Tip operator[](int index) const;
-
-    /**
-    * Appends the contents of another list of matched image tips to this one.
-    * @since 3.0
-    */
-    LEAP_EXPORT TipList& append(const TipList& other);
-
-    typedef ConstListIterator<TipList, Tip> const_iterator;
-
-    /**
-    * A list iterator set to the beginning of the list.
-    * @since 3.0
-    */
-    LEAP_EXPORT const_iterator begin() const;
-
-    /**
-    * A list iterator set to the end of the list.
-    * @since 3.0
-    */
-    LEAP_EXPORT const_iterator end() const;
-  };
-
-  /**
-  * Note: This class is an experimental API for internal use only. It may be
-  * removed without warning.
-  *
   * A list containing Mask objects.
   * @since 2.2.6
   */
@@ -5024,43 +4715,6 @@ namespace Leap {
     LEAP_EXPORT InteractionBox interactionBox() const;
 
     /**
-     * Note: This class is an experimental API for internal use only. It may be
-     * removed without warning.
-     *
-     * The list of 3D points along the contours of detected objects.
-     *
-     * \include Frame_edgeSamples.txt
-     *
-     * @since 3.0
-     **/
-    LEAP_EXPORT EdgeSampleList edgeSamples() const;
-
-    /**
-     * Note: This class is an experimental API for internal use only. It may be
-     * removed without warning.
-     *
-     * The list of 3D points at the tips of fingers and tools.
-     *
-     * \include Frame_tipList.txt
-     *
-     * The tips represent the directly measured data before fitting to the
-     * hand skeleton model. Whereas the skeleton model (represented by the Hand and
-     * Finger classes) always reports five fingers per detected hand, the list of
-     * tips only contain directly observed fingers. In addition, since the skeleton
-     * model is transformed to best fit the observed data while maintaining
-     * plausibility constraints, the position of individual tips may not align with the
-     * point reported by Pointable::tipPosition(). The Hand::confidence() value
-     * rates how the model and the data align.
-     *
-     * The tips in the list are not correlated with either hands or fingers. If
-     * desired, you can estimate the correspondance by comparing the position
-     * of a tip with the reported positions of finger and tools.
-     *
-     * @since 3.0
-     **/
-    LEAP_EXPORT TipList tips() const;
-
-    /**
      * The instantaneous frame rate.
      *
      * The rate at which the Leap Motion software is providing frames of data
@@ -5637,12 +5291,6 @@ namespace Leap {
      * **POLICY_ALLOW_PAUSE_RESUME** -- request that the application be allowed
      *   to pause and unpause the Leap Motion service.
      *
-     * **POLICY_EDGE_SAMPLES** -- request "edge sample" points, useful for drawing
-     *   the boundaries around hands or other objects.
-     *
-     * **POLICY_TIPS** -- request tip points, useful for individual finger tracking
-     *   when a complete hand skeleton is not available.
-     *
      * Some policies can be denied if the user has disabled the feature on
      * their Leap Motion control panel.
      *
@@ -5677,16 +5325,6 @@ namespace Leap {
       * @since 3.0
       */
       POLICY_ALLOW_PAUSE_RESUME = (1 << 3),
-
-      /**
-       * Receive edge samples.
-       */
-      POLICY_EDGE_SAMPLES = (1 << 4),
-
-      /**
-       * Receive finger/object tips without a required skeleton.
-       */
-      POLICY_TIPS = (1 << 5),
 
       /**
        * Receive raw images.

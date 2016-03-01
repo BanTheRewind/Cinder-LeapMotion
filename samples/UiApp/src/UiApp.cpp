@@ -294,7 +294,7 @@ vec2 UiApp::warpVector( const Leap::Vector& v )
 {
 	vec3 result( 0.0f );
 	if ( mDevice ) {
-		const Leap::Screen& screen = mDevice->getController()->locatedScreens().closestScreen( v );
+		const Leap::& screen = mDevice->getController()->locatedScreens().closestScreen( v );
 		
 		result	= LeapMotion::toVec3( screen.project( v, true ) );
 	}

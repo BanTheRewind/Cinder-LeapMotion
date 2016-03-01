@@ -7,19 +7,14 @@
 	git="git://github.com/BanTheRewind/Cinder-LeapMotion.git"
 	summary=""
 	libraryUrl="https://developer.leapmotion.com/"
-	version="3.0.0+39171"
+	version="3.1.0+39495"
 	>
-	<supports os="macosx" />
 	<supports os="msw" />
 	<source>src/Cinder-LeapMotion.cpp</source>
 	<header>src/Cinder-LeapMotion.h</header>
 	<header>src/Leap.h</header>
 	<header>src/LeapMath.h</header>
 	<includePath>src</includePath>
-	<platform os="macosx">
-		<dynamicLibrary>lib/macosx/libLeap.dylib</dynamicLibrary>
-		<buildCopy>lib/macosx/libLeap.dylib</buildCopy>
-	</platform>
 	<platform os="msw">
 		<platform config="debug">
 			<buildCopy>lib/msw/$(PlatformTarget)/Leap.dll</buildCopy>
