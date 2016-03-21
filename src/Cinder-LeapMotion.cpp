@@ -184,6 +184,7 @@ Device::Device()
 
 Device::~Device()
 {
+	disconnectEventHandler();
 	mController->removeListener( mListener );
 }
 
@@ -215,6 +216,11 @@ bool Device::isInitialized() const
 void Device::connectEventHandler( const function<void( Leap::Frame )>& eventHandler )
 {
 	mEventHandler = eventHandler;
+}
+
+void Device::disconnectEventHandler()
+{
+	mEventHandler = nullptr;
 }
 
 void Device::update()
