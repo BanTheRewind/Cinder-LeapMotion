@@ -179,13 +179,16 @@ Device::Device()
 	mListener.mMutex	= &mMutex;
 	mController			= new Leap::Controller( mListener );
 
-	App::get()->getSignalUpdate().connect( bind( &Device::update, this ) );
+	mUpdateConnection	= App::get()->getSignalUpdate().connect( bind( &Device::update, this ) );
 }
 
 Device::~Device()
 {
 	disconnectEventHandler();
 	mController->removeListener( mListener );
+	if (mUpdateConnection.isConnected()) {
+		mUpdateConnection.disconnect();
+	}
 }
 
 Leap::Controller* Device::getController() const
