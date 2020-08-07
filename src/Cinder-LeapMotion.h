@@ -40,6 +40,7 @@
 #include "cinder/Channel.h"
 #include "cinder/Matrix.h"
 #include "cinder/Vector.h"
+#include "cinder/Signals.h"
 #include <functional>
 #include <mutex>
 
@@ -129,7 +130,8 @@ protected:
 
 	std::function<void ( Leap::Frame )>	mEventHandler;
 
-	virtual void		update();
+	ci::signals::Connection mUpdateConnection;
+	virtual void			update();
 
 	Leap::Controller*	mController;
 	Leap::Device		mDevice;
